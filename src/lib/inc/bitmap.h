@@ -21,7 +21,7 @@
 
 /* TODO: needs optimizations */
 
-typedef uint32_t bitmap_granule_t;
+typedef unsigned int bitmap_granule_t;
 typedef bitmap_granule_t* bitmap_t;
 
 static const bitmap_granule_t ONE = 1;
@@ -47,7 +47,7 @@ static inline void bitmap_clear(bitmap_t map, size_t bit)
     map[bit / BITMAP_GRANULE_LEN] &= ~(ONE << (bit % BITMAP_GRANULE_LEN));
 }
 
-static inline uint64_t bitmap_get(bitmap_t map, size_t bit)
+static inline size_t bitmap_get(bitmap_t map, size_t bit)
 {
     return (map[bit / BITMAP_GRANULE_LEN] & (ONE << (bit % BITMAP_GRANULE_LEN)))
                ? 1U
@@ -65,10 +65,10 @@ static inline void bitmap_clear_consecutive(bitmap_t map, size_t start,
     for (size_t i = 0; i < n; i++) bitmap_clear(map, start + i);
 }
 
-static inline uint64_t bitmap_count(bitmap_t map, size_t start, size_t n,
+static inline size_t bitmap_count(bitmap_t map, size_t start, size_t n,
                                     bool set)
 {
-    uint64_t count = 0;
+    size_t count = 0;
     for (int i = start; i < n; i++) {
         if (bitmap_get(map, i) == set) count++;
     }
@@ -76,13 +76,13 @@ static inline uint64_t bitmap_count(bitmap_t map, size_t start, size_t n,
     return count;
 }
 
-int64_t bitmap_find_nth(bitmap_t map, size_t size, size_t nth, size_t start,
+long int bitmap_find_nth(bitmap_t map, size_t size, size_t nth, size_t start,
                         bool set);
 
 size_t bitmap_count_consecutive(bitmap_t map, size_t size, size_t start,
                                 size_t n);
 
-uint64_t bitmap_find_consec(bitmap_t map, size_t size, size_t start, size_t n,
+long int bitmap_find_consec(bitmap_t map, size_t size, size_t start, size_t n,
                             bool set);
 
 #endif /* __BITMAP_H__ */

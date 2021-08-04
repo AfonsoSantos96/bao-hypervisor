@@ -29,10 +29,10 @@ struct gic_dscrp;
 typedef struct vgic_int {
     vcpu_t *owner;
 #if (GIC_VERSION != GICV2)
-    uint64_t route;
+    size_t /*uint64_t*/ route;
     union {
-        uint64_t redist;
-        uint64_t route;
+        size_t /*uint64_t*/ redist;
+        size_t /*uint64_t*/ route;
     } phys;
 #endif
     spinlock_t lock;
@@ -66,7 +66,7 @@ typedef struct {
 
 typedef struct {
     spinlock_t lock;
-    uint64_t TYPER;
+    size_t /*uint64_t*/ TYPER;
     uint32_t CTLR;
     uint32_t IIDR;
 } vgicr_t;

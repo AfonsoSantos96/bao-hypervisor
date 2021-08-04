@@ -66,7 +66,7 @@ typedef struct vcpu {
     struct arch_regs* regs;
     vcpu_arch_t arch;
 
-    uint64_t id;
+    size_t /*uint64_t*/ id;
     uint32_t phys_id;
     bool active;
 

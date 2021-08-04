@@ -81,16 +81,16 @@ typedef struct {
 } psci_ctx_t;
 
 typedef struct {
-    uint64_t tcr_el2;
-    uint64_t ttbr0_el2;
-    uint64_t mair_el2;
-    uint64_t cptr_el2;
-    uint64_t hcr_el2;
-    uint64_t vmpidr_el2;
-    uint64_t vtcr_el2;
-    uint64_t vttbr_el2;
-    uint64_t wakeup_reason;
-    uint64_t flat_map;
+    size_t tcr_el2;
+    size_t ttbr0_el2;
+    size_t mair_el2;
+    size_t cptr_el2;
+    size_t hcr_el2;
+    size_t vmpidr_el2;
+    size_t vtcr_el2;
+    size_t vttbr_el2;
+    size_t wakeup_reason;
+    size_t flat_map;
     gicc_state_t gicc_state;
 } __attribute__((packed, aligned(8))) psci_off_state_t;
 
@@ -105,27 +105,27 @@ enum wakeup_reason {
         SMC Trapping
 --------------------------------- */
 
-int64_t psci_smc_handler(uint32_t smc_fid, uint64_t x1, uint64_t x2,
-                         uint64_t x3);
+long/*int64_t*/ psci_smc_handler(size_t /*uint64_t*/ smc_fid, size_t /*uint64_t*/ x1, size_t /*uint64_t*/ x2,
+                         size_t /*uint64_t*/ x3);
 
-uint64_t psci_standby();
-uint64_t psci_power_down(uint64_t reason);
+size_t /*uint64_t*/ psci_standby();
+size_t /*uint64_t*/ psci_power_down(size_t /*uint64_t*/ reason);
 
 /* --------------------------------
         SMC PSCI interface
 --------------------------------- */
 
-uint64_t psci_version(void);
+size_t /*uint64_t*/ psci_version(void);
 
-uint64_t psci_cpu_suspend(uint64_t power_state, uintptr_t entrypoint,
-                          uint64_t context_id);
+size_t /*uint64_t*/ psci_cpu_suspend(size_t /*uint64_t*/ power_state, uintptr_t entrypoint,
+                          size_t /*uint64_t*/ context_id);
 
-uint64_t psci_cpu_off(void);
+size_t /*uint64_t*/ psci_cpu_off(void);
 
-uint64_t psci_cpu_on(uint64_t target_cpu, uintptr_t entrypoint,
-                     uint64_t context_id);
+size_t /*uint64_t*/ psci_cpu_on(size_t /*uint64_t*/ target_cpu, uintptr_t entrypoint,
+                     size_t /*uint64_t*/ context_id);
 
-uint64_t psci_affinity_info(uint64_t target_affinity,
-                            uint64_t lowest_affinity_level);
+size_t /*uint64_t*/ psci_affinity_info(size_t /*uint64_t*/ target_affinity,
+                            size_t /*uint64_t*/ lowest_affinity_level);
 
 #endif /* __PSCI_H__ */

@@ -19,17 +19,17 @@
 #include <bao.h>
 #include <platform.h>
 
-extern uint8_t _config_end, _images_end;
+extern unsigned char _config_end, _images_end;
 
 #define CONFIG_HEADER_SIZE ((size_t)&_config_end)
 #define CONFIG_SIZE ((size_t)&_images_end)
 
-#define VM_IMAGE_OFFSET(vm_name) ((uint64_t)&_##vm_name##_vm_beg)
+#define VM_IMAGE_OFFSET(vm_name) ((size_t)&_##vm_name##_vm_beg)
 #define VM_IMAGE_SIZE(vm_name) ((size_t)&_##vm_name##_vm_size)
 
 #define VM_IMAGE(vm_name, image)                                            \
-    extern uint64_t _##vm_name##_vm_size;                                   \
-    extern uint64_t _##vm_name##_vm_beg;                                    \
+    extern size_t _##vm_name##_vm_size;                                   \
+    extern size_t _##vm_name##_vm_beg;                                    \
     asm(".pushsection .vm_image_" XSTR(vm_name) ", \"a\"\n\t"               \
         ".global _" XSTR(vm_name) "_vm_beg\n\t"                             \
         "_" XSTR(vm_name) "_vm_beg:\n\t"                                    \
@@ -57,27 +57,27 @@ extern uint8_t _config_end, _images_end;
 typedef struct vm_config {
     struct {
         /* Image load address in VM's address space */
-        uint64_t base_addr;
+        size_t base_addr;
         /* Image load address in hyp address space */
-        uint64_t load_addr;
+        size_t load_addr;
         /* Image size */
         size_t size;
     } image;
 
     /* Entry point address in VM's address space */
-    uint64_t entry;
+    size_t entry;
     /**
      * A bitmap signaling the preferred physical cpus assigned to the VM.
      * If this value is each mutual exclusive for all the VMs, this field
      * allows to direcly assign specific physical cpus to the VM.
      */
-    uint64_t cpu_affinity;
+    size_t cpu_affinity;
 
     /**
      * A bitmap for the assigned colors of the VM. This value is truncated
      * depending on the number of available colors calculated at runtime
      */
-    uint64_t colors;
+    size_t colors;
 
     /**
      * A description of the virtual platform available to the guest, i.e.,
@@ -89,16 +89,16 @@ typedef struct vm_config {
 } vm_config_t;
 
 struct fdt_header {
-    uint32_t magic;
-    uint32_t totalsize;
-    uint32_t off_dt_struct;
-    uint32_t off_dt_strings;
-    uint32_t off_mem_rsvmap;
-    uint32_t version;
-    uint32_t last_comp_version;
-    uint32_t boot_cpuid_phys;
-    uint32_t size_dt_strings;
-    uint32_t size_dt_struct;
+    unsigned int magic;
+    unsigned int totalsize;
+    unsigned int off_dt_struct;
+    unsigned int off_dt_strings;
+    unsigned int off_mem_rsvmap;
+    unsigned int version;
+    unsigned int last_comp_version;
+    unsigned int boot_cpuid_phys;
+    unsigned int size_dt_strings;
+    unsigned int size_dt_struct;
 };
 
 extern struct config {
@@ -114,7 +114,7 @@ extern struct config {
     size_t config_size;
 
     /* Hypervisor colors */
-    uint64_t hyp_colors;
+    size_t hyp_colors;
 
     /* Definition of shared memory regions to be used by VMs */
     size_t shmemlist_size;
@@ -128,11 +128,11 @@ extern struct config {
 
 } config __attribute__((section(".config")));
 
-void config_adjust_to_va(struct config *config, uint64_t phys);
-void config_arch_adjust_to_va(struct config *config, uint64_t phys);
+void config_adjust_to_va(struct config *config, size_t phys);
+void config_arch_adjust_to_va(struct config *config, size_t phys);
 bool config_is_builtin();
 
 #define adjust_ptr(p, o)\
-    ((p) = (p) ? (typeof(p))(  (void*)(p) + (uint64_t)(o)) : (p))
+    ((p) = (p) ? (typeof(p))(  (void*)(p) + (size_t)(o)) : (p))
 
 #endif /* __CONFIG_H__ */

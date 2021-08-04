@@ -15,11 +15,11 @@
 
 #include <string.h>
 
-void *memcpy(void *dst, const void *src, uint32_t count)
+void *memcpy(void *dst, const void *src, unsigned int count)
 {
-    int32_t i;
-    uint8_t *dst_tmp = dst;
-    const uint8_t *src_tmp = src;
+    int i;
+    unsigned char *dst_tmp = dst;
+    const unsigned char *src_tmp = src;
 
     if (!((WORD_TYPE)src & (WORD_SIZE - 1)) &&
         !((WORD_TYPE)dst & (WORD_SIZE - 1))) {
@@ -42,10 +42,10 @@ void *memcpy(void *dst, const void *src, uint32_t count)
     return dst;
 }
 
-void *memset(void *dest, uint32_t c, uint32_t count)
+void *memset(void *dest, unsigned int c, unsigned int count)
 {
-    uint8_t *d;
-    d = (uint8_t *)dest;
+    unsigned char *d;
+    d = (unsigned char *)dest;
 
     while (count--) {
         *d = c;
@@ -65,7 +65,7 @@ char *strcat(char *dest, char *src)
     return (save);
 }
 
-uint32_t strlen(const char *s)
+unsigned int strlen(const char *s)
 {
     const char *sc;
     for (sc = s; *sc != '\0'; ++sc) {
@@ -74,7 +74,7 @@ uint32_t strlen(const char *s)
     return sc - s;
 }
 
-uint32_t strnlen(const char *s, size_t n)
+unsigned int strnlen(const char *s, size_t n)
 {
     const char *str;
 
@@ -94,7 +94,7 @@ char *strcpy(char *dest, char *src)
     return tmp;
 }
 
-uint32_t strcmp(char *str0, char *str1)
+unsigned int strcmp(char *str0, char *str1)
 {
     char *tmp0 = str0, *tmp1 = str1;
 
@@ -103,5 +103,5 @@ uint32_t strcmp(char *str0, char *str1)
         tmp1++;
     }
 
-    return (uint32_t)(tmp0 != tmp1);
+    return (unsigned int)(tmp0 != tmp1);
 }

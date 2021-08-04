@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "interrupts.h": "c",
+        "cpu.h": "c",
+        "bao.h": "c",
+        "gic.h": "c",
+        "xmemory": "c",
+        "xutility": "c",
+        "bit.h": "c",
+        "cache.h": "c"
+    }
+}

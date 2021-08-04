@@ -40,7 +40,7 @@ void vmm_init()
         spinlock_t lock;
         bool master;
         size_t ncpus;
-        uint64_t cpus;
+        size_t cpus;
         pte_t vm_shared_table;
     } * vm_assign;
 
@@ -67,8 +67,8 @@ void vmm_init()
     /**
      * Assign cpus according to vm affinity.
      */
-    for (int i = 0; i < vm_config_ptr->vmlist_size && !assigned; i++) {
-        if (vm_config_ptr->vmlist[i].cpu_affinity & (1UL << cpu.id)) {
+    for (long i = 0; i < vm_config_ptr->vmlist_size && !assigned; i++) {
+        if (vm_config_ptr->vmlist[i].cpu_affinity & (1UL << cpu.id)) {      // ATENÇÃO: O UL MUDA DE TAMANHO, VER COM O MARTINS QTOS BITS SÃO MESMO NECESSÁRIOS USAR AQUI
             spin_lock(&vm_assign[i].lock);
             if (!vm_assign[i].master) {
                 vm_assign[i].master = true;
@@ -94,7 +94,7 @@ void vmm_init()
      * Assign remaining cpus not assigned by affinity.
      */
     if (assigned == false) {
-        for (int i = 0; i < vm_config_ptr->vmlist_size && !assigned; i++) {
+        for (long i = 0; i < vm_config_ptr->vmlist_size && !assigned; i++) {
             spin_lock(&vm_assign[i].lock);
             if (vm_assign[i].ncpus <
                 vm_config_ptr->vmlist[i].platform.cpu_num) {

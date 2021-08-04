@@ -15,25 +15,25 @@
 
 #include <config.h>
 
-#define adjust_ptr(p, o) ((p) = (p) ? (typeof(p))(  (void*)(p) + (uint64_t)(o)) : (p))
+#define adjust_ptr(p, o) ((p) = (p) ? (typeof(p))(  (void*)(p) + (size_t)(o)) : (p))
 
-void config_adjust_to_va(struct config *config, uint64_t phys)
+void config_adjust_to_va(struct config *config, size_t phys)
 {
     adjust_ptr(config->shmemlist, config);
 
-    for (int i = 0; i < config->vmlist_size; i++) {
+    for (size_t i = 0; i < config->vmlist_size; i++) {
         adjust_ptr(config->vmlist[i].image.load_addr, phys);
 
 	    adjust_ptr(config->vmlist[i].platform.regions, config);
 
 	    if(adjust_ptr(config->vmlist[i].platform.devs, config)){
-	        for (int j = 0; j < config->vmlist[i].platform.dev_num; j++) {
+	        for (size_t j = 0; j < config->vmlist[i].platform.dev_num; j++) {
 	    	    adjust_ptr(config->vmlist[i].platform.devs[j].interrupts, config);
 	        }
 	    }
 
 	    if(adjust_ptr(config->vmlist[i].platform.ipcs, config)){
-	        for (int j = 0; j < config->vmlist[i].platform.ipc_num; j++) {
+	        for (size_t j = 0; j < config->vmlist[i].platform.ipc_num; j++) {
 	    	    adjust_ptr(config->vmlist[i].platform.ipcs[j].interrupts, config);
 	        }
 	    }
@@ -43,6 +43,6 @@ void config_adjust_to_va(struct config *config, uint64_t phys)
 }
 
 bool config_is_builtin() {
-    extern uint8_t _config_start, _config_end;
+    extern unsigned char _config_start, _config_end;
     return &_config_start != &_config_end;
 }
