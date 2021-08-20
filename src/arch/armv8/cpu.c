@@ -20,7 +20,7 @@
 #include <page_table.h>
 #include <arch/sysregs.h>
 
-uint64_t CPU_MASTER __attribute__((section(".data")));
+cpuid_t CPU_MASTER __attribute__((section(".data")));
 
 /* Perform architecture dependent cpu cores initializations */
 void cpu_arch_init(uint64_t cpuid, uint64_t load_addr)

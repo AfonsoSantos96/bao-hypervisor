@@ -87,8 +87,8 @@ typedef uint64_t pte_t;
 
 typedef struct page_table page_table_t;
 
-static inline void pte_set(pte_t* pte, uint64_t addr, uint64_t type,
-                           uint64_t flags)
+static inline void pte_set(pte_t* pte, phys_addr_t addr, pte_type_t type,
+                           pte_flag_t flags)
 {
     *pte = ((addr & PTE_ADDR_MSK) >> 2) | (flags & PTE_FLAGS_MSK) | type;
 }
@@ -103,22 +103,22 @@ static inline bool pte_valid(pte_t* pte)
     return (*pte & PTE_VALID);
 }
 
-static inline void pte_set_rsw(pte_t* pte, uint64_t flag)
+static inline void pte_set_rsw(pte_t* pte, pte_flag_t flag)
 {
     *pte = (*pte & ~PTE_RSW_MSK) | (flag & PTE_RSW_MSK);
 }
 
-static inline bool pte_check_rsw(pte_t* pte, uint64_t flag)
+static inline bool pte_check_rsw(pte_t* pte, pte_flag_t flag)
 {
     return (*pte & PTE_RSW_MSK) == (flag & PTE_RSW_MSK);
 }
 
-static inline bool pte_table(page_table_t* pt, pte_t* pte, uint64_t lvl)
+static inline bool pte_table(page_table_t* pt, pte_t* pte, pt_lvl_t lvl)
 {
     return (*pte & 0xf) == PTE_VALID;
 }
 
-static inline uint64_t pt_pte_type(page_table_t* pt, uint64_t lvl)
+static inline uint64_t pt_pte_type(page_table_t* pt, pt_lvl_t lvl)
 {
     return PTE_PAGE;
 }

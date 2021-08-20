@@ -54,7 +54,7 @@ void pt_set_recursive(page_table_t* pt, uint64_t index)
         (index << PT_ROOT_FLAGS_REC_IND_OFF) & PT_ROOT_FLAGS_REC_IND_MSK;
 }
 
-pte_t* pt_get_pte(page_table_t* pt, uint64_t lvl, void* va)
+pte_t* pt_get_pte(page_table_t* pt, pt_lvl_t lvl, void* va)
 {
     page_table_t* cpu_pt = &cpu.as.pt;
 
@@ -74,7 +74,7 @@ pte_t* pt_get_pte(page_table_t* pt, uint64_t lvl, void* va)
     return (pte_t*)addr;
 }
 
-pte_t* pt_get(page_table_t* pt, uint64_t lvl, void* va)
+pte_t* pt_get(page_table_t* pt, pt_lvl_t lvl, void* va)
 {
     if (lvl == 0) return pt->root;
 
@@ -83,12 +83,12 @@ pte_t* pt_get(page_table_t* pt, uint64_t lvl, void* va)
     return (pte_t*)pte;
 }
 
-uint64_t pt_pte_type(page_table_t* pt, uint64_t lvl)
+uint64_t pt_pte_type(page_table_t* pt, pt_lvl_t lvl)
 {
     return (lvl == pt->dscr->lvls - 1) ? PTE_PAGE : PTE_SUPERPAGE;
 }
 
-bool pte_page(page_table_t* pt, pte_t* pte, uint64_t lvl)
+bool pte_page(page_table_t* pt, pte_t* pte, pt_lvl_t lvl)
 {
     if (lvl != pt->dscr->lvls - 1) {
         return false;
@@ -97,9 +97,9 @@ bool pte_page(page_table_t* pt, pte_t* pte, uint64_t lvl)
     return (*pte & PTE_TYPE_MSK) == PTE_PAGE;
 }
 
-bool pte_table(page_table_t* pt, pte_t* pte, uint64_t lvl)
+bool pte_table(page_table_t* pt, pte_t* pte, pt_lvl_t lvl)
 {
-    if (lvl == pt->dscr->lvls - 1) {
+    if ((size_t)lvl == pt->dscr->lvls - 1) {
         return false;
     }
 

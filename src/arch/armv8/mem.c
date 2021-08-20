@@ -34,7 +34,7 @@ void as_arch_init(addr_space_t* as)
     pt_set_recursive(&as->pt, index);
 }
 
-bool mem_translate(addr_space_t* as, void* va, uint64_t* pa)
+bool mem_translate(addr_space_t* as, void* va, phys_addr_t* pa)
 {
     uint64_t par = 0, par_saved = 0;
 

@@ -53,7 +53,7 @@ void as_arch_init(addr_space_t *as) {
 
 }
 
-bool mem_translate(addr_space_t *as, void *va, uint64_t *pa)
+bool mem_translate(addr_space_t *as, void *va, phys_addr_t *pa)
 {
     pte_t* pte = &(as->pt.root[PTE_INDEX(0, (uintptr_t)va)]);
     size_t lvl = 0;

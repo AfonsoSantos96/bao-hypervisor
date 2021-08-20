@@ -105,7 +105,7 @@ int mem_map_dev(addr_space_t* as, void* va, uint64_t base, size_t n);
 /* Functions implemented in architecture dependent files */
 
 void as_arch_init(addr_space_t* as);
-bool mem_translate(addr_space_t* as, void* va, uint64_t* pa);
+bool mem_translate(addr_space_t* as, void* va, phys_addr_t* pa);
 
 #endif /* |__ASSEMBLER__ */
 
