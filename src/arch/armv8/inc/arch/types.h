@@ -18,4 +18,11 @@
 
 #include <bao.h>
 
+typedef uint64_t phys_addr_t;
+typedef uint64_t vmid_t;
+typedef uint64_t pt_lvl_t;
+typedef uint64_t pte_flags_t;
+typedef uint64_t pte_type_t;
+typedef uint64_t cpuid_t;
+
 #endif /* __ARCH_TYPES_H__ */
