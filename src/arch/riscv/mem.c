@@ -36,7 +36,7 @@ static inline void as_map_physical_identity(addr_space_t *as) {
         uintptr_t top = (reg->base + reg->size) & lvl_mask;
         int num_entries = ((top - base - 1) / lvl_size) + 1;
 
-        uintptr_t addr = base;
+        phys_addr_t addr = (phys_addr_t)base;
         for (int j = 0; j < num_entries; j++) {
             int index = PTE_INDEX(lvl, addr);
             pte_set(&pt[index], addr, PTE_SUPERPAGE, PTE_HYP_FLAGS);

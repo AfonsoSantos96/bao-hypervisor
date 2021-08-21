@@ -45,7 +45,7 @@ uint64_t parange __attribute__((section(".data")));
 
 void pt_set_recursive(page_table_t* pt, uint64_t index)
 {
-    uint64_t pa;
+    phys_addr_t pa;
     mem_translate(&cpu.as, pt->root, &pa);
     pte_t* pte = cpu.as.pt.root + index;
     pte_set(pte, pa, PTE_TABLE, PTE_HYP_FLAGS);

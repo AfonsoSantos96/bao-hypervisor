@@ -90,7 +90,7 @@ typedef struct {
     uint64_t vtcr_el2;
     uint64_t vttbr_el2;
     uint64_t wakeup_reason;
-    uint64_t flat_map;
+    phys_addr_t flat_map;
     gicc_state_t gicc_state;
 } __attribute__((packed, aligned(8))) psci_off_state_t;
 

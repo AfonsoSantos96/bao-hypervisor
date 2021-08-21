@@ -47,7 +47,7 @@ typedef struct {
 } addr_space_t;
 
 typedef struct {
-    uint64_t base;
+    phys_addr_t base;
     size_t size;
     uint64_t colors;
 } ppages_t;

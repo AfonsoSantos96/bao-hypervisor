@@ -17,11 +17,12 @@
 #include <page_table.h>
 #include <arch/csrs.h>
 #include <arch/vplic.h>
+#include <types.h>
 #include <string.h>
 
 void vm_arch_init(vm_t *vm, const vm_config_t *config)
 {
-    unsigned long root_pt_pa;
+    phys_addr_t long root_pt_pa;
     mem_translate(&cpu.as, vm->as.pt.root, &root_pt_pa);
 
     unsigned long hgatp = (root_pt_pa >> PAGE_SHIFT) | (HGATP_MODE_DFLT) |

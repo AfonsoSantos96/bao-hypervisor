@@ -366,7 +366,7 @@ static void mem_expand_pte(addr_space_t *as, uint64_t va, uint64_t lvl)
              */
 
             lvl++;
-            uint64_t paddr = pte_addr(&pte_val);
+            phys_addr_t paddr = pte_addr(&pte_val);
             uint64_t entry = pt_getpteindex(&as->pt, pte, lvl);
             uint64_t nentries = pt_nentries(&as->pt, lvl);
             uint64_t lvlsz = pt_lvlsize(&as->pt, lvl);
@@ -605,7 +605,7 @@ int mem_map(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
         for (int i = 0; i < ppages->size; i++) {
             pte = pt_get_pte(&as->pt, as->pt.dscr->lvls - 1, vaddr);
             index = pp_next_clr(ppages->base, index, ppages->colors);
-            uint64_t paddr = ppages->base + (index * PAGE_SIZE);
+            phys_addr_t paddr = ppages->base + (index * PAGE_SIZE);
             pte_set(pte, paddr, PTE_PAGE, flags);
             vaddr += PAGE_SIZE;
             index++;
@@ -715,7 +715,7 @@ int mem_map_reclr(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
 
     pte_t *pte = NULL;
     void *vaddr = (void *)(((uint64_t)va) & ~(PAGE_SIZE - 1));
-    uint64_t paddr = ppages->base;
+    phys_addr_t paddr = ppages->base;
     void *clrd_vaddr = reclrd_va_base;
     void *phys_va = phys_va_base;
     uint64_t index = 0;
@@ -740,7 +740,7 @@ int mem_map_reclr(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
         } else {
             memcpy(clrd_vaddr, phys_va, PAGE_SIZE);
             index = pp_next_clr(reclrd_ppages.base, index, as->colors);
-            uint64_t clrd_paddr = reclrd_ppages.base + (index * PAGE_SIZE);
+            phys_addr_t clrd_paddr = reclrd_ppages.base + (index * PAGE_SIZE);
             pte_set(pte, clrd_paddr, PTE_PAGE, flags);
 
             clrd_vaddr += PAGE_SIZE;
@@ -1207,7 +1207,7 @@ void color_hypervisor(const uint64_t load_addr, const uint64_t config_addr)
 
         /* Wait for CPU_MASTER to get image page table entry */
         while (shared_pte == 0);
-        pte_set(image_pte, shared_pte, PTE_TABLE, PTE_HYP_FLAGS);
+        pte_set(image_pte, (phys_addr_t)shared_pte, PTE_TABLE, PTE_HYP_FLAGS);
     }
 
     /*
@@ -1215,7 +1215,7 @@ void color_hypervisor(const uint64_t load_addr, const uint64_t config_addr)
      * all the other CPUs, it is therefore needed to allocate this additional
      * virtual page into global space to allow communication.
      */
-    uint64_t p_intferface_addr;
+    phys_addr_t p_intferface_addr;
     mem_translate(&cpu.as, &cpu_new->interface, &p_intferface_addr);
     p_interface = mem_ppages_get(
         p_intferface_addr,
@@ -1262,7 +1262,7 @@ void color_hypervisor(const uint64_t load_addr, const uint64_t config_addr)
     }
     cpu_sync_barrier(&cpu_glb_sync);
 
-    uint64_t p_root_pt_addr;
+    phys_addr_t p_root_pt_addr;
     mem_translate(&cpu.as, cpu_new->root_pt, &p_root_pt_addr);
     switch_space(cpu_new, p_root_pt_addr);
 

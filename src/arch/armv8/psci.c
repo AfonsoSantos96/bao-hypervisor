@@ -322,8 +322,8 @@ uint64_t psci_power_down(uint64_t reason){
     uint64_t pwr_state_aux = PSCI_POWER_STATE_LVL_0 | PSCI_STATE_TYPE_POWERDOWN;
 
     psci_save_state(reason);
-    uint64_t cntxt_paddr;
-    uint64_t psci_wakeup_addr;
+    phys_addr_t cntxt_paddr;
+    phys_addr_t psci_wakeup_addr;
     mem_translate(&cpu.as, &cpu.arch.psci_off_state, &cntxt_paddr);
     mem_translate(&cpu.as, &psci_boot_entry, &psci_wakeup_addr);
 
