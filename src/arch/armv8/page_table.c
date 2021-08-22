@@ -83,7 +83,7 @@ pte_t* pt_get(page_table_t* pt, pt_lvl_t lvl, void* va)
     return (pte_t*)pte;
 }
 
-uint64_t pt_pte_type(page_table_t* pt, pt_lvl_t lvl)
+pte_type_t pt_pte_type(page_table_t* pt, pt_lvl_t lvl)
 {
     return (lvl == pt->dscr->lvls - 1) ? PTE_PAGE : PTE_SUPERPAGE;
 }

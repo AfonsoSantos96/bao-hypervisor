@@ -22,7 +22,7 @@
 #ifndef __ASSEMBLER__
 
 typedef struct {
-    size_t lvls;
+    pt_lvl_t lvls;
     size_t* lvl_off;
     size_t* lvl_wdt;
     bool* lvl_term;
@@ -37,27 +37,27 @@ typedef struct page_table {
 extern page_table_dscr_t* hyp_pt_dscr;
 extern page_table_dscr_t* vm_pt_dscr;
 
-static inline uint64_t pt_nentries(page_table_t* pt, size_t lvl)
+static inline uint64_t pt_nentries(page_table_t* pt, pt_lvl_t lvl)
 {
     return (1ULL << pt->dscr->lvl_wdt[lvl]) >> pt->dscr->lvl_off[lvl];
 }
 
-static inline uint64_t pt_lvlsize(page_table_t* pt, size_t lvl)
+static inline uint64_t pt_lvlsize(page_table_t* pt, pt_lvl_t lvl)
 {
     return 1ULL << pt->dscr->lvl_off[lvl];
 }
 
-static inline uint64_t pt_getpteindex(page_table_t* pt, pte_t* pte, size_t lvl)
+static inline uint64_t pt_getpteindex(page_table_t* pt, pte_t* pte, pt_lvl_t lvl)
 {
     return (uint64_t)(((uint64_t)pte) & (PT_SIZE - 1)) / sizeof(pte_t);
 }
 
-static inline uint64_t pt_size(page_table_t* pt, size_t lvl)
+static inline uint64_t pt_size(page_table_t* pt, pt_lvl_t lvl)
 {
     return pt_nentries(pt, lvl) * sizeof(pte_t);
 }
 
-static inline bool pt_lvl_terminal(page_table_t* pt, size_t lvl)
+static inline bool pt_lvl_terminal(page_table_t* pt, pt_lvl_t lvl)
 {
     return pt->dscr->lvl_term[lvl];
 }
@@ -74,7 +74,7 @@ bool pte_check_rsw(pte_t* pte, pte_flag_t flag);
 bool pte_valid(pte_t* pte);
 bool pte_table(page_table_t* pt, pte_t* pte, pt_lvl_t lvl);
 bool pte_page(page_table_t* pt, pte_t* pte, pt_lvl_t lvl);
-uint64_t pt_pte_type(page_table_t* pt, pt_lvl_t lvl);
+pte_type_t pt_pte_type(page_table_t* pt, pt_lvl_t lvl);
 
 #endif /* __ASSEMBLER__ */
 

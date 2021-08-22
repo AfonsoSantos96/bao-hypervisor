@@ -290,7 +290,7 @@ static section_t *mem_find_sec(addr_space_t *as, void *va)
     return NULL;
 }
 
-static inline bool pte_allocable(addr_space_t *as, pte_t *pte, uint64_t lvl,
+static inline bool pte_allocable(addr_space_t *as, pte_t *pte, pt_lvl_t lvl,
                                  uint64_t left, uint64_t addr)
 {
     return (lvl == (as->pt.dscr->lvls - 1)) ||
@@ -299,7 +299,7 @@ static inline bool pte_allocable(addr_space_t *as, pte_t *pte, uint64_t lvl,
             ((addr % pt_lvlsize(&as->pt, lvl)) == 0));
 }
 
-static inline pte_t *mem_alloc_pt(addr_space_t *as, pte_t *parent, uint64_t lvl,
+static inline pte_t *mem_alloc_pt(addr_space_t *as, pte_t *parent, pt_lvl_t lvl,
                                   uint64_t addr)
 {
     /* Must have lock on as and va section to call */
@@ -313,7 +313,7 @@ static inline pte_t *mem_alloc_pt(addr_space_t *as, pte_t *parent, uint64_t lvl,
     return temp_pt;
 }
 
-static inline bool pt_pte_mappable(addr_space_t *as, pte_t *pte, uint64_t lvl,
+static inline bool pt_pte_mappable(addr_space_t *as, pte_t *pte, pt_lvl_t lvl,
                                    uint64_t left, uint64_t vaddr,
                                    uint64_t paddr)
 {
@@ -323,7 +323,7 @@ static inline bool pt_pte_mappable(addr_space_t *as, pte_t *pte, uint64_t lvl,
            ((paddr % pt_lvlsize(&as->pt, lvl)) == 0);
 }
 
-static void mem_expand_pte(addr_space_t *as, uint64_t va, uint64_t lvl)
+static void mem_expand_pte(addr_space_t *as, uint64_t va, pt_lvl_t lvl)
 {
     /* Must have lock on as and va section to call */
 
@@ -370,8 +370,8 @@ static void mem_expand_pte(addr_space_t *as, uint64_t va, uint64_t lvl)
             uint64_t entry = pt_getpteindex(&as->pt, pte, lvl);
             uint64_t nentries = pt_nentries(&as->pt, lvl);
             uint64_t lvlsz = pt_lvlsize(&as->pt, lvl);
-            uint64_t type = pt_pte_type(&as->pt, lvl);
-            uint64_t flags = as->type == AS_HYP ? PTE_HYP_FLAGS : PTE_VM_FLAGS;
+            pte_type_t type = pt_pte_type(&as->pt, lvl);
+            pte_flag_t flags = as->type == AS_HYP ? PTE_HYP_FLAGS : PTE_VM_FLAGS;
 
             while (entry < nentries) {
                 if (vld)
@@ -396,7 +396,7 @@ static void mem_inflate_pt(addr_space_t *as, uint64_t va, uint64_t length)
      * For each level in the pt, expand each entry in the specified range
      * as a next level page table.
      */
-    for (int lvl = 0; lvl < as->pt.dscr->lvls - 1; lvl++) {
+    for (pt_lvl_t lvl = 0; lvl < as->pt.dscr->lvls - 1; lvl++) {
         uint64_t vaddr = va;
         uint64_t lvlsz = pt_lvlsize(&as->pt, lvl);
         while (vaddr < (va + length)) {
@@ -408,7 +408,7 @@ static void mem_inflate_pt(addr_space_t *as, uint64_t va, uint64_t length)
 
 void *mem_alloc_vpage(addr_space_t *as, enum AS_SEC section, void *at, size_t n)
 {
-    int lvl = 0;
+    pt_lvl_t lvl = 0;
     int entry = 0;
     int nentries = 0;
     int lvlsze = 0;
@@ -484,7 +484,7 @@ void *mem_alloc_vpage(addr_space_t *as, enum AS_SEC section, void *at, size_t n)
     if (vpage != NULL && !failed) {
         count = 0;
         addr = vpage;
-        int lvl = 0;
+        pt_lvl_t lvl = 0;
         while (count < n) {
             for (lvl = 0; lvl < as->pt.dscr->lvls; lvl++) {
                 pte = pt_get_pte(&as->pt, lvl, addr);
@@ -507,7 +507,7 @@ void mem_free_vpage(addr_space_t *as, void *at, size_t n, bool free_ppages)
 {
     void *vaddr = at;
     void *top = at + (n * PAGE_SIZE);
-    int lvl = 0;
+    pt_lvl_t lvl = 0;
 
     spin_lock(&as->lock);
 
@@ -613,7 +613,7 @@ int mem_map(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
     } else {
         uint64_t paddr = ppages ? ppages->base : 0;
         while (count < n) {
-            int lvl = 0;
+            pt_lvl_t lvl = 0;
             for (lvl = 0; lvl < as->pt.dscr->lvls; lvl++) {
                 pte = pt_get_pte(&as->pt, lvl, vaddr);
                 if (pt_lvl_terminal(&as->pt, lvl)) {
@@ -673,7 +673,7 @@ int mem_map(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
 }
 
 int mem_map_reclr(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
-                  uint64_t flags)
+                  pte_flag_t flags)
 {
     if (ppages == NULL) {
         ERROR("no indication on what to recolor");

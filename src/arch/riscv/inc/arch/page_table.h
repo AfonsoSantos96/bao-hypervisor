@@ -118,7 +118,7 @@ static inline bool pte_table(page_table_t* pt, pte_t* pte, pt_lvl_t lvl)
     return (*pte & 0xf) == PTE_VALID;
 }
 
-static inline uint64_t pt_pte_type(page_table_t* pt, pt_lvl_t lvl)
+static inline pte_type_t pt_pte_type(page_table_t* pt, pt_lvl_t lvl)
 {
     return PTE_PAGE;
 }
