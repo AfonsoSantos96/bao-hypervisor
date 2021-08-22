@@ -18,6 +18,8 @@
 
 #include <stdint.h>
 
+#define HYP_CTX_ID  0
+
 typedef uint64_t phys_addr_t;
 typedef uint64_t ctx_id_t;
 typedef uint64_t pt_lvl_t;
