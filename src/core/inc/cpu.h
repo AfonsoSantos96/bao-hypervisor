@@ -38,7 +38,7 @@ typedef struct {
 typedef struct vcpu vcpu_t;
 
 typedef struct cpu {
-    uint64_t id;
+    cpuid_t id;
     addr_space_t as;
 
     vcpu_t* vcpu;

@@ -26,7 +26,7 @@ typedef struct cpu_arch {
     uint64_t mpidr;
 } cpu_arch_t;
 
-uint64_t cpu_id_to_mpidr(uint64_t id);
+uint64_t cpu_id_to_mpidr(cpuid_t id);
 int64_t cpu_mpidr_to_id(uint64_t mpdir);
 
 extern cpuid_t CPU_MASTER;

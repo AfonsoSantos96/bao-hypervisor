@@ -17,7 +17,7 @@
 #include <arch/sysregs.h>
 
 uint64_t platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
-                                      uint64_t cpuid)
+                                      cpuid_t cpuid)
 {
     if (cpuid > plat->cpu_num) {
         return ~(~MPIDR_RES1 & MPIDR_RES0_MSK); //return an invlid mpidr by inverting res bits
