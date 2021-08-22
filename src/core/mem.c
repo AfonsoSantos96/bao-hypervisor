@@ -86,7 +86,7 @@ static objcache_t pagepool_cache;
 
 static bool config_found = false;
 
-static inline uint64_t pp_next_clr(uint64_t base, int from, uint64_t colors)
+static inline uint64_t pp_next_clr(uint64_t base, int from, colormap_t colors)
 {
     uint64_t clr_offset = (base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
     uint64_t index = from;
@@ -118,7 +118,7 @@ static void mem_free_ppages(ppages_t *ppages)
     }
 }
 
-static bool pp_alloc_clr(page_pool_t *pool, size_t n, uint64_t colors,
+static bool pp_alloc_clr(page_pool_t *pool, size_t n, colormap_t colors,
                          ppages_t *ppages)
 {
     uint64_t allocated = 0;
@@ -263,7 +263,7 @@ static bool pp_alloc(page_pool_t *pool, size_t n, bool aligned,
     return ok;
 }
 
-ppages_t mem_alloc_ppages(uint64_t colors, size_t n, bool aligned)
+ppages_t mem_alloc_ppages(colormap_t colors, size_t n, bool aligned)
 {
     ppages_t pages = {.size = 0};
 
@@ -1158,7 +1158,7 @@ void color_hypervisor(const uint64_t load_addr, const uint64_t config_addr)
     size_t bitmap_size = (root_pool.size / (8 * PAGE_SIZE) +
                           !!(root_pool.size % (8 * PAGE_SIZE) != 0)) *
                          PAGE_SIZE;
-    uint64_t colors = vm_config_ptr->hyp_colors;
+    colormap_t colors = vm_config_ptr->hyp_colors;
 
     /* Set hypervisor colors in current address space */
     cpu.as.colors = vm_config_ptr->hyp_colors;
@@ -1326,7 +1326,7 @@ void color_hypervisor(const uint64_t load_addr, const uint64_t config_addr)
 }
 
 void as_init(addr_space_t *as, enum AS_TYPE type, ctx_id_t id, void *root_pt,
-             uint64_t colors)
+             colormap_t colors)
 {
     as->type = type;
     as->pt.dscr =
