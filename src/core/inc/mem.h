@@ -53,27 +53,27 @@ typedef struct {
 } ppages_t;
 
 struct mem_region {
-    uint64_t base;
+    phys_addr_t base;
     size_t size;
     colormap_t colors;
     bool place_phys;
-    uint64_t phys;
+    phys_addr_t phys;
 };
 
 struct dev_region {
-    uint64_t pa;
+    phys_addr_t pa;
     virt_addr_t va;
     size_t size;
     size_t interrupt_num;
-    uint64_t *interrupts;
-    uint32_t id; /* bus master id for iommu effects */
+    unsigned long *interrupts;
+    unsigned long id; /* bus master id for iommu effects */
 };
 
 typedef struct shmem {
-    uint64_t size;
+    size_t size;
     colormap_t colors;
     bool place_phys;
-    uint64_t phys;
+    phys_addr_t phys;
     uint64_t cpu_masters;
 } shmem_t;
 
@@ -88,7 +88,7 @@ static inline bool all_clrs(colormap_t clrs)
            ((clrs & ((1ULL << COLOR_NUM) - 1)) == ((1ULL << COLOR_NUM) - 1));
 }
 
-void mem_init(uint64_t load_addr, uint64_t config_addr);
+void mem_init(phys_addr_t load_addr, phys_addr_t config_addr);
 void as_init(addr_space_t* as, enum AS_TYPE type, uint64_t id, void* root_pt,
              colormap_t colors);
 void* mem_alloc_page(size_t n, enum AS_SEC sec, bool phys_aligned);

@@ -574,7 +574,7 @@ void mem_free_vpage(addr_space_t *as, void *at, size_t n, bool free_ppages)
 }
 
 int mem_map(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
-            uint64_t flags)
+            pte_type_t flags)
 {
     size_t count = 0;
     pte_t *pte = NULL;
@@ -1019,7 +1019,7 @@ bool mem_reserve_vm_cfg(page_pool_t *pool)
 
 /* true: no reserving necessary, or reserve was successful
  * false: nedded to reserve memory, but error occured */
-bool mem_reserve_physical_memory(uint64_t config_addr, page_pool_t *pool)
+bool mem_reserve_physical_memory(phys_addr_t config_addr, page_pool_t *pool)
 {
     if (pool == NULL) return false;
 
@@ -1034,7 +1034,7 @@ bool mem_reserve_physical_memory(uint64_t config_addr, page_pool_t *pool)
     return true;
 }
 
-bool mem_create_ppools(uint64_t config_addr, struct mem_region *root_mem_region)
+bool mem_create_ppools(phys_addr_t config_addr, struct mem_region *root_mem_region)
 {
     /* Add remaining memory regions to a temporary page pool list */
     objcache_init(&pagepool_cache, sizeof(page_pool_t), SEC_HYP_GLOBAL, true);
@@ -1055,7 +1055,7 @@ bool mem_create_ppools(uint64_t config_addr, struct mem_region *root_mem_region)
     return true;
 }
 
-bool mem_map_vm_config(uint64_t config_addr)
+bool mem_map_vm_config(phys_addr_t config_addr)
 {
     vm_config_ptr = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL, 1);
     if (vm_config_ptr == NULL) return false;
@@ -1076,7 +1076,7 @@ bool mem_map_vm_config(uint64_t config_addr)
     return true;
 }
 
-bool mem_init_vm_config(uint64_t config_addr)
+bool mem_init_vm_config(phys_addr_t config_addr)
 {
     if (!mem_map_vm_config(config_addr)) {
         return false;
@@ -1089,7 +1089,7 @@ bool mem_init_vm_config(uint64_t config_addr)
     return true;
 }
 
-struct mem_region *mem_find_root_region(uint64_t load_addr)
+struct mem_region *mem_find_root_region(phys_addr_t load_addr)
 {
     size_t image_size = (size_t)(&_image_end - &_image_start);
 
@@ -1108,7 +1108,7 @@ struct mem_region *mem_find_root_region(uint64_t load_addr)
     return root_mem_region;
 }
 
-bool mem_setup_root_pool(uint64_t load_addr,
+bool mem_setup_root_pool(phys_addr_t load_addr,
                          struct mem_region **root_mem_region)
 {
     *root_mem_region = mem_find_root_region(load_addr);
@@ -1119,7 +1119,7 @@ bool mem_setup_root_pool(uint64_t load_addr,
     return pp_root_init(load_addr, *root_mem_region);
 }
 
-void *copy_space(void *base, const uint64_t size, ppages_t *pages)
+void *copy_space(void *base, const size_t size, ppages_t *pages)
 {
     *pages = mem_alloc_ppages(cpu.as.colors, NUM_PAGES(size), false);
     void *va = mem_alloc_vpage(&cpu.as, SEC_HYP_PRIVATE, NULL, NUM_PAGES(size));
@@ -1141,7 +1141,7 @@ void *copy_space(void *base, const uint64_t size, ppages_t *pages)
  * structure, so true coloring is actually never achieved. The drawbacks of
  * this limitation are yet to be seen, and are in need of more testing.
  */
-void color_hypervisor(const uint64_t load_addr, const uint64_t config_addr)
+void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr)
 {
     volatile static pte_t shared_pte;
     void *va = NULL;
@@ -1348,7 +1348,7 @@ void as_init(addr_space_t *as, enum AS_TYPE type, ctx_id_t id, void *root_pt,
     as_arch_init(as);
 }
 
-void mem_init(uint64_t load_addr, uint64_t config_addr)
+void mem_init(phys_addr_t load_addr, phys_addr_t config_addr)
 {
     as_init(&cpu.as, AS_HYP, HYP_CTX_ID, cpu.root_pt, 0);
 
