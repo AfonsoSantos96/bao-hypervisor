@@ -42,7 +42,7 @@ typedef struct {
     page_table_t pt;
     enum AS_TYPE type;
     uint64_t colors;
-    uint64_t id;
+    ctx_id_t id;
     spinlock_t lock;
 } addr_space_t;
 

@@ -38,7 +38,7 @@ static inline void tlb_hyp_inv_all()
         "isb\n\t");
 }
 
-static inline void tlb_vm_inv_va(vmid_t vmid, void* va)
+static inline void tlb_vm_inv_va(ctx_id_t vmid, void* va)
 {
     uint64_t vttbr = 0;
     vttbr = MRS(VTTBR_EL2);
@@ -59,7 +59,7 @@ static inline void tlb_vm_inv_va(vmid_t vmid, void* va)
     }
 }
 
-static inline void tlb_vm_inv_all(vmid_t vmid)
+static inline void tlb_vm_inv_all(ctx_id_t vmid)
 {
     uint64_t vttbr = 0;
     vttbr = MRS(VTTBR_EL2);
