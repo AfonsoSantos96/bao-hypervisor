@@ -24,12 +24,12 @@ extern uint8_t _config_end, _images_end;
 #define CONFIG_HEADER_SIZE ((size_t)&_config_end)
 #define CONFIG_SIZE ((size_t)&_images_end)
 
-#define VM_IMAGE_OFFSET(vm_name) ((uint64_t)&_##vm_name##_vm_beg)
+#define VM_IMAGE_OFFSET(vm_name) ((phys_addr_t)&_##vm_name##_vm_beg)
 #define VM_IMAGE_SIZE(vm_name) ((size_t)&_##vm_name##_vm_size)
 
 #define VM_IMAGE(vm_name, image)                                            \
-    extern uint64_t _##vm_name##_vm_size;                                   \
-    extern uint64_t _##vm_name##_vm_beg;                                    \
+    extern size_t _##vm_name##_vm_size;                                   \
+    extern phys_addr_t _##vm_name##_vm_beg;                                    \
     asm(".pushsection .vm_image_" XSTR(vm_name) ", \"a\"\n\t"               \
         ".global _" XSTR(vm_name) "_vm_beg\n\t"                             \
         "_" XSTR(vm_name) "_vm_beg:\n\t"                                    \
@@ -57,15 +57,15 @@ extern uint8_t _config_end, _images_end;
 typedef struct vm_config {
     struct {
         /* Image load address in VM's address space */
-        uint64_t base_addr;
+        virt_addr_t base_addr;
         /* Image load address in hyp address space */
-        uint64_t load_addr;
+        phys_addr_t load_addr;
         /* Image size */
         size_t size;
     } image;
 
     /* Entry point address in VM's address space */
-    uint64_t entry;
+    virt_addr_t entry;
     /**
      * A bitmap signaling the preferred physical cpus assigned to the VM.
      * If this value is each mutual exclusive for all the VMs, this field
@@ -128,11 +128,10 @@ extern struct config {
 
 } config __attribute__((section(".config")));
 
-void config_adjust_to_va(struct config *config, uint64_t phys);
-void config_arch_adjust_to_va(struct config *config, uint64_t phys);
+void config_adjust_to_va(struct config *config, phys_addr_t phys);
+void config_arch_adjust_to_va(struct config *config, phys_addr_t phys);
 bool config_is_builtin();
 
 #define adjust_ptr(p, o)\
     ((p) = (p) ? (typeof(p))(  (void*)(p) + (uint64_t)(o)) : (p))
-
 #endif /* __CONFIG_H__ */
