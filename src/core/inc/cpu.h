@@ -63,7 +63,7 @@ typedef struct {
     uint64_t data;
 } cpu_msg_t;
 
-void cpu_send_msg(uint64_t cpu, cpu_msg_t* msg);
+void cpu_send_msg(cpuid_t cpu, cpu_msg_t* msg);
 
 typedef void (*cpu_msg_handler_t)(uint32_t event, uint64_t data);
 
@@ -75,14 +75,14 @@ typedef void (*cpu_msg_handler_t)(uint32_t event, uint64_t data);
 
 typedef struct {
     spinlock_t lock;
-    volatile uint64_t n;
+    volatile size_t n;
     volatile bool ready;
-    volatile uint64_t count;
+    volatile size_t count;
 } cpu_synctoken_t;
 
 extern cpu_synctoken_t cpu_glb_sync;
 
-static inline void cpu_sync_init(cpu_synctoken_t* token, uint64_t n)
+static inline void cpu_sync_init(cpu_synctoken_t* token, size_t n)
 {
     token->lock = SPINLOCK_INITVAL;
     token->n = n;
@@ -94,7 +94,7 @@ static inline void cpu_sync_barrier(cpu_synctoken_t* token)
 {
     // TODO: no fence/barrier needed in this function?
 
-    uint64_t next_count = 0;
+    size_t next_count = 0;
 
     while (!token->ready);
 
@@ -106,21 +106,21 @@ static inline void cpu_sync_barrier(cpu_synctoken_t* token)
     while (token->count < next_count);
 }
 
-static inline cpuif_t* cpu_if(uint64_t cpu_id)
+static inline cpuif_t* cpu_if(cpuid_t cpu_id)
 {
     return ((void*)&_cpu_if_base) +
            (cpu_id * ALIGN(sizeof(cpuif_t), PAGE_SIZE));
 }
 
-void cpu_init(uint64_t cpu_id, uint64_t load_addr);
-void cpu_send_msg(uint64_t cpu, cpu_msg_t* msg);
+void cpu_init(cpuid_t cpu_id, phys_addr_t load_addr);
+void cpu_send_msg(cpuid_t cpu, cpu_msg_t* msg);
 bool cpu_get_msg(cpu_msg_t* msg);
 void cpu_msg_handler();
-void cpu_msg_set_handler(uint64_t id, cpu_msg_handler_t handler);
+void cpu_msg_set_handler(cpuid_t id, cpu_msg_handler_t handler);
 void cpu_idle();
 void cpu_idle_wakeup();
 
-void cpu_arch_init(uint64_t cpu_id, uint64_t load_addr);
+void cpu_arch_init(cpuid_t cpu_id, uint64_t load_addr);
 void cpu_arch_idle();
 
 #endif /* __ASSEMBLER__ */

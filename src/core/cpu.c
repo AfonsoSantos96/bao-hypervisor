@@ -32,11 +32,12 @@ cpu_synctoken_t cpu_glb_sync = {.ready = false};
 
 objcache_t msg_cache;
 extern cpu_msg_handler_t _ipi_cpumsg_handlers_start;
-extern uint64_t _ipi_cpumsg_handlers_size, _ipi_cpumsg_handlers_id_start;
+extern size_t _ipi_cpumsg_handlers_size;
+extern phys_addr_t _ipi_cpumsg_handlers_id_start;
 cpu_msg_handler_t *ipi_cpumsg_handlers;
-uint64_t ipi_cpumsg_handler_num;
+size_t ipi_cpumsg_handler_num;
 
-void cpu_init(uint64_t cpu_id, uint64_t load_addr)
+void cpu_init(cpuid_t cpu_id, phys_addr_t load_addr)
 {
     cpu_arch_init(cpu_id, load_addr);
 
@@ -50,7 +51,7 @@ void cpu_init(uint64_t cpu_id, uint64_t load_addr)
 
         ipi_cpumsg_handlers = &_ipi_cpumsg_handlers_start;
         ipi_cpumsg_handler_num =
-            ((uint64_t)&_ipi_cpumsg_handlers_size) / sizeof(cpu_msg_handler_t);
+            ((size_t)&_ipi_cpumsg_handlers_size) / sizeof(cpu_msg_handler_t);
         for (int i = 0; i < ipi_cpumsg_handler_num; i++) {
             (&_ipi_cpumsg_handlers_id_start)[i] = i;
         }
@@ -59,7 +60,7 @@ void cpu_init(uint64_t cpu_id, uint64_t load_addr)
     cpu_sync_barrier(&cpu_glb_sync);
 }
 
-void cpu_send_msg(uint64_t trgtcpu, cpu_msg_t *msg)
+void cpu_send_msg(cpuid_t trgtcpu, cpu_msg_t *msg)
 {
     cpu_msg_node_t *node = objcache_alloc(&msg_cache);
     if (node == NULL) ERROR("cant allocate msg node");
