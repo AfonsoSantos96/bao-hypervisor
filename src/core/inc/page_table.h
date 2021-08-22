@@ -37,22 +37,22 @@ typedef struct page_table {
 extern page_table_dscr_t* hyp_pt_dscr;
 extern page_table_dscr_t* vm_pt_dscr;
 
-static inline uint64_t pt_nentries(page_table_t* pt, pt_lvl_t lvl)
+static inline size_t pt_nentries(page_table_t* pt, pt_lvl_t lvl)
 {
     return (1ULL << pt->dscr->lvl_wdt[lvl]) >> pt->dscr->lvl_off[lvl];
 }
 
-static inline uint64_t pt_lvlsize(page_table_t* pt, pt_lvl_t lvl)
+static inline size_t pt_lvlsize(page_table_t* pt, pt_lvl_t lvl)
 {
     return 1ULL << pt->dscr->lvl_off[lvl];
 }
 
-static inline uint64_t pt_getpteindex(page_table_t* pt, pte_t* pte, pt_lvl_t lvl)
+static inline size_t pt_getpteindex(page_table_t* pt, pte_t* pte, pt_lvl_t lvl)
 {
     return (uint64_t)(((uint64_t)pte) & (PT_SIZE - 1)) / sizeof(pte_t);
 }
 
-static inline uint64_t pt_size(page_table_t* pt, pt_lvl_t lvl)
+static inline size_t pt_size(page_table_t* pt, pt_lvl_t lvl)
 {
     return pt_nentries(pt, lvl) * sizeof(pte_t);
 }
