@@ -19,7 +19,7 @@
 #include <bao.h>
 
 typedef struct {
-    uint64_t addr;
+    virt_addr_t addr;
     bool write;
     bool sign_ext;
     size_t width;
@@ -30,7 +30,7 @@ typedef struct {
 typedef bool (*emul_handler_t)(emul_access_t*);
 
 typedef struct {
-    uint64_t va_base;
+    virt_addr_t va_base;
     uint64_t pa_base;
     uint64_t size;
     uint64_t flags;
@@ -38,7 +38,7 @@ typedef struct {
 } emul_mem_t;
 
 typedef struct {
-    uint64_t addr;
+    virt_addr_t addr;
     emul_handler_t handler;
 } emul_reg_t;
 

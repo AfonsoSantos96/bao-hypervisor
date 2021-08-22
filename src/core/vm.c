@@ -326,7 +326,7 @@ void vm_emul_add_reg(vm_t* vm, emul_reg_t* emu)
 
 }    
 
-static inline emul_handler_t vm_emul_get(vm_t* vm, enum emul_type type, uint64_t addr)
+static inline emul_handler_t vm_emul_get(vm_t* vm, enum emul_type type, virt_addr_t addr)
 {
     emul_handler_t handler = NULL;
     list_foreach(vm->emul_list, struct emul_node, node)
@@ -349,12 +349,12 @@ static inline emul_handler_t vm_emul_get(vm_t* vm, enum emul_type type, uint64_t
     return handler;
 }
 
-emul_handler_t vm_emul_get_mem(vm_t* vm, uint64_t addr)
+emul_handler_t vm_emul_get_mem(vm_t* vm, virt_addr_t addr)
 {
     return vm_emul_get(vm, EMUL_MEM, addr);
 }
 
-emul_handler_t vm_emul_get_reg(vm_t* vm, uint64_t addr)
+emul_handler_t vm_emul_get_reg(vm_t* vm, virt_addr_t addr)
 {
     return vm_emul_get(vm, EMUL_REG, addr);
 }

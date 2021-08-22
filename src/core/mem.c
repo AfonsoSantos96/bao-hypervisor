@@ -300,7 +300,7 @@ static inline bool pte_allocable(addr_space_t *as, pte_t *pte, pt_lvl_t lvl,
 }
 
 static inline pte_t *mem_alloc_pt(addr_space_t *as, pte_t *parent, pt_lvl_t lvl,
-                                  uint64_t addr)
+                                  virt_addr_t addr)
 {
     /* Must have lock on as and va section to call */
     size_t ptsize = pt_size(&as->pt, lvl) / PAGE_SIZE;
@@ -314,7 +314,7 @@ static inline pte_t *mem_alloc_pt(addr_space_t *as, pte_t *parent, pt_lvl_t lvl,
 }
 
 static inline bool pt_pte_mappable(addr_space_t *as, pte_t *pte, pt_lvl_t lvl,
-                                   uint64_t left, uint64_t vaddr,
+                                   uint64_t left, virt_addr_t vaddr,
                                    uint64_t paddr)
 {
     return !pte_valid(pte) &&
@@ -323,7 +323,7 @@ static inline bool pt_pte_mappable(addr_space_t *as, pte_t *pte, pt_lvl_t lvl,
            ((paddr % pt_lvlsize(&as->pt, lvl)) == 0);
 }
 
-static void mem_expand_pte(addr_space_t *as, uint64_t va, pt_lvl_t lvl)
+static void mem_expand_pte(addr_space_t *as, virt_addr_t va, pt_lvl_t lvl)
 {
     /* Must have lock on as and va section to call */
 
@@ -397,7 +397,7 @@ static void mem_inflate_pt(addr_space_t *as, uint64_t va, uint64_t length)
      * as a next level page table.
      */
     for (pt_lvl_t lvl = 0; lvl < as->pt.dscr->lvls - 1; lvl++) {
-        uint64_t vaddr = va;
+        virt_addr_t vaddr = va;
         uint64_t lvlsz = pt_lvlsize(&as->pt, lvl);
         while (vaddr < (va + length)) {
             mem_expand_pte(as, vaddr, lvl);
@@ -460,7 +460,7 @@ void *mem_alloc_vpage(addr_space_t *as, enum AS_SEC section, void *at, size_t n)
                     if (count == 0) vpage = (void *)addr;
                     count += (lvlsze / PAGE_SIZE);
                 } else {
-                    if (mem_alloc_pt(as, pte, lvl, (uint64_t)addr) == NULL) {
+                    if (mem_alloc_pt(as, pte, lvl, (virt_addr_t)addr) == NULL) {
                         ERROR("failed to alloc page table");
                     }
                 }
@@ -618,10 +618,10 @@ int mem_map(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
                 pte = pt_get_pte(&as->pt, lvl, vaddr);
                 if (pt_lvl_terminal(&as->pt, lvl)) {
                     if (pt_pte_mappable(as, pte, lvl, n - count,
-                                        (uint64_t)vaddr, ppages ? paddr : 0)) {
+                                        (virt_addr_t)vaddr, ppages ? paddr : 0)) {
                         break;
                     } else if (!pte_valid(pte)) {
-                        mem_alloc_pt(as, pte, lvl, (uint64_t)vaddr);
+                        mem_alloc_pt(as, pte, lvl, (virt_addr_t)vaddr);
                     } else if (!pte_table(&as->pt, pte, lvl)) {
                         ERROR("trying to override previous mapping");
                     }
@@ -644,7 +644,7 @@ int mem_map(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
                         } else {
                             pte = pt_get_pte(&as->pt, lvl, vaddr);
                             if (!pte_valid(pte)) {
-                                mem_alloc_pt(as, pte, lvl, (uint64_t)vaddr);
+                                mem_alloc_pt(as, pte, lvl, (virt_addr_t)vaddr);
                             }
                             break;
                         }

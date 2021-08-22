@@ -62,7 +62,7 @@ struct mem_region {
 
 struct dev_region {
     uint64_t pa;
-    uint64_t va;
+    virt_addr_t va;
     size_t size;
     size_t interrupt_num;
     uint64_t *interrupts;
