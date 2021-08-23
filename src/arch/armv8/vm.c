@@ -62,7 +62,7 @@ void vcpu_arch_init(vcpu_t* vcpu, vm_t* vm)
     vgic_cpu_init(vcpu);
 }
 
-void vcpu_arch_reset(vcpu_t* vcpu, uint64_t entry)
+void vcpu_arch_reset(vcpu_t* vcpu, virt_addr_t entry)
 {
     memset(vcpu->regs, 0, sizeof(struct arch_regs));
 
@@ -85,24 +85,24 @@ void vcpu_arch_reset(vcpu_t* vcpu, uint64_t entry)
      */
 }
 
-uint64_t vcpu_readreg(vcpu_t* vcpu, uint64_t reg)
+unsigned long vcpu_readreg(vcpu_t* vcpu, unsigned long reg)
 {
     if (reg > 30) return 0;
     return vcpu->regs->x[reg];
 }
 
-void vcpu_writereg(vcpu_t* vcpu, uint64_t reg, uint64_t val)
+void vcpu_writereg(vcpu_t* vcpu, unsigned long reg, unsigned long val)
 {
     if (reg > 30) return;
     vcpu->regs->x[reg] = val;
 }
 
-uint64_t vcpu_readpc(vcpu_t* vcpu)
+unsigned long vcpu_readpc(vcpu_t* vcpu)
 {
     return vcpu->regs->elr_el2;
 }
 
-void vcpu_writepc(vcpu_t* vcpu, uint64_t pc)
+void vcpu_writepc(vcpu_t* vcpu, unsigned long pc)
 {
     vcpu->regs->elr_el2 = pc;
 }

@@ -62,7 +62,7 @@ void vm_vcpu_init(vm_t* vm, const vm_config_t* config)
     vcpu->phys_id = cpu.id;
     vcpu->vm = vm;
 
-    uint64_t count = 0, offset = 0;
+    size_t count = 0, offset = 0;
     while (count < vm->cpu_num) {
         if (offset == cpu.id) {
             vcpu->id = count;
@@ -96,8 +96,8 @@ static void vm_copy_img_to_rgn(vm_t* vm, const vm_config_t* config,
     }
 
     /* map new address */
-    uint64_t offset = config->image.base_addr - reg->base;
-    uint64_t dst_phys = reg->phys + offset;
+    size_t offset = config->image.base_addr - reg->base;
+    size_t dst_phys = reg->phys + offset;
     ppages_t dst_pp = mem_ppages_get(dst_phys, n_img);
     void* dst_va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL, n_img);
     if (mem_map(&cpu.as, dst_va, &dst_pp, n_img, PTE_HYP_FLAGS)) {
@@ -287,7 +287,7 @@ void vm_init(vm_t* vm, const vm_config_t* config, bool master, ctx_id_t vm_id)
     cpu_sync_barrier(&vm->sync);
 }
 
-vcpu_t* vm_get_vcpu(vm_t* vm, uint64_t vcpuid)
+vcpu_t* vm_get_vcpu(vm_t* vm, unsigned long vcpuid)
 {
     list_foreach(vm->vcpu_list, vcpu_t, vcpu)
     {

@@ -38,7 +38,7 @@ void vcpu_arch_init(vcpu_t *vcpu, vm_t *vm) {
     vcpu->arch.sbi_ctx.state = vcpu->id == 0 ?  STARTED : STOPPED;
 }
 
-void vcpu_arch_reset(vcpu_t *vcpu, uint64_t entry)
+void vcpu_arch_reset(vcpu_t *vcpu, virt_addr_t entry)
 {
     memset(vcpu->regs, 0, sizeof(struct arch_regs));
 
@@ -61,24 +61,24 @@ void vcpu_arch_reset(vcpu_t *vcpu, uint64_t entry)
     CSRW(CSR_VSATP, 0);
 }
 
-uint64_t vcpu_readreg(vcpu_t *vcpu, uint64_t reg)
+unsigned long vcpu_readreg(vcpu_t *vcpu, unsigned long reg)
 {
     if ((reg <= 0) || (reg > 31)) return 0;
     return vcpu->regs->x[reg - 1];
 }
 
-void vcpu_writereg(vcpu_t *vcpu, uint64_t reg, uint64_t val)
+void vcpu_writereg(vcpu_t *vcpu, unsigned long reg, unsigned long val)
 {
     if ((reg <= 0) || (reg > 31)) return;
     vcpu->regs->x[reg - 1] = val;
 }
 
-uint64_t vcpu_readpc(vcpu_t *vcpu)
+unsigned long vcpu_readpc(vcpu_t *vcpu)
 {
     return vcpu->regs->sepc;
 }
 
-void vcpu_writepc(vcpu_t *vcpu, uint64_t pc)
+void vcpu_writepc(vcpu_t *vcpu, unsigned long pc)
 {
     vcpu->regs->sepc = pc;
 }
