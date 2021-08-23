@@ -77,7 +77,7 @@ typedef struct shmem {
     uint64_t cpu_masters;
 } shmem_t;
 
-static inline ppages_t mem_ppages_get(uint64_t base, uint64_t size)
+static inline ppages_t mem_ppages_get(phys_addr_t base, size_t size)
 {
     return (ppages_t){.colors = 0, .base = base, .size = size};
 }
@@ -89,7 +89,7 @@ static inline bool all_clrs(colormap_t clrs)
 }
 
 void mem_init(phys_addr_t load_addr, phys_addr_t config_addr);
-void as_init(addr_space_t* as, enum AS_TYPE type, uint64_t id, void* root_pt,
+void as_init(addr_space_t* as, enum AS_TYPE type, ctx_id_t id, void* root_pt,
              colormap_t colors);
 void* mem_alloc_page(size_t n, enum AS_SEC sec, bool phys_aligned);
 ppages_t mem_alloc_ppages(colormap_t colors, size_t n, bool aligned);
@@ -97,10 +97,10 @@ void* mem_alloc_vpage(addr_space_t* as, enum AS_SEC section, void* at,
                       size_t n);
 void mem_free_vpage(addr_space_t* as, void* at, size_t n, bool free_ppages);
 int mem_map(addr_space_t* as, void* va, ppages_t* ppages, size_t n,
-            uint64_t flags);
+            pte_flag_t flags);
 int mem_map_reclr(addr_space_t* as, void* va, ppages_t* ppages, size_t n,
-                  uint64_t flags);
-int mem_map_dev(addr_space_t* as, void* va, uint64_t base, size_t n);
+                  pte_flag_t flags);
+int mem_map_dev(addr_space_t* as, void* va, phys_addr_t base, size_t n);
 
 /* Functions implemented in architecture dependent files */
 

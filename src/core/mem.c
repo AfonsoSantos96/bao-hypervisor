@@ -34,7 +34,7 @@ extern uint8_t _image_start, _image_end, _dmem_phys_beg, _dmem_beg,
 
 extern struct dev _dev_init_table_start, _dev_init_table_end;
 
-void switch_space(cpu_t *, uint64_t);
+void switch_space(cpu_t *, phys_addr_t);
 
 /**
  * An important note about sections its that they must have diferent entries
@@ -72,7 +72,7 @@ struct {
 
 typedef struct {
     node_t node;  // must be first element
-    uint64_t base;
+    phys_addr_t base;
     size_t size;
     size_t free;
     size_t last;
@@ -86,10 +86,10 @@ static objcache_t pagepool_cache;
 
 static bool config_found = false;
 
-static inline uint64_t pp_next_clr(uint64_t base, int from, colormap_t colors)
+static inline size_t pp_next_clr(phys_addr_t base, size_t from, colormap_t colors)
 {
-    uint64_t clr_offset = (base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
-    uint64_t index = from;
+    size_t clr_offset = (base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
+    size_t index = from;
 
     while (!((colors >> ((index + clr_offset) / COLOR_SIZE % COLOR_NUM)) & 1))
         index++;
@@ -103,9 +103,9 @@ static void mem_free_ppages(ppages_t *ppages)
     {
         spin_lock(&pool->lock);
         if (in_range(ppages->base, pool->base, pool->size * PAGE_SIZE)) {
-            uint64_t index = (ppages->base - pool->base) / PAGE_SIZE;
+            size_t index = (ppages->base - pool->base) / PAGE_SIZE;
             if (!all_clrs(ppages->colors)) {
-                uint64_t index = 0;
+                size_t index = 0;
                 for (int i = 0; i < ppages->size; i++) {
                     index = pp_next_clr(pool->base, index, ppages->colors);
                     bitmap_set(pool->bitmap, index++);
@@ -121,9 +121,9 @@ static void mem_free_ppages(ppages_t *ppages)
 static bool pp_alloc_clr(page_pool_t *pool, size_t n, colormap_t colors,
                          ppages_t *ppages)
 {
-    uint64_t allocated = 0;
+    size_t allocated = 0;
 
-    uint64_t first_index = 0;
+    size_t first_index = 0;
     bool ok = false;
 
     ppages->colors = colors;
@@ -135,8 +135,8 @@ static bool pp_alloc_clr(page_pool_t *pool, size_t n, colormap_t colors,
      * Lets start the search at the first available color after the last
      * known free position to the top of the pool.
      */
-    uint64_t index = pp_next_clr(pool->base, pool->last, colors);
-    uint64_t top = pool->size;
+    size_t index = pp_next_clr(pool->base, pool->last, colors);
+    size_t top = pool->size;
 
     /**
      * Two iterations. One starting from the last known free page,
@@ -206,9 +206,8 @@ static bool pp_alloc(page_pool_t *pool, size_t n, bool aligned,
     ppages->size = 0;
 
     bool ok = false;
-    uint64_t base = -1;
 
-    if (n == 0) return base;
+    if (n == 0) return -1;
 
     spin_lock(&pool->lock);
 
@@ -291,7 +290,7 @@ static section_t *mem_find_sec(addr_space_t *as, void *va)
 }
 
 static inline bool pte_allocable(addr_space_t *as, pte_t *pte, pt_lvl_t lvl,
-                                 uint64_t left, uint64_t addr)
+                                 size_t left, virt_addr_t addr)
 {
     return (lvl == (as->pt.dscr->lvls - 1)) ||
            (pt_lvl_terminal(&as->pt, lvl) && !pte_valid(pte) &&
@@ -314,12 +313,12 @@ static inline pte_t *mem_alloc_pt(addr_space_t *as, pte_t *parent, pt_lvl_t lvl,
 }
 
 static inline bool pt_pte_mappable(addr_space_t *as, pte_t *pte, pt_lvl_t lvl,
-                                   uint64_t left, virt_addr_t vaddr,
-                                   uint64_t paddr)
+                                   size_t left, virt_addr_t vaddr,
+                                   phys_addr_t paddr)
 {
     return !pte_valid(pte) &&
            (pt_lvlsize(&as->pt, lvl) <= (left * PAGE_SIZE)) &&
-           (((uint64_t)vaddr % pt_lvlsize(&as->pt, lvl)) == 0) &&
+           (((size_t)vaddr % pt_lvlsize(&as->pt, lvl)) == 0) &&
            ((paddr % pt_lvlsize(&as->pt, lvl)) == 0);
 }
 
@@ -367,9 +366,9 @@ static void mem_expand_pte(addr_space_t *as, virt_addr_t va, pt_lvl_t lvl)
 
             lvl++;
             phys_addr_t paddr = pte_addr(&pte_val);
-            uint64_t entry = pt_getpteindex(&as->pt, pte, lvl);
-            uint64_t nentries = pt_nentries(&as->pt, lvl);
-            uint64_t lvlsz = pt_lvlsize(&as->pt, lvl);
+            size_t entry = pt_getpteindex(&as->pt, pte, lvl);
+            size_t nentries = pt_nentries(&as->pt, lvl);
+            size_t lvlsz = pt_lvlsize(&as->pt, lvl);
             pte_type_t type = pt_pte_type(&as->pt, lvl);
             pte_flag_t flags = as->type == AS_HYP ? PTE_HYP_FLAGS : PTE_VM_FLAGS;
 
@@ -388,7 +387,7 @@ static void mem_expand_pte(addr_space_t *as, virt_addr_t va, pt_lvl_t lvl)
     }
 }
 
-static void mem_inflate_pt(addr_space_t *as, uint64_t va, uint64_t length)
+static void mem_inflate_pt(addr_space_t *as, virt_addr_t va, size_t length)
 {
     /* Must have lock on as and va section to call */
 
@@ -398,7 +397,7 @@ static void mem_inflate_pt(addr_space_t *as, uint64_t va, uint64_t length)
      */
     for (pt_lvl_t lvl = 0; lvl < as->pt.dscr->lvls - 1; lvl++) {
         virt_addr_t vaddr = va;
-        uint64_t lvlsz = pt_lvlsize(&as->pt, lvl);
+        size_t lvlsz = pt_lvlsize(&as->pt, lvl);
         while (vaddr < (va + length)) {
             mem_expand_pte(as, vaddr, lvl);
             vaddr += lvlsz;
@@ -409,10 +408,10 @@ static void mem_inflate_pt(addr_space_t *as, uint64_t va, uint64_t length)
 void *mem_alloc_vpage(addr_space_t *as, enum AS_SEC section, void *at, size_t n)
 {
     pt_lvl_t lvl = 0;
-    int entry = 0;
-    int nentries = 0;
-    int lvlsze = 0;
-    int count = 0;
+    size_t entry = 0;
+    size_t nentries = 0;
+    size_t lvlsze = 0;
+    size_t count = 0;
     void *addr = NULL;
     void *vpage = NULL;
     void *top = (void *)-1;
@@ -428,14 +427,14 @@ void *mem_alloc_vpage(addr_space_t *as, enum AS_SEC section, void *at, size_t n)
         addr = sec->beg;
     }
     top = sec->end;
-    addr = (void *)((uint64_t)addr & ~(PAGE_SIZE - 1));
+    addr = (void *)((virt_addr_t)addr & ~(PAGE_SIZE - 1));
 
     spin_lock(&as->lock);
     if (sec->shared) spin_lock(&sec->lock);
 
     while (count < n && !failed) {
         // check if there is still enough space in as
-        if (((uint64_t)top + 1 - (uint64_t)addr) / PAGE_SIZE < n) {
+        if (((virt_addr_t)top + 1 - (virt_addr_t)addr) / PAGE_SIZE < n) {
             vpage = NULL;
             failed = true;
             break;
@@ -456,7 +455,7 @@ void *mem_alloc_vpage(addr_space_t *as, enum AS_SEC section, void *at, size_t n)
                     break;
                 }
             } else if(!pte_valid(pte)) {
-                if(pte_allocable(as, pte, lvl, n - count, (uint64_t)addr)) {
+                if(pte_allocable(as, pte, lvl, n - count, (virt_addr_t)addr)) {
                     if (count == 0) vpage = (void *)addr;
                     count += (lvlsze / PAGE_SIZE);
                 } else {
@@ -519,28 +518,28 @@ void mem_free_vpage(addr_space_t *as, void *at, size_t n, bool free_ppages)
         if (pte == NULL) {
             ERROR("invalid pte while freeing vpages");
         } else if (!pte_valid(pte)) {
-            uint64_t lvlsz = pt_lvlsize(&as->pt, lvl);
+            size_t lvlsz = pt_lvlsize(&as->pt, lvl);
             vaddr += lvlsz;
         } else if (pte_table(&as->pt, pte, lvl)) {
             lvl++;
         } else {
-            uint64_t entry = pt_getpteindex(&as->pt, pte, lvl);
-            uint64_t nentries = pt_nentries(&as->pt, lvl);
-            uint64_t lvlsz = pt_lvlsize(&as->pt, lvl);
+            size_t entry = pt_getpteindex(&as->pt, pte, lvl);
+            size_t nentries = pt_nentries(&as->pt, lvl);
+            size_t lvlsz = pt_lvlsize(&as->pt, lvl);
 
             while ((entry < nentries) && (vaddr < top)) {
                 if (!pte_table(&as->pt, pte, lvl)) {
                     void *vpage_base =
-                        (void *)(((uint64_t)vaddr) & ~(lvlsz - 1));
+                        (void *)(((virt_addr_t)vaddr) & ~(lvlsz - 1));
 
                     if (vaddr > vpage_base || top < (vpage_base + lvlsz)) {
-                        mem_expand_pte(as, (uint64_t)vaddr, lvl);
+                        mem_expand_pte(as, (virt_addr_t)vaddr, lvl);
                         lvl++;
                         break;
                     }
 
                     if (free_ppages) {
-                        uint64_t paddr = pte_addr(pte);
+                        phys_addr_t paddr = pte_addr(pte);
                         ppages_t ppages =
                             mem_ppages_get(paddr, lvlsz / PAGE_SIZE);
                         mem_free_ppages(&ppages);
@@ -578,7 +577,7 @@ int mem_map(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
 {
     size_t count = 0;
     pte_t *pte = NULL;
-    void *vaddr = (void *)(((uint64_t)va) & ~(PAGE_SIZE - 1));
+    void *vaddr = (void *)(((virt_addr_t)va) & ~(PAGE_SIZE - 1));
 
     section_t *sec = mem_find_sec(as, vaddr);
 
@@ -600,8 +599,8 @@ int mem_map(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
     }
 
     if (ppages && !all_clrs(ppages->colors)) {
-        uint64_t index = 0;
-        mem_inflate_pt(as, (uint64_t)vaddr, n * PAGE_SIZE);
+        size_t index = 0;
+        mem_inflate_pt(as, (virt_addr_t)vaddr, n * PAGE_SIZE);
         for (int i = 0; i < ppages->size; i++) {
             pte = pt_get_pte(&as->pt, as->pt.dscr->lvls - 1, vaddr);
             index = pp_next_clr(ppages->base, index, ppages->colors);
@@ -611,7 +610,7 @@ int mem_map(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
             index++;
         }
     } else {
-        uint64_t paddr = ppages ? ppages->base : 0;
+        phys_addr_t paddr = ppages ? ppages->base : 0;
         while (count < n) {
             pt_lvl_t lvl = 0;
             for (lvl = 0; lvl < as->pt.dscr->lvls; lvl++) {
@@ -628,9 +627,9 @@ int mem_map(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
                 }
             }
 
-            uint64_t entry = pt_getpteindex(&as->pt, pte, lvl);
-            uint64_t nentries = pt_nentries(&as->pt, lvl);
-            uint64_t lvlsz = pt_lvlsize(&as->pt, lvl);
+            size_t entry = pt_getpteindex(&as->pt, pte, lvl);
+            size_t nentries = pt_nentries(&as->pt, lvl);
+            size_t lvlsz = pt_lvlsize(&as->pt, lvl);
 
             while ((entry < nentries) && (count < n) &&
                    (n - count >= lvlsz / PAGE_SIZE)) {
@@ -684,10 +683,10 @@ int mem_map_reclr(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
      * Allocate the necessary colored pages.
      * Mapped onto hypervisor address space.
      */
-    uint64_t reclrd_num =
+    size_t reclrd_num =
         n / (COLOR_NUM * COLOR_SIZE) * COLOR_SIZE *
         bitmap_count((bitmap_t)&as->colors, 0, COLOR_NUM, false);
-    uint64_t clr_offset = (ppages->base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
+    size_t clr_offset = (ppages->base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
     for (int i = 0; i < (n % (COLOR_NUM * COLOR_SIZE)); i++) {
         if (!bitmap_get((bitmap_t)&as->colors,
                         (i + clr_offset) / COLOR_SIZE % COLOR_NUM))
@@ -714,17 +713,17 @@ int mem_map_reclr(addr_space_t *as, void *va, ppages_t *ppages, size_t n,
     mem_map(&cpu.as, phys_va_base, ppages, n, PTE_HYP_FLAGS);
 
     pte_t *pte = NULL;
-    void *vaddr = (void *)(((uint64_t)va) & ~(PAGE_SIZE - 1));
+    void *vaddr = (void *)(((virt_addr_t)va) & ~(PAGE_SIZE - 1));
     phys_addr_t paddr = ppages->base;
     void *clrd_vaddr = reclrd_va_base;
     void *phys_va = phys_va_base;
-    uint64_t index = 0;
+    size_t index = 0;
 
     /**
      * Inflate reserved page tables to the last level. This assumes
      * coloring always needs the finest grained mapping possible.
      */
-    mem_inflate_pt(as, (uint64_t)vaddr, n * PAGE_SIZE);
+    mem_inflate_pt(as, (virt_addr_t)vaddr, n * PAGE_SIZE);
 
     for (int i = 0; i < n; i++) {
         pte = pt_get_pte(&as->pt, as->pt.dscr->lvls - 1, vaddr);
@@ -853,7 +852,7 @@ bool mem_reserve_ppages(ppages_t *ppages)
     return mem_reserve_ppages_in_pool_list(&page_pool_list, ppages);
 }
 
-int mem_map_dev(addr_space_t *as, void *va, uint64_t base, size_t n)
+int mem_map_dev(addr_space_t *as, void *va, phys_addr_t base, size_t n)
 {
     ppages_t pages = mem_ppages_get(base, n);
     return mem_map(as, va, &pages, n,
@@ -879,17 +878,17 @@ void *mem_alloc_page(size_t n, enum AS_SEC sec, bool phys_aligned)
     return vpage;
 }
 
-bool root_pool_set_up_bitmap(uint64_t load_addr)
+bool root_pool_set_up_bitmap(phys_addr_t load_addr)
 {
     size_t image_size = (size_t)(&_image_end - &_image_start);
     size_t config_size = (size_t)(&_config_end - &_config_start);
     size_t cpu_size = platform.cpu_num * (ALIGN(sizeof(struct cpu), PAGE_SIZE) +
                                           (PT_SIZE * (PT_LVLS - 1)));
 
-    uint64_t bitmap_size = root_pool.size / (8 * PAGE_SIZE) +
+    size_t bitmap_size = root_pool.size / (8 * PAGE_SIZE) +
                            ((root_pool.size % (8 * PAGE_SIZE) != 0) ? 1 : 0);
     if (root_pool.size <= bitmap_size) return false;
-    uint64_t bitmap_base = load_addr + image_size + config_size + cpu_size;
+    size_t bitmap_base = load_addr + image_size + config_size + cpu_size;
 
     ppages_t bitmap_pp = mem_ppages_get(bitmap_base, bitmap_size);
     bitmap_t root_bitmap =
@@ -903,14 +902,14 @@ bool root_pool_set_up_bitmap(uint64_t load_addr)
     return mem_reserve_ppool_ppages(&root_pool, &bitmap_pp);
 }
 
-bool pp_root_reserve_hyp_mem(uint64_t load_addr)
+bool pp_root_reserve_hyp_mem(phys_addr_t load_addr)
 {
     size_t image_size = (size_t)(&_image_end - &_image_start);
     size_t config_size = (size_t)(&_config_end - &_config_start);
-    uint64_t cpu_size =
+    size_t cpu_size =
         platform.cpu_num *
         (ALIGN(sizeof(struct cpu), PAGE_SIZE) + (PT_SIZE * (PT_LVLS - 1)));
-    uint64_t cpu_base_addr = load_addr + image_size + config_size;
+    phys_addr_t cpu_base_addr = load_addr + image_size + config_size;
 
     ppages_t images_ppages = mem_ppages_get(load_addr, NUM_PAGES(image_size));
     ppages_t cpu_ppages = mem_ppages_get(cpu_base_addr, NUM_PAGES(cpu_size));
@@ -921,7 +920,7 @@ bool pp_root_reserve_hyp_mem(uint64_t load_addr)
     return image_reserved && cpu_reserved;
 }
 
-static bool pp_root_init(uint64_t load_addr, struct mem_region *root_region)
+static bool pp_root_init(phys_addr_t load_addr, struct mem_region *root_region)
 {
     memset(&root_pool, 0, sizeof(page_pool_t));
 
@@ -941,7 +940,7 @@ static bool pp_root_init(uint64_t load_addr, struct mem_region *root_region)
     return true;
 }
 
-static void pp_init(page_pool_t *pool, uint64_t base, size_t size)
+static void pp_init(page_pool_t *pool, phys_addr_t base, size_t size)
 {
     ppages_t pages;
 
@@ -950,7 +949,7 @@ static void pp_init(page_pool_t *pool, uint64_t base, size_t size)
     memset(pool, 0, sizeof(page_pool_t));
     pool->base = ALIGN(base, PAGE_SIZE);
     pool->size = NUM_PAGES(size);
-    uint64_t bitmap_size =
+    size_t bitmap_size =
         pool->size / (8 * PAGE_SIZE) + !!(pool->size % (8 * PAGE_SIZE) != 0);
 
     if (size <= bitmap_size) return;
@@ -969,7 +968,7 @@ static void pp_init(page_pool_t *pool, uint64_t base, size_t size)
     pool->free = pool->size - bitmap_size;
 }
 
-bool mem_reserve_config(uint64_t config_addr, page_pool_t *pool)
+bool mem_reserve_config(phys_addr_t config_addr, page_pool_t *pool)
 {
     if (config_found) return true;
 
@@ -1064,7 +1063,7 @@ bool mem_map_vm_config(phys_addr_t config_addr)
     mem_map(&cpu.as, vm_config_ptr, &pages, 1, PTE_HYP_FLAGS);
     if (vm_config_ptr->config_header_size > PAGE_SIZE) {
         size_t n =
-            NUM_PAGES(((uint64_t)vm_config_ptr->config_header_size) - PAGE_SIZE);
+            NUM_PAGES(((size_t)vm_config_ptr->config_header_size) - PAGE_SIZE);
         void *va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL,
                                    vm_config_ptr + PAGE_SIZE, n);
         if (va == NULL) return false;
@@ -1367,7 +1366,7 @@ void mem_init(phys_addr_t load_addr, phys_addr_t config_addr)
 
         if (config_is_builtin()) {
             config_addr =
-                (uint64_t)(&_config_start - &_image_start) + load_addr;
+                (phys_addr_t)(&_config_start - &_image_start) + load_addr;
         }
 
         if (!mem_init_vm_config(config_addr)) {

@@ -120,7 +120,7 @@ void cpu_msg_set_handler(cpuid_t id, cpu_msg_handler_t handler);
 void cpu_idle();
 void cpu_idle_wakeup();
 
-void cpu_arch_init(cpuid_t cpu_id, uint64_t load_addr);
+void cpu_arch_init(cpuid_t cpu_id, phys_addr_t load_addr);
 void cpu_arch_idle();
 
 #endif /* __ASSEMBLER__ */

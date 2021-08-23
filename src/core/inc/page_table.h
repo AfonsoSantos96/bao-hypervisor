@@ -49,7 +49,7 @@ static inline size_t pt_lvlsize(page_table_t* pt, pt_lvl_t lvl)
 
 static inline size_t pt_getpteindex(page_table_t* pt, pte_t* pte, pt_lvl_t lvl)
 {
-    return (uint64_t)(((uint64_t)pte) & (PT_SIZE - 1)) / sizeof(pte_t);
+    return (size_t)(((size_t)pte) & (PT_SIZE - 1)) / sizeof(pte_t);
 }
 
 static inline size_t pt_size(page_table_t* pt, pt_lvl_t lvl)
