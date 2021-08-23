@@ -30,7 +30,7 @@ typedef struct ipc {
 
 typedef struct vm_config vm_config_t;
 
-int64_t ipc_hypercall(unsigned long arg0, unsigned long arg1, unsigned long arg2);
+unsigned long ipc_hypercall(unsigned long arg0, unsigned long arg1, unsigned long arg2);
 void ipc_init(const vm_config_t* vm_config, bool vm_master);
 shmem_t* ipc_get_shmem(size_t shmem_id);
 

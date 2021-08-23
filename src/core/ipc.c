@@ -73,11 +73,10 @@ static void ipc_handler(uint32_t event, uint64_t data){
 }
 CPU_MSG_HANDLER(ipc_handler, IPC_CPUSMG_ID);
 
-int64_t ipc_hypercall(unsigned long arg0, unsigned long arg1, unsigned long arg2)
+unsigned long ipc_hypercall(unsigned long ipc_id, unsigned long ipc_event, 
+                                                unsigned long arg2)
 {
-    uint64_t ipc_id = arg0;
-    uint64_t ipc_event = arg1;
-    int64_t ret = -HC_E_SUCCESS;
+    unsigned long ret = -HC_E_SUCCESS;
 
     shmem_t *shmem = NULL; 
     bool valid_ipc_obj = ipc_id < cpu.vcpu->vm->ipc_num;
