@@ -33,7 +33,7 @@ typedef union {
 static size_t shmem_table_size;
 static shmem_t *shmem_table;
 
-shmem_t* ipc_get_shmem(uint64_t shmem_id) {
+shmem_t* ipc_get_shmem(size_t shmem_id) {
     if(shmem_id < shmem_table_size) {
         return &shmem_table[shmem_id];
     } else {
@@ -41,7 +41,7 @@ shmem_t* ipc_get_shmem(uint64_t shmem_id) {
     }
 }
 
-static ipc_t* ipc_find_by_shmemid(vm_t* vm, uint64_t shmem_id) {
+static ipc_t* ipc_find_by_shmemid(vm_t* vm, size_t shmem_id) {
 
     ipc_t* ipc_obj = NULL;
 
@@ -55,7 +55,7 @@ static ipc_t* ipc_find_by_shmemid(vm_t* vm, uint64_t shmem_id) {
     return ipc_obj;
 }
 
-static void ipc_notify(uint64_t shmem_id, uint64_t event_id) {
+static void ipc_notify(size_t shmem_id, size_t event_id) {
     ipc_t* ipc_obj = ipc_find_by_shmemid(cpu.vcpu->vm, shmem_id);
     if(ipc_obj != NULL && event_id < ipc_obj->interrupt_num) {
         int irq_id = ipc_obj->interrupts[event_id];
@@ -73,7 +73,7 @@ static void ipc_handler(uint32_t event, uint64_t data){
 }
 CPU_MSG_HANDLER(ipc_handler, IPC_CPUSMG_ID);
 
-int64_t ipc_hypercall(uint64_t arg0, uint64_t arg1, uint64_t arg2)
+int64_t ipc_hypercall(unsigned long arg0, unsigned long arg1, unsigned long arg2)
 {
     uint64_t ipc_id = arg0;
     uint64_t ipc_event = arg1;
