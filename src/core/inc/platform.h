@@ -36,7 +36,7 @@ struct platform_desc {
     struct dev_region *devs;
 
     struct {
-        uint64_t base;
+        phys_addr_t base;
     } console;
 
     struct cache cache;

@@ -48,7 +48,7 @@ static slab_t* slab_create(objcache_t* oc, enum AS_SEC sec)
             memset(slab, 0, PAGE_SIZE);
             slab->header.cache = oc;
             slab->header.objsize =
-                ALIGN((sizeof(node_t) + oc->osize), sizeof(uint64_t));
+                ALIGN((sizeof(node_t) + oc->osize), sizeof(size_t));
             slab->header.objnum =
                 (PAGE_SIZE - sizeof(((slab_t*)NULL)->header)) /
                 slab->header.objsize;
@@ -85,9 +85,9 @@ static bool slab_free(slab_t* slab, void* obj)
 
     if (slab != NULL) {
         if (((((uint64_t)slab) & ~(PAGE_SIZE - 1)) ==
-             (((uint64_t)obj_addr) &
+             (((virt_addr_t)obj_addr) &
               ~(PAGE_SIZE - 1))) &&  // obj is part of slab
-            ((((((uint64_t)obj_addr) & (PAGE_SIZE - 1)) -
+            ((((((virt_addr_t)obj_addr) & (PAGE_SIZE - 1)) -
                sizeof(slab->header)) %
               slab->header.objsize) == 0) &&  // is aligned to object in slab
             (*((node_t*)(obj - sizeof(node_t))) ==

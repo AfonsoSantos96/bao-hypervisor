@@ -23,17 +23,17 @@ typedef struct {
     bool write;
     bool sign_ext;
     size_t width;
-    uint64_t reg;
-    uint64_t reg_width;
+    unsigned long reg;
+    size_t reg_width;
 } emul_access_t;
 
 typedef bool (*emul_handler_t)(emul_access_t*);
 
 typedef struct {
     virt_addr_t va_base;
-    uint64_t pa_base;
-    uint64_t size;
-    uint64_t flags;
+    phys_addr_t pa_base;
+    size_t size;
+    pte_flag_t flags;
     emul_handler_t handler;
 } emul_mem_t;
 
@@ -64,9 +64,9 @@ static inline void emul_write(emul_access_t* emul, uint64_t val)
     }
 }
 
-static inline uint64_t emul_read(emul_access_t* emul)
+static inline unsigned long emul_read(emul_access_t* emul)
 {
-    uint64_t val = 0;
+    unsigned long val = 0;
 
     switch (emul->width) {
         case 1:
