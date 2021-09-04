@@ -21,12 +21,12 @@
 #define WORD_TYPE unsigned long
 #define WORD_SIZE (sizeof(WORD_TYPE *))
 
-void *memcpy(void *dst, const void *src, uint32_t count);
-void *memset(void *dest, uint32_t c, uint32_t count);
+void *memcpy(void *dst, const void *src, size_t count);
+void *memset(void *dest, uint8_t c, size_t count);
 
 char *strcat(char *dest, char *src);
-uint32_t strlen(const char *s);
-uint32_t strnlen(const char *s, size_t n);
+unsigned long strlen(const char *s);
+unsigned long strnlen(const char *s, size_t n);
 char *strcpy(char *dest, char *src);
 
 #endif /* __STRING_H_ */

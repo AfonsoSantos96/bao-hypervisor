@@ -18,6 +18,6 @@
 
 #include <bao.h>
 
-uint64_t printk(const char *fmt, ...);
+unsigned long printk(const char *fmt, ...);
 
 #endif /* __PRINTK_H */
