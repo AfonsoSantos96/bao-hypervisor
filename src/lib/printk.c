@@ -22,11 +22,11 @@
 
 #define PRINT_TEXT_LEN 0x100
 
-unsigned long vsprintk(char *buf, const char *fmt, va_list args)
+size_t vsprintk(char *buf, const char *fmt, va_list args)
 {
     char *str;
     str = buf;
-    unsigned long len = strnlen(fmt, PRINT_TEXT_LEN);
+    size_t len = strnlen(fmt, PRINT_TEXT_LEN);
     for (; *fmt; ++fmt) {
         if ((*fmt != '%') && (*fmt != '\n') && (*fmt != '\t')) {
             *str++ = *fmt;
@@ -35,18 +35,18 @@ unsigned long vsprintk(char *buf, const char *fmt, va_list args)
 
         if (*fmt == '%') {
             ++fmt;
-            uint8_t is_unsigned = 0;
-            uint8_t zero_padding = 0;
-            uint8_t is_long = 0;
+            bool is_unsigned = false;
+            bool zero_padding = false;
+            bool is_long = false;
 
             if (*fmt == '0') {
                 ++fmt;
-                zero_padding = 1;
+                zero_padding = true;
             }
 
            if (*fmt == 'l') {
                 ++fmt;
-                is_long = 1;
+                is_long = true;
            }
 
             switch (*fmt) {
@@ -76,7 +76,7 @@ unsigned long vsprintk(char *buf, const char *fmt, va_list args)
                     break;
                 }
                 case 'u':
-                    is_unsigned = 1;
+                    is_unsigned = true;
                 case 'i':
                 case 'd': {
                     size_t i, j, max_num_zeros, num_of_digits_uint64_t,
@@ -164,10 +164,10 @@ unsigned long vsprintk(char *buf, const char *fmt, va_list args)
     return strnlen(fmt, PRINT_TEXT_LEN);
 }
 
-unsigned long printk(const char *fmt, ...)
+size_t printk(const char *fmt, ...)
 {
     va_list args;
-    unsigned long i;
+    size_t i;
 
     char print_buffer[PRINT_TEXT_LEN];
 
