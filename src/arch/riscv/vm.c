@@ -17,7 +17,6 @@
 #include <page_table.h>
 #include <arch/csrs.h>
 #include <arch/vplic.h>
-#include <types.h>
 #include <string.h>
 
 void vm_arch_init(vm_t *vm, const vm_config_t *config)
