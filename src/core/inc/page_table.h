@@ -22,7 +22,7 @@
 #ifndef __ASSEMBLER__
 
 typedef struct {
-    pt_lvl_t lvls;
+    size_t lvls;
     size_t* lvl_off;
     size_t* lvl_wdt;
     bool* lvl_term;
@@ -37,44 +37,44 @@ typedef struct page_table {
 extern page_table_dscr_t* hyp_pt_dscr;
 extern page_table_dscr_t* vm_pt_dscr;
 
-static inline size_t pt_nentries(page_table_t* pt, pt_lvl_t lvl)
+static inline size_t pt_nentries(page_table_t* pt, size_t lvl)
 {
     return (1ULL << pt->dscr->lvl_wdt[lvl]) >> pt->dscr->lvl_off[lvl];
 }
 
-static inline size_t pt_lvlsize(page_table_t* pt, pt_lvl_t lvl)
+static inline size_t pt_lvlsize(page_table_t* pt, size_t lvl)
 {
     return 1ULL << pt->dscr->lvl_off[lvl];
 }
 
-static inline size_t pt_getpteindex(page_table_t* pt, pte_t* pte, pt_lvl_t lvl)
+static inline size_t pt_getpteindex(page_table_t* pt, pte_t* pte, size_t lvl)
 {
     return (size_t)(((size_t)pte) & (PT_SIZE - 1)) / sizeof(pte_t);
 }
 
-static inline size_t pt_size(page_table_t* pt, pt_lvl_t lvl)
+static inline size_t pt_size(page_table_t* pt, size_t lvl)
 {
     return pt_nentries(pt, lvl) * sizeof(pte_t);
 }
 
-static inline bool pt_lvl_terminal(page_table_t* pt, pt_lvl_t lvl)
+static inline bool pt_lvl_terminal(page_table_t* pt, size_t lvl)
 {
     return pt->dscr->lvl_term[lvl];
 }
 
 /* Functions implemented in architecture dependent files */
 
-pte_t* pt_get_pte(page_table_t* pt, pt_lvl_t lvl, void* va);
-pte_t* pt_get(page_table_t* pt, pt_lvl_t lvl, void* va);
+pte_t* pt_get_pte(page_table_t* pt, size_t lvl, void* va);
+pte_t* pt_get(page_table_t* pt, size_t lvl, void* va);
 void pte_set(pte_t* pte, phys_addr_t addr, pte_type_t type, pte_flag_t flags);
 
 void pte_set_rsw(pte_t* pte, pte_flag_t flag);
 bool pte_check_rsw(pte_t* pte, pte_flag_t flag);
 
 bool pte_valid(pte_t* pte);
-bool pte_table(page_table_t* pt, pte_t* pte, pt_lvl_t lvl);
-bool pte_page(page_table_t* pt, pte_t* pte, pt_lvl_t lvl);
-pte_type_t pt_pte_type(page_table_t* pt, pt_lvl_t lvl);
+bool pte_table(page_table_t* pt, pte_t* pte, size_t lvl);
+bool pte_page(page_table_t* pt, pte_t* pte, size_t lvl);
+pte_type_t pt_pte_type(page_table_t* pt, size_t lvl);
 
 #endif /* __ASSEMBLER__ */
 

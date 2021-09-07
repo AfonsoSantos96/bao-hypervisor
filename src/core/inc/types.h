@@ -30,7 +30,6 @@ typedef uint64_t virt_addr_t;
 
 typedef uint64_t colormap_t;
 
-typedef uint64_t pt_lvl_t;
 typedef uint64_t pte_flag_t;
 typedef uint64_t pte_type_t;
 
