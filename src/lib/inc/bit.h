@@ -28,9 +28,6 @@
 
 #ifndef __ASSEMBLER__
 
-size_t bit_ctz(uint64_t n);
-size_t bit_clz(uint64_t n);
-
 static inline uint64_t bit_get(uint64_t word, size_t off)
 {
     return word & (1UL << off);
