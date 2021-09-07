@@ -74,7 +74,7 @@ typedef struct shmem {
     colormap_t colors;
     bool place_phys;
     phys_addr_t phys;
-    uint64_t cpu_masters;
+    cpumap_t cpu_masters;
 } shmem_t;
 
 static inline ppages_t mem_ppages_get(phys_addr_t base, size_t size)

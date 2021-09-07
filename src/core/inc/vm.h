@@ -43,7 +43,7 @@ typedef struct vm {
 
     list_t vcpu_list;
     size_t cpu_num;
-    uint64_t cpus;
+    cpumap_t cpus;
 
     addr_space_t as;
 
@@ -87,8 +87,8 @@ emul_handler_t vm_emul_get_mem(vm_t* vm, virt_addr_t addr);
 emul_handler_t vm_emul_get_reg(vm_t* vm, virt_addr_t addr);
 void vcpu_init(vcpu_t* vcpu, vm_t* vm, virt_addr_t entry);
 void vm_msg_broadcast(vm_t* vm, cpu_msg_t* msg);
-uint64_t vm_translate_to_pcpu_mask(vm_t* vm, uint64_t mask, size_t len);
-uint64_t vm_translate_to_vcpu_mask(vm_t* vm, uint64_t mask, size_t len);
+cpumap_t vm_translate_to_pcpu_mask(vm_t* vm, cpumap_t mask, size_t len);
+cpumap_t vm_translate_to_vcpu_mask(vm_t* vm, cpumap_t mask, size_t len);
 
 static inline int64_t vm_translate_to_pcpuid(vm_t* vm, unsigned long vcpuid)
 {

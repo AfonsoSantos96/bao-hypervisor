@@ -40,7 +40,7 @@ uint64_t vgic_int_ptarget_mask(vcpu_t *vcpu, vgic_int_t *interrupt)
     return interrupt->targets;
 }
 
-bool vgicd_set_trgt(vcpu_t *vcpu, vgic_int_t *interrupt, uint64_t targets)
+bool vgicd_set_trgt(vcpu_t *vcpu, vgic_int_t *interrupt, cpumap_t targets)
 {
     if (gic_is_priv(interrupt->id)) {
         return false;
@@ -75,7 +75,7 @@ void vgicd_emul_sgiregs_access(emul_access_t *acc,
 
     if ((acc->addr & 0xfff) == (((uint64_t)&gicd.SGIR) & 0xfff)) {
         if (acc->write) {
-            uint64_t trgtlist = 0;
+            cpumap_t trgtlist = 0;
             uint64_t int_id = GICD_SGIR_SGIINTID(val);
             switch (GICD_SGIR_TRGLSTFLT(val)) {
                 case 0:

@@ -87,7 +87,7 @@ unsigned long ipc_hypercall(unsigned long ipc_id, unsigned long ipc_event,
 
     if(valid_ipc_obj && valid_shmem) {
 
-        uint64_t ipc_cpu_masters = shmem->cpu_masters & ~cpu.vcpu->vm->cpus;
+        cpumap_t ipc_cpu_masters = shmem->cpu_masters & ~cpu.vcpu->vm->cpus;
 
         ipc_msg_data_t data = {
             .shmem_id = cpu.vcpu->vm->ipcs[ipc_id].shmem_id,

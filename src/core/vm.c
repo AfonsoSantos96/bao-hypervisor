@@ -369,11 +369,11 @@ void vm_msg_broadcast(vm_t* vm, cpu_msg_t* msg)
     }
 }
 
-__attribute__((weak)) uint64_t vm_translate_to_pcpu_mask(vm_t* vm,
-                                                         uint64_t mask,
+__attribute__((weak)) cpumap_t vm_translate_to_pcpu_mask(vm_t* vm,
+                                                         cpumap_t mask,
                                                          size_t len)
 {
-    uint64_t pmask = 0;
+    cpumap_t pmask = 0;
     int shift;
     for (int i = 0; i < len; i++) {
         if ((mask & (1ULL << i)) &&
@@ -384,11 +384,11 @@ __attribute__((weak)) uint64_t vm_translate_to_pcpu_mask(vm_t* vm,
     return pmask;
 }
 
-__attribute__((weak)) uint64_t vm_translate_to_vcpu_mask(vm_t* vm,
-                                                         uint64_t mask,
+__attribute__((weak)) cpumap_t vm_translate_to_vcpu_mask(vm_t* vm,
+                                                         cpumap_t mask,
                                                          size_t len)
 {
-    uint64_t pmask = 0;
+    cpumap_t pmask = 0;
     int shift;
     for (int i = 0; i < len; i++) {
         if ((mask & (1ULL << i)) &&

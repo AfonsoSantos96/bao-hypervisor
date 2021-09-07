@@ -128,7 +128,7 @@ void vgic_yield_ownership(vcpu_t *vcpu, vgic_int_t *interrupt)
     interrupt->owner = NULL;
 }
 
-void vgic_send_sgi_msg(vcpu_t *vcpu, uint64_t pcpu_mask, uint64_t int_id)
+void vgic_send_sgi_msg(vcpu_t *vcpu, cpumap_t pcpu_mask, uint64_t int_id)
 {
     cpu_msg_t msg = {
         VGIC_IPI_ID, VGIC_INJECT,
