@@ -25,8 +25,8 @@ void *memcpy(void *dst, const void *src, size_t count);
 void *memset(void *dest, uint8_t c, size_t count);
 
 char *strcat(char *dest, char *src);
-unsigned long strlen(const char *s);
-unsigned long strnlen(const char *s, size_t n);
+size_t strlen(const char *s);
+size_t strnlen(const char *s, size_t n);
 char *strcpy(char *dest, char *src);
 
 #endif /* __STRING_H_ */
