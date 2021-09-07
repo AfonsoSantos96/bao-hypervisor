@@ -20,6 +20,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+typedef signed long ssize_t;
+
 #define HYP_CTX_ID  0
 typedef uint64_t ctx_id_t;
 

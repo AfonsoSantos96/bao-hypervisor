@@ -76,13 +76,13 @@ static inline size_t bitmap_count(bitmap_t map, size_t start, size_t n,
     return count;
 }
 
-long int bitmap_find_nth(bitmap_t map, size_t size, size_t nth, size_t start,
+ssize_t bitmap_find_nth(bitmap_t map, size_t size, size_t nth, size_t start,
                         bool set);
 
 size_t bitmap_count_consecutive(bitmap_t map, size_t size, size_t start,
                                 size_t n);
 
-int bitmap_find_consec(bitmap_t map, size_t size, size_t start, size_t n,
+ssize_t bitmap_find_consec(bitmap_t map, size_t size, size_t start, size_t n,
                             bool set);
 
 #endif /* __BITMAP_H__ */
