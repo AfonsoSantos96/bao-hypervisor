@@ -66,7 +66,7 @@ typedef struct vcpu {
     struct arch_regs* regs;
     vcpu_arch_t arch;
 
-    unsigned long id;
+    cpuid_t id;
     cpuid_t phys_id;
     bool active;
 
@@ -80,7 +80,7 @@ extern struct config* vm_config_ptr;
 
 void vm_init(vm_t* vm, const vm_config_t* config, bool master, ctx_id_t vm_id);
 void vm_start(vm_t* vm, virt_addr_t entry);
-vcpu_t* vm_get_vcpu(vm_t* vm, unsigned long vcpuid);
+vcpu_t* vm_get_vcpu(vm_t* vm, cpuid_t vcpuid);
 void vm_emul_add_mem(vm_t* vm, emul_mem_t* emu);
 void vm_emul_add_reg(vm_t* vm, emul_reg_t* emu);
 emul_handler_t vm_emul_get_mem(vm_t* vm, virt_addr_t addr);
@@ -90,13 +90,13 @@ void vm_msg_broadcast(vm_t* vm, cpu_msg_t* msg);
 cpumap_t vm_translate_to_pcpu_mask(vm_t* vm, cpumap_t mask, size_t len);
 cpumap_t vm_translate_to_vcpu_mask(vm_t* vm, cpumap_t mask, size_t len);
 
-static inline int64_t vm_translate_to_pcpuid(vm_t* vm, unsigned long vcpuid)
+static inline cpuid_t vm_translate_to_pcpuid(vm_t* vm, cpuid_t vcpuid)
 {
     return bitmap_find_nth((bitmap_t)&vm->cpus, sizeof(vm->cpus) * 8,
                            vcpuid + 1, 0, true);
 }
 
-static inline uint64_t vm_translate_to_vcpuid(vm_t* vm, cpuid_t pcpuid)
+static inline cpuid_t vm_translate_to_vcpuid(vm_t* vm, cpuid_t pcpuid)
 {
     return bitmap_count((bitmap_t)&vm->cpus, 0, pcpuid, true);
 }
