@@ -83,7 +83,7 @@ inline uint16_t smmu_sme_get_mask(uint32_t sme)
 
 static void smmu_check_features()
 {
-    int version = bit_extract(smmu.hw.glbl_rs0->IDR7, SMMUV2_IDR7_MAJOR_OFF,
+    int version = bit32_extract(smmu.hw.glbl_rs0->IDR7, SMMUV2_IDR7_MAJOR_OFF,
                               SMMUV2_IDR7_MAJOR_LEN);
     if (version != 2) {
         ERROR("smmu unsupported version: %d", version);
@@ -115,9 +115,9 @@ static void smmu_check_features()
         ERROR("smmuv2 does not support 4kb page granule");
     }
 
-    int pasize = bit_extract(smmu.hw.glbl_rs0->IDR2, SMMUV2_IDR2_OAS_OFF,
+    int pasize = bit32_extract(smmu.hw.glbl_rs0->IDR2, SMMUV2_IDR2_OAS_OFF,
                              SMMUV2_IDR2_OAS_LEN);
-    int ipasize = bit_extract(smmu.hw.glbl_rs0->IDR2, SMMUV2_IDR2_IAS_OFF,
+    int ipasize = bit32_extract(smmu.hw.glbl_rs0->IDR2, SMMUV2_IDR2_IAS_OFF,
                               SMMUV2_IDR2_IAS_LEN);
     int parange = 0;
     parange = MRS(ID_AA64MMFR0_EL1);
@@ -146,10 +146,10 @@ void smmu_init()
     uint32_t pg_size =
         smmu_glbl_rs0->IDR1 & SMMUV2_IDR1_PAGESIZE_BIT ? 0x10000 : 0x1000;
     uint32_t num_page =
-        1ULL << (bit_extract(smmu_glbl_rs0->IDR1, SMMUV2_IDR1_NUMPAGEDXB_OFF,
+        1ULL << (bit32_extract(smmu_glbl_rs0->IDR1, SMMUV2_IDR1_NUMPAGEDXB_OFF,
                              SMMUV2_IDR1_NUMPAGEDXB_LEN) +
                  1);
-    int32_t ctx_bank_num = bit_extract(
+    int32_t ctx_bank_num = bit32_extract(
         smmu_glbl_rs0->IDR1, SMMUV2_IDR1_NUMCB_OFF, SMMUV2_IDR1_NUMCB_LEN);
 
     smmu_glbl_rs1_t *smmu_glbl_rs1 = mem_alloc_vpage(

@@ -206,7 +206,7 @@ void gicr_set_prio(uint64_t int_id, uint8_t prio, uint32_t gicr_id)
 {
     uint64_t reg_ind = GIC_PRIO_REG(int_id);
     uint64_t off = GIC_PRIO_OFF(int_id);
-    uint64_t mask = BIT_MASK(off, GIC_PRIO_BITS);
+    uint64_t mask = BIT64_MASK(off, GIC_PRIO_BITS);
 
     spin_lock(&gicr_lock);
 
@@ -224,7 +224,7 @@ uint64_t gicr_get_prio(uint64_t int_id, uint32_t gicr_id)
     spin_lock(&gicr_lock);
 
     uint64_t prio =
-        gicr[gicr_id].IPRIORITYR[reg_ind] >> off & BIT_MASK(off, GIC_PRIO_BITS);
+        gicr[gicr_id].IPRIORITYR[reg_ind] >> off & BIT64_MASK(off, GIC_PRIO_BITS);
 
     spin_unlock(&gicr_lock);
 
