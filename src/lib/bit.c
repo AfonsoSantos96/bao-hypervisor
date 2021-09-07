@@ -17,7 +17,7 @@
 
 size_t bit_ctz(uint64_t n)
 {
-    int i = 0;
+    size_t i = 0;
 
     for (i = 0; i < sizeof(n) * 8; i++) {
         if ((n >> i) & 0x1) return i;
@@ -28,7 +28,7 @@ size_t bit_ctz(uint64_t n)
 
 size_t bit_clz(uint64_t n)
 {
-    int i = 0, j;
+    size_t i = 0, j;
 
     for (i = (sizeof(n) * 8) - 1, j = 0; i >= 0; i--, j++) {
         if ((n >> i) & 0x1) return j;

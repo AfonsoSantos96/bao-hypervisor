@@ -24,35 +24,35 @@
  * the corner case of runtime full machine word length masks with the cost of
  * an extra shift instruction. For static masks, there should be no extra costs.
  */
-#define BIT_MASK(OFF, LEN) ((((1ULL<<((LEN)-1))<<1)-1)<<(OFF))
+#define BIT_MASK(OFF, LEN) ((((1UL<<((LEN)-1))<<1)-1)<<(OFF))
 
 #ifndef __ASSEMBLER__
 
 size_t bit_ctz(uint64_t n);
 size_t bit_clz(uint64_t n);
 
-static inline uint64_t bit_get(uint64_t word, uint64_t off)
+static inline uint64_t bit_get(uint64_t word, size_t off)
 {
     return word & (1UL << off);
 }
 
-static inline uint64_t bit_set(uint64_t word, uint64_t off)
+static inline uint64_t bit_set(uint64_t word, size_t off)
 {
     return word |= (1UL << off);
 }
 
-static inline uint64_t bit_clear(uint64_t word, uint64_t off)
+static inline uint64_t bit_clear(uint64_t word, size_t off)
 {
     return word &= ~(1UL << off);
 }
 
-static inline uint64_t bit_extract(uint64_t word, uint64_t off, uint64_t len)
+static inline uint64_t bit_extract(uint64_t word, size_t off, size_t len)
 {
     return (word >> off) & BIT_MASK(0, len);
 }
 
-static inline uint64_t bit_insert(uint64_t word, uint64_t val, uint64_t off,
-                                  uint64_t len)
+static inline uint64_t bit_insert(uint64_t word, uint64_t val, size_t off,
+                                  size_t len)
 {
     return (~BIT_MASK(off, len) & word) | ((BIT_MASK(0, len) & val) << off);
 }
