@@ -18,9 +18,6 @@
 
 #include <bao.h>
 
-#define WORD_TYPE unsigned long
-#define WORD_SIZE (sizeof(WORD_TYPE *))
-
 void *memcpy(void *dst, const void *src, size_t count);
 void *memset(void *dest, uint8_t c, size_t count);
 
