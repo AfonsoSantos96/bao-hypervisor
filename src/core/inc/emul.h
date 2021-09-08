@@ -33,7 +33,6 @@ typedef struct {
     virt_addr_t va_base;
     phys_addr_t pa_base;
     size_t size;
-    pte_flag_t flags;
     emul_handler_t handler;
 } emul_mem_t;
 

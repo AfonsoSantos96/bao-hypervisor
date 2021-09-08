@@ -97,9 +97,9 @@ void* mem_alloc_vpage(addr_space_t* as, enum AS_SEC section, void* at,
                       size_t n);
 void mem_free_vpage(addr_space_t* as, void* at, size_t n, bool free_ppages);
 int mem_map(addr_space_t* as, void* va, ppages_t* ppages, size_t n,
-            pte_flag_t flags);
+            pte_t flags);
 int mem_map_reclr(addr_space_t* as, void* va, ppages_t* ppages, size_t n,
-                  pte_flag_t flags);
+                  pte_t flags);
 int mem_map_dev(addr_space_t* as, void* va, phys_addr_t base, size_t n);
 
 /* Functions implemented in architecture dependent files */

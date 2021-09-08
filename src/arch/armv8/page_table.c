@@ -48,7 +48,7 @@ void pt_set_recursive(page_table_t* pt, uint64_t index)
     phys_addr_t pa;
     mem_translate(&cpu.as, pt->root, &pa);
     pte_t* pte = cpu.as.pt.root + index;
-    pte_set(pte, pa, PTE_TABLE, PTE_HYP_FLAGS);
+    pte_set(pte, pa, PTE_TABLE | PTE_HYP_FLAGS);
     pt->root_flags &= ~PT_ROOT_FLAGS_REC_IND_MSK;
     pt->root_flags |=
         (index << PT_ROOT_FLAGS_REC_IND_OFF) & PT_ROOT_FLAGS_REC_IND_MSK;
@@ -83,7 +83,7 @@ pte_t* pt_get(page_table_t* pt, size_t lvl, void* va)
     return (pte_t*)pte;
 }
 
-pte_type_t pt_pte_type(page_table_t* pt, size_t lvl)
+pte_t pt_pte_type(page_table_t* pt, size_t lvl)
 {
     return (lvl == pt->dscr->lvls - 1) ? PTE_PAGE : PTE_SUPERPAGE;
 }

@@ -139,11 +139,9 @@ typedef struct page_table page_table_t;
 
 void pt_set_recursive(page_table_t* pt, uint64_t index);
 
-static inline void pte_set(pte_t* pte, phys_addr_t addr, pte_type_t type,
-                           pte_flag_t flags)
+static inline void pte_set(pte_t* pte, phys_addr_t addr, pte_t flags)
 {
-    *pte =
-        (addr & PTE_ADDR_MSK) | (type & PTE_TYPE_MSK) | (flags & PTE_FLAGS_MSK);
+    *pte = (addr & PTE_ADDR_MSK) | (flags & PTE_FLAGS_MSK);
 }
 
 static inline bool pte_valid(pte_t* pte)
@@ -151,12 +149,12 @@ static inline bool pte_valid(pte_t* pte)
     return (*pte & PTE_VALID);
 }
 
-static inline void pte_set_rsw(pte_t* pte, pte_flag_t flag)
+static inline void pte_set_rsw(pte_t* pte, pte_t flag)
 {
     *pte = (*pte & ~PTE_RSW_MSK) | (flag & PTE_RSW_MSK);
 }
 
-static inline bool pte_check_rsw(pte_t* pte, pte_flag_t flag)
+static inline bool pte_check_rsw(pte_t* pte, pte_t flag)
 {
     return (*pte & PTE_RSW_MSK) == (flag & PTE_RSW_MSK);
 }

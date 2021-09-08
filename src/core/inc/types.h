@@ -30,9 +30,6 @@ typedef uint64_t virt_addr_t;
 
 typedef uint64_t colormap_t;
 
-typedef uint64_t pte_flag_t;
-typedef uint64_t pte_type_t;
-
 typedef uint64_t cpuid_t;
 typedef unsigned long cpumap_t;
 

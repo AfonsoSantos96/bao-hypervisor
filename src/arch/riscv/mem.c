@@ -39,7 +39,7 @@ static inline void as_map_physical_identity(addr_space_t *as) {
         phys_addr_t addr = (phys_addr_t)base;
         for (int j = 0; j < num_entries; j++) {
             int index = PTE_INDEX(lvl, addr);
-            pte_set(&pt[index], addr, PTE_SUPERPAGE, PTE_HYP_FLAGS);
+            pte_set(&pt[index], addr, PTE_SUPERPAGE | PTE_HYP_FLAGS);
             addr += lvl_size;
         }
     }
