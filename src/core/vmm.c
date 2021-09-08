@@ -61,7 +61,7 @@ void vmm_init()
 
     bool master = false;
     bool assigned = false;
-    ctx_id_t vm_id = 0;
+    vmid_t vm_id = 0;
     vm_config_t *vm_config = NULL;
 
     /**

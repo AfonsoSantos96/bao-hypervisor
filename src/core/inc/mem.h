@@ -42,7 +42,7 @@ typedef struct {
     page_table_t pt;
     enum AS_TYPE type;
     colormap_t colors;
-    ctx_id_t id;
+    asid_t id;
     spinlock_t lock;
 } addr_space_t;
 
@@ -89,7 +89,7 @@ static inline bool all_clrs(colormap_t clrs)
 }
 
 void mem_init(phys_addr_t load_addr, phys_addr_t config_addr);
-void as_init(addr_space_t* as, enum AS_TYPE type, ctx_id_t id, void* root_pt,
+void as_init(addr_space_t* as, enum AS_TYPE type, asid_t id, void* root_pt,
              colormap_t colors);
 void* mem_alloc_page(size_t n, enum AS_SEC sec, bool phys_aligned);
 ppages_t mem_alloc_ppages(colormap_t colors, size_t n, bool aligned);

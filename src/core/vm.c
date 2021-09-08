@@ -29,7 +29,7 @@ struct emul_node {
     };
 };
 
-static void vm_master_init(vm_t* vm, const vm_config_t* config, ctx_id_t vm_id)
+static void vm_master_init(vm_t* vm, const vm_config_t* config, vmid_t vm_id)
 {
     vm->master = cpu.id;
     vm->config = config;
@@ -244,7 +244,7 @@ static void vm_init_dev(vm_t* vm, const vm_config_t* config)
       
 }
 
-void vm_init(vm_t* vm, const vm_config_t* config, bool master, ctx_id_t vm_id)
+void vm_init(vm_t* vm, const vm_config_t* config, bool master, vmid_t vm_id)
 {
     /**
      * Before anything else, initialize vm structure.

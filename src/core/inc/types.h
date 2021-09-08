@@ -22,8 +22,9 @@
 
 typedef signed long ssize_t;
 
-#define HYP_CTX_ID  0
-typedef uint64_t ctx_id_t;
+#define HYP_ASID  0
+typedef uint64_t asid_t;
+typedef uint64_t vmid_t;
 
 typedef uint64_t phys_addr_t;
 typedef uint64_t virt_addr_t;
