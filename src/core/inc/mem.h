@@ -67,7 +67,7 @@ struct dev_region {
     size_t size;
     size_t interrupt_num;
     irqid_t *interrupts;
-    unsigned long id; /* bus master id for iommu effects */
+    streamid_t id; /* bus master id for iommu effects */
 };
 
 struct shmem {

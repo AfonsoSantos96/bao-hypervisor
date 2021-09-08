@@ -292,7 +292,7 @@ int smmu_alloc_sme()
  * This function searches for existing smes that are compatible for merging
  * with the new sme, raising an ERROR when conflicting attributes are found.
  */
-bool smmu_compatible_sme_exists(uint16_t mask, uint16_t id, uint32_t ctx,
+bool smmu_compatible_sme_exists(uint16_t mask, streamid_t id, uint32_t ctx,
                                 bool group)
 {
     bool included = false;
@@ -335,7 +335,7 @@ bool smmu_compatible_sme_exists(uint16_t mask, uint16_t id, uint32_t ctx,
     return included;
 }
 
-void smmu_write_sme(uint32_t sme, uint16_t mask, uint16_t id, bool group)
+void smmu_write_sme(uint32_t sme, uint16_t mask, streamid_t id, bool group)
 {
     spin_lock(&smmu.sme_lock);
     if (bitmap_get(smmu.sme_bitmap, sme)) {

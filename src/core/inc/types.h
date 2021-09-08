@@ -34,5 +34,6 @@ typedef unsigned long cpuid_t;
 typedef unsigned long cpumap_t;
 
 typedef unsigned irqid_t;
+typedef unsigned streamid_t;
 
 #endif

@@ -49,7 +49,7 @@ static int32_t iommu_vm_arch_init_ctx(struct vm *vm)
     return ctx_id;
 }
 
-static int iommu_vm_arch_add(struct vm *vm, uint16_t mask, uint16_t id)
+static int iommu_vm_arch_add(struct vm *vm, uint16_t mask, streamid_t id)
 {
     int32_t vm_ctx = iommu_vm_arch_init_ctx(vm);
     uint16_t glbl_mask = vm->iommu.arch.global_mask;
@@ -74,7 +74,7 @@ static int iommu_vm_arch_add(struct vm *vm, uint16_t mask, uint16_t id)
     return 0;
 }
 
-inline int iommu_arch_vm_add_device(struct vm *vm, int id)
+inline int iommu_arch_vm_add_device(struct vm *vm, streamid_t id)
 {
     return iommu_vm_arch_add(vm, 0, id);
 }
