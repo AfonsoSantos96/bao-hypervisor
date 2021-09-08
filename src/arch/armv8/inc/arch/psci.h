@@ -75,9 +75,16 @@
 
 struct psci_ctx {
     spinlock_t lock;
-    uintptr_t entrypoint;
-    uintptr_t context_id;
+    phys_addr_t entrypoint;
+    unsigned long context_id;
     enum { ON, OFF, ON_PENDING } state;
+};
+
+enum wakeup_reason {
+    PSCI_WAKEUP_CPU_OFF,
+    PSCI_WAKEUP_POWERDOWN,
+    PSCI_WAKEUP_IDLE,
+    PSCI_WAKEUP_NUM
 };
 
 struct psci_off_state {
@@ -94,38 +101,31 @@ struct psci_off_state {
     struct gicc_state gicc_state;
 } __attribute__((packed, aligned(8)));
 
-enum wakeup_reason {
-    PSCI_WAKEUP_CPU_OFF,
-    PSCI_WAKEUP_POWERDOWN,
-    PSCI_WAKEUP_IDLE,
-    PSCI_WAKEUP_NUM
-};
-
 /* --------------------------------
         SMC Trapping
 --------------------------------- */
 
-int64_t psci_smc_handler(uint32_t smc_fid, uint64_t x1, uint64_t x2,
-                         uint64_t x3);
+int32_t psci_smc_handler(uint32_t smc_fid, unsigned long x1, unsigned long x2,
+                         unsigned long x3);
 
-uint64_t psci_standby();
-uint64_t psci_power_down(uint64_t reason);
+int32_t psci_standby();
+int32_t psci_power_down(enum wakeup_reason reason);
 
 /* --------------------------------
         SMC PSCI interface
 --------------------------------- */
 
-uint64_t psci_version(void);
+int32_t psci_version(void);
 
-uint64_t psci_cpu_suspend(uint64_t power_state, uintptr_t entrypoint,
-                          uint64_t context_id);
+int32_t psci_cpu_suspend(uint32_t power_state, unsigned long entrypoint,
+                          unsigned long context_id);
 
-uint64_t psci_cpu_off(void);
+int32_t psci_cpu_off(void);
 
-uint64_t psci_cpu_on(uint64_t target_cpu, uintptr_t entrypoint,
-                     uint64_t context_id);
+int32_t psci_cpu_on(unsigned long target_cpu, unsigned long entrypoint,
+                     unsigned long context_id);
 
-uint64_t psci_affinity_info(uint64_t target_affinity,
-                            uint64_t lowest_affinity_level);
+int32_t psci_affinity_info(unsigned long target_affinity,
+                            uint32_t lowest_affinity_level);
 
 #endif /* __PSCI_H__ */
