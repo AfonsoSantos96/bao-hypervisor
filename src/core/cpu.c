@@ -31,9 +31,9 @@ struct cpu cpu __attribute__((section(".cpu_private")));
 struct cpu_synctoken cpu_glb_sync = {.ready = false};
 
 struct objcache msg_cache;
-extern cpu_msg_handler_t _ipi_cpumsg_handlers_start;
-extern size_t _ipi_cpumsg_handlers_size;
-extern phys_addr_t _ipi_cpumsg_handlers_id_start;
+extern uint8_t _ipi_cpumsg_handlers_start;
+extern uint8_t _ipi_cpumsg_handlers_size;
+extern uint8_t _ipi_cpumsg_handlers_id_start;
 cpu_msg_handler_t *ipi_cpumsg_handlers;
 size_t ipi_cpumsg_handler_num;
 
@@ -49,11 +49,11 @@ void cpu_init(cpuid_t cpu_id, phys_addr_t load_addr)
         objcache_init(&msg_cache, sizeof(struct cpu_msg_node), SEC_HYP_GLOBAL,
                       false);
 
-        ipi_cpumsg_handlers = &_ipi_cpumsg_handlers_start;
+        ipi_cpumsg_handlers = (cpu_msg_handler_t*)&_ipi_cpumsg_handlers_start;
         ipi_cpumsg_handler_num =
             ((size_t)&_ipi_cpumsg_handlers_size) / sizeof(cpu_msg_handler_t);
         for (int i = 0; i < ipi_cpumsg_handler_num; i++) {
-            (&_ipi_cpumsg_handlers_id_start)[i] = i;
+            ((size_t*)&_ipi_cpumsg_handlers_id_start)[i] = i;
         }
     }
 
