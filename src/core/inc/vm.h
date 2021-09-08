@@ -101,7 +101,7 @@ static inline cpuid_t vm_translate_to_vcpuid(struct vm* vm, cpuid_t pcpuid)
     return bitmap_count((bitmap_t)&vm->cpus, 0, pcpuid, true);
 }
 
-static inline int vm_has_interrupt(struct vm* vm, unsigned int int_id)
+static inline int vm_has_interrupt(struct vm* vm, irqid_t int_id)
 {
     return bitmap_get(vm->interrupt_bitmap, int_id);
 }

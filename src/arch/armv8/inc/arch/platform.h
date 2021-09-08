@@ -28,12 +28,12 @@ struct arch_platform {
 
         uint64_t maintenance_id;
 
-        uint64_t interrupt_num;
+        irqid_t interrupt_num;
     } gic;
 
     struct {
         uint64_t base;
-        uint64_t interrupt_id;
+        irqid_t interrupt_id;
         uint16_t global_mask;
 
         uint32_t group_num;

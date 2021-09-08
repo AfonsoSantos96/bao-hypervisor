@@ -66,7 +66,7 @@ struct dev_region {
     virt_addr_t va;
     size_t size;
     size_t interrupt_num;
-    unsigned long *interrupts;
+    irqid_t *interrupts;
     unsigned long id; /* bus master id for iommu effects */
 };
 

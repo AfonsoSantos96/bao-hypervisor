@@ -43,7 +43,7 @@ extern volatile const uint64_t VGIC_IPI_ID;
 void vgic_ipi_handler(uint32_t event, uint64_t data);
 CPU_MSG_HANDLER(vgic_ipi_handler, VGIC_IPI_ID);
 
-static inline struct vgic_int *vgic_get_int(struct vcpu *vcpu, uint64_t int_id,
+static inline struct vgic_int *vgic_get_int(struct vcpu *vcpu, irqid_t int_id,
                                        uint64_t vgicr_id)
 {
     if (int_id < GIC_CPU_PRIV) {
@@ -128,7 +128,7 @@ void vgic_yield_ownership(struct vcpu *vcpu, struct vgic_int *interrupt)
     interrupt->owner = NULL;
 }
 
-void vgic_send_sgi_msg(struct vcpu *vcpu, cpumap_t pcpu_mask, uint64_t int_id)
+void vgic_send_sgi_msg(struct vcpu *vcpu, cpumap_t pcpu_mask, irqid_t int_id)
 {
     struct cpu_msg msg = {
         VGIC_IPI_ID, VGIC_INJECT,
@@ -871,7 +871,7 @@ bool vgicd_emul_handler(struct emul_access *acc)
     }
 }
 
-void vgic_inject(struct vgicd *vgicd, uint64_t id, uint64_t source)
+void vgic_inject(struct vgicd *vgicd, irqid_t id, uint64_t source)
 {
     struct vgic_int *interrupt = vgic_get_int(cpu.vcpu, id, cpu.vcpu->id);
     if (interrupt != NULL) {
@@ -896,7 +896,7 @@ void vgic_ipi_handler(uint32_t event, uint64_t data)
 {
     uint16_t vm_id = VGIC_MSG_VM(data);
     uint16_t vgicr_id = VGIC_MSG_VGICRID(data);
-    uint16_t int_id = VGIC_MSG_INTID(data);
+    irqid_t int_id = VGIC_MSG_INTID(data);
     uint64_t val = VGIC_MSG_VAL(data);
 
     if (vm_id != cpu.vcpu->vm->id) {
@@ -1066,7 +1066,7 @@ void vgic_handle_trapped_eoir(struct vcpu *vcpu)
     }
 }
 
-void gic_maintenance_handler(uint64_t arg)
+void gic_maintenance_handler(irqid_t irq_id)
 {
     uint32_t misr = gich_get_misr();
 
@@ -1108,7 +1108,7 @@ uint32_t vgic_get_itln(const struct gic_dscrp *gic_dscrp) {
     return vtyper_itln;
 }
 
-void vgic_set_hw(struct vm *vm, uint64_t id)
+void vgic_set_hw(struct vm *vm, irqid_t id)
 {
     if (id < GIC_MAX_SGIS) return;
 

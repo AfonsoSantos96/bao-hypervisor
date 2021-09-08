@@ -26,22 +26,22 @@ BITMAP_ALLOC(global_interrupt_bitmap, MAX_INTERRUPTS);
 
 irq_handler_t interrupt_handlers[MAX_INTERRUPTS];
 
-inline void interrupts_cpu_sendipi(cpuid_t target_cpu, unsigned long  ipi_id)
+inline void interrupts_cpu_sendipi(cpuid_t target_cpu, irqid_t ipi_id)
 {
     interrupts_arch_ipi_send(target_cpu, ipi_id);
 }
 
-inline void interrupts_cpu_enable(unsigned long  int_id, bool en)
+inline void interrupts_cpu_enable(irqid_t int_id, bool en)
 {
     interrupts_arch_enable(int_id, en);
 }
 
-inline bool interrupts_check(unsigned long  int_id)
+inline bool interrupts_check(irqid_t int_id)
 {
     return interrupts_arch_check(int_id);
 }
 
-inline void interrupts_clear(unsigned long  int_id)
+inline void interrupts_clear(irqid_t int_id)
 {
     interrupts_arch_clear(int_id);
 }
@@ -57,17 +57,17 @@ inline void interrupts_init()
     interrupts_cpu_enable(IPI_CPU_MSG, true);
 }
 
-static inline bool interrupt_is_reserved(unsigned long  int_id)
+static inline bool interrupt_is_reserved(irqid_t int_id)
 {
     return bitmap_get(hyp_interrupt_bitmap, int_id);
 }
 
-inline void interrupts_vm_inject(struct vm *vm, unsigned long  id)
+inline void interrupts_vm_inject(struct vm *vm, irqid_t id)
 {
     interrupts_arch_vm_inject(vm, id);
 }
 
-enum irq_res interrupts_handle(unsigned long int_id)
+enum irq_res interrupts_handle(irqid_t int_id)
 {
     if (vm_has_interrupt(cpu.vcpu->vm, int_id)) {
         interrupts_vm_inject(cpu.vcpu->vm, int_id);
@@ -84,7 +84,7 @@ enum irq_res interrupts_handle(unsigned long int_id)
     }
 }
 
-void interrupts_vm_assign(struct vm *vm, unsigned long id)
+void interrupts_vm_assign(struct vm *vm, irqid_t id)
 {
     if (interrupts_arch_conflict(global_interrupt_bitmap, id)) {
         ERROR("Interrupts conflict, id = %d\n", id);
@@ -96,7 +96,7 @@ void interrupts_vm_assign(struct vm *vm, unsigned long id)
     bitmap_set(global_interrupt_bitmap, id);
 }
 
-void interrupts_reserve(unsigned long  int_id, irq_handler_t handler)
+void interrupts_reserve(irqid_t int_id, irq_handler_t handler)
 {
     if (int_id < MAX_INTERRUPTS) {
         interrupt_handlers[int_id] = handler;

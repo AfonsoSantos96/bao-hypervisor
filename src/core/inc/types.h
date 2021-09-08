@@ -22,7 +22,6 @@
 
 typedef signed long ssize_t;
 
-
 typedef unsigned long asid_t;
 typedef unsigned long vmid_t;
 
@@ -33,5 +32,7 @@ typedef unsigned long colormap_t;
 
 typedef unsigned long cpuid_t;
 typedef unsigned long cpumap_t;
+
+typedef unsigned irqid_t;
 
 #endif
