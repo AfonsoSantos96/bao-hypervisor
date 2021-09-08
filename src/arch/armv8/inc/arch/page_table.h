@@ -135,9 +135,9 @@ typedef uint64_t pte_t;
 extern uint64_t parange;
 extern uint64_t parange_table[];
 
-typedef struct page_table page_table_t;
+struct page_table;
 
-void pt_set_recursive(page_table_t* pt, uint64_t index);
+void pt_set_recursive(struct page_table* pt, uint64_t index);
 
 static inline void pte_set(pte_t* pte, phys_addr_t addr, pte_t flags)
 {

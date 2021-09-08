@@ -18,32 +18,32 @@
 
 #include <bao.h>
 
-typedef struct {
+struct emul_access {
     virt_addr_t addr;
     bool write;
     bool sign_ext;
     size_t width;
     unsigned long reg;
     size_t reg_width;
-} emul_access_t;
+};
 
-typedef bool (*emul_handler_t)(emul_access_t*);
+typedef bool (*emul_handler_t)(struct emul_access*);
 
-typedef struct {
+struct emul_mem {
     virt_addr_t va_base;
     phys_addr_t pa_base;
     size_t size;
     emul_handler_t handler;
-} emul_mem_t;
+};
 
-typedef struct {
+struct emul_reg {
     virt_addr_t addr;
     emul_handler_t handler;
-} emul_reg_t;
+};
 
-bool emul_passthrough(emul_access_t*);
+bool emul_passthrough(struct emul_access*);
 
-static inline void emul_write(emul_access_t* emul, uint64_t val)
+static inline void emul_write(struct emul_access* emul, uint64_t val)
 {
     switch (emul->width) {
         case 1:
@@ -63,7 +63,7 @@ static inline void emul_write(emul_access_t* emul, uint64_t val)
     }
 }
 
-static inline unsigned long emul_read(emul_access_t* emul)
+static inline unsigned long emul_read(struct emul_access* emul)
 {
     unsigned long val = 0;
 

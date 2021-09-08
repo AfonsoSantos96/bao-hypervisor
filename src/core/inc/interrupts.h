@@ -21,7 +21,7 @@
 
 #include <bitmap.h>
 
-typedef struct vm vm_t;
+struct vm;
 
 typedef void (*irq_handler_t)(unsigned long int_id);
 
@@ -37,8 +37,8 @@ void interrupts_clear(unsigned long  int_id);
 enum irq_res { HANDLED_BY_HYP, FORWARD_TO_VM };
 enum irq_res interrupts_handle(unsigned long  int_id);
 
-void interrupts_vm_assign(vm_t *vm, unsigned long  id);
-void interrupts_vm_inject(vm_t *vm, unsigned long  id);
+void interrupts_vm_assign(struct vm *vm, unsigned long  id);
+void interrupts_vm_inject(struct vm *vm, unsigned long  id);
 
 /* Must be implemented by architecture */
 
@@ -47,8 +47,8 @@ void interrupts_arch_enable(unsigned long  int_id, bool en);
 bool interrupts_arch_check(unsigned long  int_id);
 void interrupts_arch_clear(unsigned long  int_id);
 void interrupts_arch_ipi_send(cpuid_t cpu_target, unsigned long ipi_id);
-void interrupts_arch_vm_assign(vm_t *vm, unsigned long id);
-void interrupts_arch_vm_inject(vm_t *vm, unsigned long id);
+void interrupts_arch_vm_assign(struct vm *vm, unsigned long id);
+void interrupts_arch_vm_inject(struct vm *vm, unsigned long id);
 bool interrupts_arch_conflict(bitmap_t interrupt_bitmap, unsigned long  id);
 
 #endif /* __INTERRUPTS_H__ */

@@ -22,18 +22,18 @@
 
 enum {IPC_NOTIFY};
 
-typedef union {
+union ipc_msg_data {
     struct {
         uint8_t shmem_id;
         uint8_t event_id;
     };
     uint64_t raw;
-} ipc_msg_data_t;
+};
 
 static size_t shmem_table_size;
-static shmem_t *shmem_table;
+static struct shmem *shmem_table;
 
-shmem_t* ipc_get_shmem(size_t shmem_id) {
+struct shmem* ipc_get_shmem(size_t shmem_id) {
     if(shmem_id < shmem_table_size) {
         return &shmem_table[shmem_id];
     } else {
@@ -41,9 +41,9 @@ shmem_t* ipc_get_shmem(size_t shmem_id) {
     }
 }
 
-static ipc_t* ipc_find_by_shmemid(vm_t* vm, size_t shmem_id) {
+static struct ipc* ipc_find_by_shmemid(struct vm* vm, size_t shmem_id) {
 
-    ipc_t* ipc_obj = NULL;
+    struct ipc* ipc_obj = NULL;
 
     for(int i = 0; i < vm->ipc_num; i++) {
         if(vm->ipcs[i].shmem_id == shmem_id) {
@@ -56,7 +56,7 @@ static ipc_t* ipc_find_by_shmemid(vm_t* vm, size_t shmem_id) {
 }
 
 static void ipc_notify(size_t shmem_id, size_t event_id) {
-    ipc_t* ipc_obj = ipc_find_by_shmemid(cpu.vcpu->vm, shmem_id);
+    struct ipc* ipc_obj = ipc_find_by_shmemid(cpu.vcpu->vm, shmem_id);
     if(ipc_obj != NULL && event_id < ipc_obj->interrupt_num) {
         int irq_id = ipc_obj->interrupts[event_id];
         interrupts_vm_inject(cpu.vcpu->vm, irq_id);
@@ -64,7 +64,7 @@ static void ipc_notify(size_t shmem_id, size_t event_id) {
 }
 
 static void ipc_handler(uint32_t event, uint64_t data){
-    ipc_msg_data_t ipc_data = { .raw = data };
+    union ipc_msg_data ipc_data = { .raw = data };
     switch(event){
         case IPC_NOTIFY: 
             ipc_notify(ipc_data.shmem_id, ipc_data.event_id);
@@ -78,7 +78,7 @@ unsigned long ipc_hypercall(unsigned long ipc_id, unsigned long ipc_event,
 {
     unsigned long ret = -HC_E_SUCCESS;
 
-    shmem_t *shmem = NULL; 
+    struct shmem *shmem = NULL; 
     bool valid_ipc_obj = ipc_id < cpu.vcpu->vm->ipc_num;
     if(valid_ipc_obj) {
         shmem = ipc_get_shmem(cpu.vcpu->vm->ipcs[ipc_id].shmem_id);
@@ -89,11 +89,11 @@ unsigned long ipc_hypercall(unsigned long ipc_id, unsigned long ipc_event,
 
         cpumap_t ipc_cpu_masters = shmem->cpu_masters & ~cpu.vcpu->vm->cpus;
 
-        ipc_msg_data_t data = {
+        union ipc_msg_data data = {
             .shmem_id = cpu.vcpu->vm->ipcs[ipc_id].shmem_id,
             .event_id = ipc_event,
         };
-        cpu_msg_t msg = {IPC_CPUSMG_ID, IPC_NOTIFY, data.raw};
+        struct cpu_msg msg = {IPC_CPUSMG_ID, IPC_NOTIFY, data.raw};
 
         for (int i = 0; i < platform.cpu_num; i++) {
             if (ipc_cpu_masters & (1ULL << i)) {
@@ -110,10 +110,10 @@ unsigned long ipc_hypercall(unsigned long ipc_id, unsigned long ipc_event,
 
 static void ipc_alloc_shmem() {
     for (int i = 0; i < shmem_table_size; i++) {
-        shmem_t *shmem = &shmem_table[i];
+        struct shmem *shmem = &shmem_table[i];
         if(!shmem->place_phys) {
             size_t n_pg = NUM_PAGES(shmem->size);
-            ppages_t ppages = mem_alloc_ppages(shmem->colors, n_pg, false);
+            struct ppages ppages = mem_alloc_ppages(shmem->colors, n_pg, false);
             if(ppages.size < n_pg) {
                 ERROR("failed to allocate shared memory");
             }
@@ -122,7 +122,7 @@ static void ipc_alloc_shmem() {
     }
 }
 
-static void ipc_setup_masters(const vm_config_t* vm_config, bool vm_master) {
+static void ipc_setup_masters(const struct vm_config* vm_config, bool vm_master) {
     
     static spinlock_t lock = SPINLOCK_INITVAL;
 
@@ -135,7 +135,7 @@ static void ipc_setup_masters(const vm_config_t* vm_config, bool vm_master) {
     if(vm_master) {
         for(int i = 0; i < vm_config->platform.ipc_num; i++) {
             spin_lock(&lock);
-            shmem_t *shmem = ipc_get_shmem(vm_config->platform.ipcs[i].shmem_id);
+            struct shmem *shmem = ipc_get_shmem(vm_config->platform.ipcs[i].shmem_id);
             if(shmem != NULL) {
                 shmem->cpu_masters |= (1ULL << cpu.id);
             }
@@ -144,7 +144,7 @@ static void ipc_setup_masters(const vm_config_t* vm_config, bool vm_master) {
     }
 }
 
-void ipc_init(const vm_config_t* vm_config, bool vm_master) {
+void ipc_init(const struct vm_config* vm_config, bool vm_master) {
 
     shmem_table_size = vm_config_ptr->shmemlist_size;
     shmem_table = vm_config_ptr->shmemlist;

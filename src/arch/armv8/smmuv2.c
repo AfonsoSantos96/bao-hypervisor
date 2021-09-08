@@ -24,14 +24,14 @@
 #define SME_MAX_NUM 128
 #define CTX_MAX_NUM 128
 
-typedef struct {
-    volatile smmu_glbl_rs0_t *glbl_rs0;
-    volatile smmu_glbl_rs1_t *glbl_rs1;
-    volatile smmu_cntxt_t *cntxt;
-} smmu_hw;
+struct smmu_hw {
+    volatile struct smmu_glbl_rs0_hw *glbl_rs0;
+    volatile struct smmu_glbl_rs1_hw *glbl_rs1;
+    volatile struct smmu_cntxt_hw *cntxt;
+};
 
-typedef struct {
-    smmu_hw hw;
+struct smmu_priv {
+    struct smmu_hw hw;
 
     /* For easier book keeping */
     spinlock_t sme_lock;
@@ -42,9 +42,9 @@ typedef struct {
     spinlock_t ctx_lock;
     int32_t ctx_num;
     BITMAP_ALLOC(ctxbank_bitmap, CTX_MAX_NUM);
-} smmu_priv_t;
+};
 
-smmu_priv_t smmu;
+struct smmu_priv smmu;
 
 /**
  * Iterate stream match entries.
@@ -138,10 +138,10 @@ void smmu_init()
      * Map the first 4k so we can read all the info we need to further
      * allocate smmu registers.
      */
-    smmu_glbl_rs0_t *smmu_glbl_rs0 = mem_alloc_vpage(
-        &cpu.as, SEC_HYP_GLOBAL, NULL, NUM_PAGES(sizeof(smmu_glbl_rs0_t)));
+    struct smmu_glbl_rs0_hw *smmu_glbl_rs0 = mem_alloc_vpage(
+        &cpu.as, SEC_HYP_GLOBAL, NULL, NUM_PAGES(sizeof(struct smmu_glbl_rs0_hw)));
     mem_map_dev(&cpu.as, smmu_glbl_rs0, platform.arch.smmu.base,
-                NUM_PAGES(sizeof(smmu_glbl_rs0_t)));
+                NUM_PAGES(sizeof(struct smmu_glbl_rs0_hw)));
 
     uint32_t pg_size =
         smmu_glbl_rs0->IDR1 & SMMUV2_IDR1_PAGESIZE_BIT ? 0x10000 : 0x1000;
@@ -152,12 +152,12 @@ void smmu_init()
     int32_t ctx_bank_num = bit32_extract(
         smmu_glbl_rs0->IDR1, SMMUV2_IDR1_NUMCB_OFF, SMMUV2_IDR1_NUMCB_LEN);
 
-    smmu_glbl_rs1_t *smmu_glbl_rs1 = mem_alloc_vpage(
-        &cpu.as, SEC_HYP_GLOBAL, NULL, NUM_PAGES(sizeof(smmu_glbl_rs1_t)));
+    struct smmu_glbl_rs1_hw *smmu_glbl_rs1 = mem_alloc_vpage(
+        &cpu.as, SEC_HYP_GLOBAL, NULL, NUM_PAGES(sizeof(struct smmu_glbl_rs1_hw)));
     mem_map_dev(&cpu.as, smmu_glbl_rs1, platform.arch.smmu.base + pg_size,
-                NUM_PAGES(sizeof(smmu_glbl_rs1_t)));
+                NUM_PAGES(sizeof(struct smmu_glbl_rs1_hw)));
 
-    smmu_cntxt_t *smmu_cntxt = mem_alloc_vpage(
+   struct smmu_cntxt_hw *smmu_cntxt = mem_alloc_vpage(
         &cpu.as, SEC_HYP_GLOBAL, NULL, NUM_PAGES((pg_size * ctx_bank_num)));
     mem_map_dev(&cpu.as, smmu_cntxt,
                 platform.arch.smmu.base + (num_page * pg_size),

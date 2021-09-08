@@ -20,10 +20,10 @@
 
 extern cpuid_t CPU_MASTER;
 
-typedef struct {
+struct cpu_arch {
     unsigned hart_id;
     unsigned plic_cntxt;
     bool hlv_except;
-} cpu_arch_t;
+};
 
 #endif /* __ARCH_CPU_H__ */
