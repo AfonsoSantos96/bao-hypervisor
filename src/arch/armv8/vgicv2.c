@@ -73,7 +73,7 @@ void vgicd_emul_sgiregs_access(struct emul_access *acc,
 {
     uint32_t val = acc->write ? vcpu_readreg(cpu.vcpu, acc->reg) : 0;
 
-    if ((acc->addr & 0xfff) == (((uint64_t)&gicd.SGIR) & 0xfff)) {
+    if ((acc->addr & 0xfff) == (((uintptr_t)&gicd.SGIR) & 0xfff)) {
         if (acc->write) {
             cpumap_t trgtlist = 0;
             irqid_t int_id = GICD_SGIR_SGIINTID(val);
@@ -153,11 +153,11 @@ void vgic_init(struct vm *vm, const struct gic_dscrp *gic_dscrp)
     vm->arch.vgicd.IIDR = gicd.IIDR;
 
     size_t n = NUM_PAGES(sizeof(struct gicc_hw));
-    void *va =
-        mem_alloc_vpage(&vm->as, SEC_VM_ANY, (void *)gic_dscrp->gicc_addr, n);
-    if (va != (void *)gic_dscrp->gicc_addr)
+    virt_addr_t va =
+        mem_alloc_vpage(&vm->as, SEC_VM_ANY, (virt_addr_t)gic_dscrp->gicc_addr, n);
+    if (va != (virt_addr_t)gic_dscrp->gicc_addr)
         ERROR("failed to alloc vm address space to hold gicc");
-    mem_map_dev(&vm->as, va, platform.arch.gic.gicv_addr, n);
+    mem_map_dev(&vm->as, va, (virt_addr_t)platform.arch.gic.gicv_addr, n);
 
     size_t vgic_int_size = vm->arch.vgicd.int_num * sizeof(struct vgic_int);
     vm->arch.vgicd.interrupts =

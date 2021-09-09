@@ -27,6 +27,8 @@ typedef unsigned long vmid_t;
 
 typedef uintptr_t phys_addr_t;
 typedef uintptr_t virt_addr_t;
+#define NULL_VA ((virt_addr_t)NULL)
+#define MAX_VA  ((virt_addr_t)-1)
 
 typedef unsigned long colormap_t;
 

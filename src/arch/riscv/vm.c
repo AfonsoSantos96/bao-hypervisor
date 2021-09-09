@@ -22,7 +22,7 @@
 void vm_arch_init(struct vm *vm, const struct vm_config *config)
 {
     phys_addr_t root_pt_pa;
-    mem_translate(&cpu.as, vm->as.pt.root, &root_pt_pa);
+    mem_translate(&cpu.as, (virt_addr_t)vm->as.pt.root, &root_pt_pa);
 
     unsigned long hgatp = (root_pt_pa >> PAGE_SHIFT) | (HGATP_MODE_DFLT) |
                           ((vm->id << HGATP_VMID_OFF) & HGATP_VMID_MSK);
@@ -82,10 +82,10 @@ void vcpu_writepc(struct vcpu *vcpu, unsigned long pc)
     vcpu->regs->sepc = pc;
 }
 
-static int find_max_alignment(uintptr_t addr)
+static int find_max_alignment(virt_addr_t addr)
 {
     for (int i = 3; i > 0; i--) {
-        uintptr_t mask = (1 << i) - 1;
+        virt_addr_t mask = (1 << i) - 1;
         if ((addr & mask) == 0) {
             return (1 << i);
         }
@@ -94,7 +94,7 @@ static int find_max_alignment(uintptr_t addr)
     return 1;
 }
 
-static inline uint64_t hlvb(uintptr_t addr){
+static inline uint64_t hlvb(virt_addr_t addr){
     uint64_t value;
     asm volatile(
         ".insn r 0x73, 0x4, 0x30, %0, %1, x0\n\t"
@@ -102,7 +102,7 @@ static inline uint64_t hlvb(uintptr_t addr){
     return value;
 }
 
-static inline uint64_t hlvbu(uintptr_t addr){
+static inline uint64_t hlvbu(virt_addr_t addr){
     uint64_t value;
     asm volatile(
         ".insn r 0x73, 0x4, 0x30, %0, %1, x1\n\t"
@@ -111,7 +111,7 @@ static inline uint64_t hlvbu(uintptr_t addr){
 }
 
 
-static inline uint64_t hlvh(uintptr_t addr){
+static inline uint64_t hlvh(virt_addr_t addr){
     uint64_t value;
     asm volatile(
         ".insn r 0x73, 0x4, 0x32, %0, %1, x0\n\t"
@@ -119,7 +119,7 @@ static inline uint64_t hlvh(uintptr_t addr){
     return value;
 }
 
-static inline uint64_t hlvhu(uintptr_t addr){
+static inline uint64_t hlvhu(virt_addr_t addr){
     uint64_t value;
     asm volatile(
         ".insn r 0x73, 0x4, 0x32, %0, %1, x1\n\t"
@@ -127,7 +127,7 @@ static inline uint64_t hlvhu(uintptr_t addr){
     return value;
 }
 
-static inline uint64_t hlvxhu(uintptr_t addr){
+static inline uint64_t hlvxhu(virt_addr_t addr){
     uint64_t value;
     asm volatile(
         ".insn r 0x73, 0x4, 0x32, %0, %1, x3\n\t"
@@ -135,7 +135,7 @@ static inline uint64_t hlvxhu(uintptr_t addr){
     return value;
 }
 
-uint64_t hlvw(uintptr_t addr){
+uint64_t hlvw(virt_addr_t addr){
     uint64_t value;
     asm volatile(
         ".insn r 0x73, 0x4, 0x34, %0, %1, x0\n\t"
@@ -143,7 +143,7 @@ uint64_t hlvw(uintptr_t addr){
     return value;
 }
 
-static inline uint64_t hlvwu(uintptr_t addr){
+static inline uint64_t hlvwu(virt_addr_t addr){
     uint64_t value;
     asm volatile(
         ".insn r 0x73, 0x4, 0x34, %0, %1, x1\n\t"
@@ -151,7 +151,7 @@ static inline uint64_t hlvwu(uintptr_t addr){
     return value;
 }
 
-uint64_t hlvxwu(uintptr_t addr){
+uint64_t hlvxwu(virt_addr_t addr){
     uint64_t value;
     asm volatile(
         ".insn r 0x73, 0x4, 0x34, %0, %1, x3\n\t"
@@ -159,7 +159,7 @@ uint64_t hlvxwu(uintptr_t addr){
     return value;
 }
 
-static inline uint64_t hlvd(uintptr_t addr){
+static inline uint64_t hlvd(virt_addr_t addr){
     uint64_t value;
     asm volatile(
         ".insn r 0x73, 0x4, 0x36, %0, %1, x0\n\t"
@@ -200,13 +200,13 @@ static inline uint64_t hlvd(uintptr_t addr){
     })
 
 
-bool vm_readmem(struct vm *vm, void *dest, uintptr_t vmaddr, size_t n, bool exec)
+bool vm_readmem(struct vm *vm, void *dest, virt_addr_t vmaddr, size_t n, bool exec)
 {
     if(n == 0) return true;
 
     if (vm == cpu.vcpu->vm) {
         while (n > 0 && !cpu.arch.hlv_except) {
-            int width = find_max_alignment(((uintptr_t)dest) | vmaddr);
+            int width = find_max_alignment(((virt_addr_t)dest) | vmaddr);
             while(width > n) width = PPOT(width);
             /**
              * You can only load aligned halfword or word instructions.

@@ -94,19 +94,20 @@ void as_init(struct addr_space* as, enum AS_TYPE type, asid_t id,
             pte_t* root_pt, colormap_t colors);
 void* mem_alloc_page(size_t n, enum AS_SEC sec, bool phys_aligned);
 struct ppages mem_alloc_ppages(colormap_t colors, size_t n, bool aligned);
-void* mem_alloc_vpage(struct addr_space* as, enum AS_SEC section, void* at,
-                      size_t n);
-void mem_free_vpage(struct addr_space* as, void* at, size_t n, bool free_ppages);
-int mem_map(struct addr_space* as, void* va, struct ppages* ppages, size_t n,
-            pte_t flags);
-int mem_map_reclr(struct addr_space* as, void* va, struct ppages* ppages, size_t n,
-                  pte_t flags);
-int mem_map_dev(struct addr_space* as, void* va, phys_addr_t base, size_t n);
+virt_addr_t mem_alloc_vpage(struct addr_space* as, enum AS_SEC section,
+                    virt_addr_t at, size_t n);
+void mem_free_vpage(struct addr_space* as, virt_addr_t at, size_t n,
+                    bool free_ppages);
+int mem_map(struct addr_space* as, virt_addr_t va, struct ppages* ppages,
+            size_t n, pte_t flags);
+int mem_map_reclr(struct addr_space* as, virt_addr_t va, struct ppages* ppages,
+                size_t n, pte_t flags);
+int mem_map_dev(struct addr_space* as, virt_addr_t va, phys_addr_t base, size_t n);
 
 /* Functions implemented in architecture dependent files */
 
 void as_arch_init(struct addr_space* as);
-bool mem_translate(struct addr_space* as, void* va, phys_addr_t* pa);
+bool mem_translate(struct addr_space* as, virt_addr_t va, phys_addr_t* pa);
 
 #endif /* |__ASSEMBLER__ */
 

@@ -133,5 +133,5 @@ void config_arch_adjust_to_va(struct config *config, phys_addr_t phys);
 bool config_is_builtin();
 
 #define adjust_ptr(p, o)\
-    ((p) = (p) ? (typeof(p))(  (void*)(p) + (size_t)(o)) : (p))
+    ((p) = (p) ? (typeof(p))(  (uintptr_t)(p) + (size_t)(o)) : (p))
 #endif /* __CONFIG_H__ */

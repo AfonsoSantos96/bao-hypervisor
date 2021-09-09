@@ -52,7 +52,7 @@ void vcpu_arch_init(struct vcpu* vcpu, struct vm* vm)
     vcpu->arch.psci_ctx.state = vcpu->id == 0 ? ON : OFF;
 
     phys_addr_t root_pt_pa;
-    mem_translate(&cpu.as, vm->as.pt.root, &root_pt_pa);
+    mem_translate(&cpu.as, (virt_addr_t)vm->as.pt.root, &root_pt_pa);
     MSR(VTTBR_EL2, ((vm->id << VTTBR_VMID_OFF) & VTTBR_VMID_MSK) |
                        (root_pt_pa & ~VTTBR_VMID_MSK));
 
@@ -107,7 +107,7 @@ void vcpu_writepc(struct vcpu* vcpu, unsigned long pc)
     vcpu->regs->elr_el2 = pc;
 }
 
-bool vm_readmem(struct vm* vm, void* dest, uintptr_t vmaddr, size_t n)
+bool vm_readmem(struct vm* vm, void* dest, virt_addr_t vmaddr, size_t n)
 {
     // TODO
 

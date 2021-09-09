@@ -94,7 +94,7 @@ static inline void pte_set(pte_t* pte, phys_addr_t addr, pte_t flags)
     *pte = ((addr & PTE_ADDR_MSK) >> 2) | (flags & PTE_FLAGS_MSK);
 }
 
-static inline uintptr_t pte_addr(pte_t* pte)
+static inline virt_addr_t pte_addr(pte_t* pte)
 {
     return (*pte << 2) & PTE_ADDR_MSK;
 }

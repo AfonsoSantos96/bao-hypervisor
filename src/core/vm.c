@@ -90,7 +90,7 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     /* map original img address */
     size_t n_img = NUM_PAGES(config->image.size);
     struct ppages src_pa_img = mem_ppages_get(config->image.load_addr, n_img);
-    void* src_va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL, n_img);
+    virt_addr_t src_va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL_VA, n_img);
     if (mem_map(&cpu.as, src_va, &src_pa_img, n_img, PTE_HYP_FLAGS)) {
         ERROR("mem_map failed %s", __func__);
     }
@@ -99,21 +99,22 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     size_t offset = config->image.base_addr - reg->base;
     size_t dst_phys = reg->phys + offset;
     struct ppages dst_pp = mem_ppages_get(dst_phys, n_img);
-    void* dst_va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL, n_img);
+    virt_addr_t dst_va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL_VA, n_img);
     if (mem_map(&cpu.as, dst_va, &dst_pp, n_img, PTE_HYP_FLAGS)) {
         ERROR("mem_map failed %s", __func__);
     }
 
-    memcpy(dst_va, src_va, n_img * PAGE_SIZE);
-    cache_flush_range(dst_va, n_img * PAGE_SIZE);
+    memcpy((void*)dst_va, (void*)src_va, n_img * PAGE_SIZE);
+    cache_flush_range((virt_addr_t)dst_va, n_img * PAGE_SIZE);
     /*TODO: unmap */
 }
 
 void vm_map_mem_region(struct vm* vm, struct mem_region* reg)
 {
     size_t n = NUM_PAGES(reg->size);
-    void* va = mem_alloc_vpage(&vm->as, SEC_VM_ANY, (void*)reg->base, n);
-    if (va != (void*)reg->base) {
+    virt_addr_t va = mem_alloc_vpage(&vm->as, SEC_VM_ANY,
+                    (virt_addr_t)reg->base, n);
+    if (va != (virt_addr_t)reg->base) {
         ERROR("failed to allocate vm's dev address");
     }
 
@@ -141,7 +142,8 @@ static void vm_map_img_rgn_inplace(struct vm* vm, const struct vm_config* config
 
     /* map img in place */
     struct ppages pa_img = mem_ppages_get(config->image.load_addr, n_img);
-    void* va = mem_alloc_vpage(&vm->as, SEC_VM_ANY, (void*)reg->base, n_total);
+    virt_addr_t va = mem_alloc_vpage(&vm->as, SEC_VM_ANY,
+                                    (virt_addr_t)reg->base, n_total);
 
     /* map pages before img */
     mem_map(&vm->as, va, NULL, n_before, PTE_VM_FLAGS);
@@ -222,7 +224,8 @@ static void vm_init_dev(struct vm* vm, const struct vm_config* config)
 
         size_t n = ALIGN(dev->size, PAGE_SIZE) / PAGE_SIZE;
 
-        void* va = mem_alloc_vpage(&vm->as, SEC_VM_ANY, (void*)dev->va, n);
+        virt_addr_t va = mem_alloc_vpage(&vm->as, SEC_VM_ANY,
+                                        (virt_addr_t)dev->va, n);
         mem_map_dev(&vm->as, va, dev->pa, n);
 
         for (int j = 0; j < dev->interrupt_num; j++) {
