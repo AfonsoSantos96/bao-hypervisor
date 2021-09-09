@@ -90,8 +90,8 @@ static inline bool all_clrs(colormap_t clrs)
 }
 
 void mem_init(phys_addr_t load_addr, phys_addr_t config_addr);
-void as_init(struct addr_space* as, enum AS_TYPE type, asid_t id, void* root_pt,
-             colormap_t colors);
+void as_init(struct addr_space* as, enum AS_TYPE type, asid_t id, 
+            pte_t* root_pt, colormap_t colors);
 void* mem_alloc_page(size_t n, enum AS_SEC sec, bool phys_aligned);
 struct ppages mem_alloc_ppages(colormap_t colors, size_t n, bool aligned);
 void* mem_alloc_vpage(struct addr_space* as, enum AS_SEC section, void* at,

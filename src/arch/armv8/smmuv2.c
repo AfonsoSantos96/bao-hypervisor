@@ -232,7 +232,7 @@ static int smmu_cb_ttba_offset(int t0sz)
     return offset;
 }
 
-void smmu_write_ctxbnk(int32_t ctx_id, void *root_pt, uint32_t vm_id)
+void smmu_write_ctxbnk(int32_t ctx_id, phys_addr_t root_pt, uint32_t vm_id)
 {
     spin_lock(&smmu.ctx_lock);
     if (!bitmap_get(smmu.ctxbank_bitmap, ctx_id)) {

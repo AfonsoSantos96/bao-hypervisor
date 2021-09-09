@@ -1173,7 +1173,7 @@ void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr
      */
     cpu_new = copy_space((void *)BAO_CPU_BASE, sizeof(struct cpu), &p_cpu);
     memset(cpu_new->root_pt, 0, sizeof(cpu_new->root_pt));
-    as_init(&cpu_new->as, AS_HYP_CPY, HYP_ASID, (pte_t *)cpu_new->root_pt, colors);
+    as_init(&cpu_new->as, AS_HYP_CPY, HYP_ASID, cpu_new->root_pt, colors);
     va = mem_alloc_vpage(&cpu_new->as, SEC_HYP_PRIVATE, (void *)BAO_CPU_BASE,
                          NUM_PAGES(sizeof(struct cpu)));
 
@@ -1289,7 +1289,7 @@ void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr
         while (shared_pte != 0);
     }
 
-    as_init(&cpu.as, AS_HYP, HYP_ASID, (pte_t *)cpu.root_pt, colors);
+    as_init(&cpu.as, AS_HYP, HYP_ASID, cpu.root_pt, colors);
 
     /*
      * Clear the old region that have been copied.
@@ -1324,8 +1324,8 @@ void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr
     mem_free_vpage(&cpu.as, va, p_cpu.size, false);
 }
 
-void as_init(struct addr_space *as, enum AS_TYPE type, asid_t id, void *root_pt,
-             colormap_t colors)
+void as_init(struct addr_space *as, enum AS_TYPE type, asid_t id, 
+            pte_t *root_pt, colormap_t colors)
 {
     as->type = type;
     as->pt.dscr =
@@ -1336,13 +1336,13 @@ void as_init(struct addr_space *as, enum AS_TYPE type, asid_t id, void *root_pt,
 
     if (root_pt == NULL) {
         size_t n = pt_size(&as->pt, 0) / PAGE_SIZE;
-        root_pt = mem_alloc_page(n, 
+        root_pt = (pte_t*) mem_alloc_page(n,
             type == AS_HYP || type == AS_HYP_CPY ? SEC_HYP_PRIVATE : SEC_HYP_VM, 
             true);
         memset(root_pt, 0, n * PAGE_SIZE);
     }
     as->pt.root_flags = 0;
-    as->pt.root = (pte_t *)root_pt;
+    as->pt.root = root_pt;
 
     as_arch_init(as);
 }

@@ -38,7 +38,7 @@ static int32_t iommu_vm_arch_init_ctx(struct vm *vm)
         if (ctx_id >= 0) {
             phys_addr_t rootpt;
             mem_translate(&cpu.as, vm->as.pt.root, &rootpt);
-            smmu_write_ctxbnk(ctx_id, (void *)rootpt, (uint32_t) vm->id);
+            smmu_write_ctxbnk(ctx_id, rootpt, (uint32_t) vm->id);
             vm->iommu.arch.ctx_id = ctx_id;
         } else {
             INFO("iommu: smmuv2 could not allocate ctx for vm: %d", vm->id);

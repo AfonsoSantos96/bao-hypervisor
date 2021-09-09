@@ -45,7 +45,7 @@ struct cpu {
 
     struct cpu_arch arch;
 
-    uint8_t root_pt[PT_SIZE] __attribute__((aligned(PT_SIZE)));
+    pte_t root_pt[PT_SIZE/sizeof(pte_t)] __attribute__((aligned(PT_SIZE)));
 
     uint8_t stack[STACK_SIZE] __attribute__((aligned(PAGE_SIZE)));
 
