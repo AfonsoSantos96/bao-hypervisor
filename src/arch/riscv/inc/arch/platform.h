@@ -19,7 +19,7 @@
 #include <bao.h>
 
 struct arch_platform {
-    uintptr_t plic_base;
+    phys_addr_t plic_base;
 };
 
 #endif /* __ARCH_PLATFORM_H__ */

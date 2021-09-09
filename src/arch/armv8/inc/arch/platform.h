@@ -20,23 +20,23 @@
 
 struct arch_platform {
     struct gic_dscrp {
-        uint64_t gicc_addr;
-        uint64_t gich_addr;
-        uint64_t gicv_addr;
-        uint64_t gicd_addr;
-        uint64_t gicr_addr;
+        phys_addr_t gicc_addr;
+        phys_addr_t gich_addr;
+        phys_addr_t gicv_addr;
+        phys_addr_t gicd_addr;
+        phys_addr_t gicr_addr;
 
-        uint64_t maintenance_id;
+        irqid_t maintenance_id;
 
-        irqid_t interrupt_num;
+        size_t interrupt_num;
     } gic;
 
     struct {
-        uint64_t base;
+        phys_addr_t base;
         irqid_t interrupt_id;
         uint16_t global_mask;
 
-        uint32_t group_num;
+        size_t group_num;
         struct smmu_group {
             uint16_t group_mask;
             uint16_t group_id;
@@ -45,12 +45,12 @@ struct arch_platform {
     } smmu;
 
     struct {
-        uint64_t base_addr;
+        phys_addr_t base_addr;
     } generic_timer;
 
     struct clusters {
-        uint64_t num;
-        uint8_t* core_num;
+        size_t num;
+        size_t* core_num;
     } clusters;
 };
 
