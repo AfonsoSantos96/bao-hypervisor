@@ -69,7 +69,7 @@ static inline size_t bitmap_count(bitmap_t map, size_t start, size_t n,
                                     bool set)
 {
     size_t count = 0;
-    for (int i = start; i < n; i++) {
+    for (size_t i = start; i < n; i++) {
         if (bitmap_get(map, i) == set) count++;
     }
 

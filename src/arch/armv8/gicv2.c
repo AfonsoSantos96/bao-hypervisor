@@ -85,7 +85,7 @@ uint64_t gich_get_elrsr()
 
 static inline void gicc_init()
 {
-    for (int i = 0; i < gich_num_lrs(); i++) {
+    for (size_t i = 0; i < gich_num_lrs(); i++) {
         gich.LR[i] = 0;
     }
 
@@ -115,12 +115,12 @@ void gicc_save_state(struct gicc_state *state)
     state->HPPIR = gicc.HPPIR;
     state->priv_ISENABLER = gicd.ISENABLER[0];
 
-    for (int i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
+    for (size_t i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
         state->priv_IPRIORITYR[i] = gicd.IPRIORITYR[i];
     }
 
     state->HCR = gich.HCR;
-    for (int i = 0; i < gich_num_lrs(); i++) {
+    for (size_t i = 0; i < gich_num_lrs(); i++) {
         state->LR[i] = gich.LR[i];
     }
 }
@@ -136,19 +136,19 @@ void gicc_restore_state(struct gicc_state *state)
     gicc.HPPIR = state->HPPIR;
     gicd.ISENABLER[0] = state->priv_ISENABLER;
 
-    for (int i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
+    for (size_t i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
         gicd.IPRIORITYR[i] = state->priv_IPRIORITYR[i];
     }
 
     gich.HCR = state->HCR;
-    for (int i = 0; i < gich_num_lrs(); i++) {
+    for (size_t i = 0; i < gich_num_lrs(); i++) {
         gich.LR[i] = state->LR[i];
     }
 }
 
 void gic_cpu_init()
 {
-    for (int i = 0; i < GIC_NUM_INT_REGS(GIC_CPU_PRIV); i++) {
+    for (size_t i = 0; i < GIC_NUM_INT_REGS(GIC_CPU_PRIV); i++) {
         /**
          * Make sure all private interrupts are not enabled, non pending,
          * non active.
@@ -159,11 +159,11 @@ void gic_cpu_init()
     }
 
     /* Clear any pending SGIs. */
-    for (int i = 0; i < GIC_NUM_SGI_REGS; i++) {
+    for (size_t i = 0; i < GIC_NUM_SGI_REGS; i++) {
         gicd.CPENDSGIR[i] = -1;
     }
 
-    for (int i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
+    for (size_t i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
         gicd.IPRIORITYR[i] = -1;
     }
 
@@ -203,7 +203,7 @@ void gic_send_sgi(cpuid_t cpu_target, irqid_t sgi_num)
 
 static inline uint8_t gic_translate_cpu_to_trgt(uint8_t cpu_targets) {
     uint8_t gic_targets = 0;
-    for(int i = 0; i < GIC_MAX_TARGETS; i++) {
+    for (size_t i = 0; i < GIC_MAX_TARGETS; i++) {
         if((1 << i) & cpu_targets) {
             gic_targets |= (1 << gic_cpu_map[i]);
         }

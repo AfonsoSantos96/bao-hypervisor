@@ -106,7 +106,7 @@ static void mem_free_ppages(struct ppages *ppages)
             size_t index = (ppages->base - pool->base) / PAGE_SIZE;
             if (!all_clrs(ppages->colors)) {
                 size_t index = 0;
-                for (int i = 0; i < ppages->size; i++) {
+                for (size_t i = 0; i < ppages->size; i++) {
                     index = pp_next_clr(pool->base, index, ppages->colors);
                     bitmap_set(pool->bitmap, index++);
                 }
@@ -143,7 +143,7 @@ static bool pp_alloc_clr(struct page_pool *pool, size_t n, colormap_t colors,
      * other starting from the beggining of page pool to the start of the
      * previous iteration.
      */
-    for (int i = 0; i < 2 && !ok; i++) {
+    for (size_t i = 0; i < 2 && !ok; i++) {
         while ((allocated < n) && (index < top)) {
             allocated = 0;
 
@@ -175,7 +175,7 @@ static bool pp_alloc_clr(struct page_pool *pool, size_t n, colormap_t colors,
              */
             ppages->size = n;
             ppages->base = pool->base + (first_index * PAGE_SIZE);
-            for (int i = 0; i < n; i++) {
+            for (size_t i = 0; i < n; i++) {
                 first_index = pp_next_clr(pool->base, first_index, colors);
                 bitmap_set(pool->bitmap, first_index++);
             }
@@ -223,7 +223,7 @@ static bool pp_alloc(struct page_pool *pool, size_t n, bool aligned,
      *  - one starting from the last known free index.
      *  - in case this does not work, start from index 0.
      */
-    for (int i = 0; i < 2 && !ok; i++) {
+    for (size_t i = 0; i < 2 && !ok; i++) {
         while (pool->free != 0) {
             int64_t bit =
                 bitmap_find_consec(pool->bitmap, pool->size, curr, n, false);
@@ -279,7 +279,7 @@ struct ppages mem_alloc_ppages(colormap_t colors, size_t n, bool aligned)
 
 static struct section *mem_find_sec(struct addr_space *as, virt_addr_t va)
 {
-    for (int i = 0; i < sections[as->type].sec_size; i++) {
+    for (size_t i = 0; i < sections[as->type].sec_size; i++) {
         if ((va >= sections[as->type].sec[i].beg) &&
             (va <= sections[as->type].sec[i].end)) {
             return &sections[as->type].sec[i];
@@ -602,7 +602,7 @@ int mem_map(struct addr_space *as, virt_addr_t va, struct ppages *ppages,
     if (ppages && !all_clrs(ppages->colors)) {
         size_t index = 0;
         mem_inflate_pt(as, vaddr, n * PAGE_SIZE);
-        for (int i = 0; i < ppages->size; i++) {
+        for (size_t i = 0; i < ppages->size; i++) {
             pte = pt_get_pte(&as->pt, as->pt.dscr->lvls - 1, vaddr);
             index = pp_next_clr(ppages->base, index, ppages->colors);
             phys_addr_t paddr = ppages->base + (index * PAGE_SIZE);
@@ -688,7 +688,7 @@ int mem_map_reclr(struct addr_space *as, virt_addr_t va, struct ppages *ppages,
         n / (COLOR_NUM * COLOR_SIZE) * COLOR_SIZE *
         bitmap_count((bitmap_t)&as->colors, 0, COLOR_NUM, false);
     size_t clr_offset = (ppages->base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
-    for (int i = 0; i < (n % (COLOR_NUM * COLOR_SIZE)); i++) {
+    for (size_t i = 0; i < (n % (COLOR_NUM * COLOR_SIZE)); i++) {
         if (!bitmap_get((bitmap_t)&as->colors,
                         (i + clr_offset) / COLOR_SIZE % COLOR_NUM))
             reclrd_num++;
@@ -726,7 +726,7 @@ int mem_map_reclr(struct addr_space *as, virt_addr_t va, struct ppages *ppages,
      */
     mem_inflate_pt(as, vaddr, n * PAGE_SIZE);
 
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         pte = pt_get_pte(&as->pt, as->pt.dscr->lvls - 1, vaddr);
 
         /**
@@ -988,10 +988,10 @@ bool mem_reserve_config(phys_addr_t config_addr, struct page_pool *pool)
 bool mem_reserve_vm_cfg(struct page_pool *pool)
 {
     /* for every vm config */
-    for (int i = 0; i < vm_config_ptr->vmlist_size; i++) {
+    for (size_t i = 0; i < vm_config_ptr->vmlist_size; i++) {
         struct vm_config *vm_cfg = &vm_config_ptr->vmlist[i];
         /* for every mem region */
-        for (int j = 0; j < vm_cfg->platform.region_num; j++) {
+        for (size_t j = 0; j < vm_cfg->platform.region_num; j++) {
             struct mem_region *reg = &vm_cfg->platform.regions[j];
             if (reg->place_phys) {
                 size_t n_pg = NUM_PAGES(reg->size);
@@ -1003,7 +1003,7 @@ bool mem_reserve_vm_cfg(struct page_pool *pool)
         }
     }
 
-    for (int i = 0; i < vm_config_ptr->shmemlist_size; i++) {
+    for (size_t i = 0; i < vm_config_ptr->shmemlist_size; i++) {
         struct shmem *shmem = &vm_config_ptr->shmemlist[i];
         if(shmem->place_phys) {
             size_t n_pg = NUM_PAGES(shmem->size);

@@ -56,7 +56,7 @@ static union slab* slab_create(struct objcache* oc, enum AS_SEC sec)
             struct list* obj_lst = &(slab->header.free);
             list_init(obj_lst);
             void* obj = &(slab->slab[sizeof(slab->header)]);
-            for (int i = 0; i < slab->header.objnum; i++) {
+            for (size_t i = 0; i < slab->header.objnum; i++) {
                 list_push(obj_lst, obj);
                 obj += slab->header.objsize;
             }

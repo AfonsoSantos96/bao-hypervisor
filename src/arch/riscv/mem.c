@@ -30,14 +30,14 @@ static inline void as_map_physical_identity(struct addr_space *as) {
      * pt).
      */
 
-    for (int i = 0; i < platform.region_num; i++) {
+    for (size_t i = 0; i < platform.region_num; i++) {
         struct mem_region *reg = &platform.regions[i];
         phys_addr_t base = reg->base & lvl_mask;
         phys_addr_t top = (reg->base + reg->size) & lvl_mask;
         int num_entries = ((top - base - 1) / lvl_size) + 1;
 
         phys_addr_t addr = base;
-        for (int j = 0; j < num_entries; j++) {
+        for (size_t j = 0; j < num_entries; j++) {
             int index = PTE_INDEX(lvl, addr);
             pte_set(&pt[index], addr, PTE_SUPERPAGE | PTE_HYP_FLAGS);
             addr += lvl_size;

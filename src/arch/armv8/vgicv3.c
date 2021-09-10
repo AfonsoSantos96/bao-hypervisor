@@ -273,7 +273,7 @@ void vgic_init(struct vm *vm, const struct gic_dscrp *gic_dscrp)
         ERROR("failed to alloc vgic");
     }
 
-    for (int i = 0; i < vm->arch.vgicd.int_num; i++) {
+    for (size_t i = 0; i < vm->arch.vgicd.int_num; i++) {
         vm->arch.vgicd.interrupts[i].owner = NULL;
         vm->arch.vgicd.interrupts[i].lock = SPINLOCK_INITVAL;
         vm->arch.vgicd.interrupts[i].id = i + GIC_CPU_PRIV;
@@ -324,7 +324,7 @@ void vgic_init(struct vm *vm, const struct gic_dscrp *gic_dscrp)
 
 void vgic_cpu_init(struct vcpu *vcpu)
 {
-    for (int i = 0; i < GIC_CPU_PRIV; i++) {
+    for (size_t i = 0; i < GIC_CPU_PRIV; i++) {
         vcpu->arch.vgic_priv.interrupts[i].owner = NULL;
         vcpu->arch.vgic_priv.interrupts[i].lock = SPINLOCK_INITVAL;
         vcpu->arch.vgic_priv.interrupts[i].id = i;
@@ -338,7 +338,7 @@ void vgic_cpu_init(struct vcpu *vcpu)
         vcpu->arch.vgic_priv.interrupts[i].enabled = false;
     }
 
-    for (int i = 0; i < GIC_MAX_SGIS; i++) {
+    for (size_t i = 0; i < GIC_MAX_SGIS; i++) {
         vcpu->arch.vgic_priv.interrupts[i].cfg = 0b10;
     }
 }

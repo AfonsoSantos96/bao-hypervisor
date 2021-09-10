@@ -26,7 +26,7 @@ uint64_t platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
     uint64_t mpidr = 0;
     bool found = false;
     if (plat->arch.clusters.num > 0) {
-        for (int i = 0, j = 0; i < plat->arch.clusters.num; i++) {
+        for (size_t i = 0, j = 0; i < plat->arch.clusters.num; i++) {
             if (cpuid < (j + plat->arch.clusters.core_num[i])) {
                 mpidr = (i << 8) | ((cpuid - j) & 0xff);
                 found = true;

@@ -84,7 +84,7 @@ void vcpu_writepc(struct vcpu *vcpu, unsigned long pc)
 
 static int find_max_alignment(virt_addr_t addr)
 {
-    for (int i = 3; i > 0; i--) {
+    for (size_t i = 3; i > 0; i--) {
         virt_addr_t mask = (1 << i) - 1;
         if ((addr & mask) == 0) {
             return (1 << i);
@@ -214,7 +214,7 @@ bool vm_readmem(struct vm *vm, void *dest, virt_addr_t vmaddr, size_t n, bool ex
             if(exec && width == 8) width = 4;
             if(exec && width == 1) break;
             size_t count = n / width;
-            for (int i = 0; i < count; i++) {
+            for (size_t i = 0; i < count; i++) {
                 if(exec) VM_LOAD_EXEC(width, dest, vmaddr);
                 else VM_LOAD(width, dest, vmaddr);
                 dest += width;

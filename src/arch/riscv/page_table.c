@@ -44,7 +44,7 @@ pte_t* pt_get_pte(struct page_table* pt, size_t lvl, virt_addr_t va)
 {
     pte_t* pte = &(pt->root[PTE_INDEX(0, va)]);
 
-    for (int i = 0; i < lvl; i++) {
+    for (size_t i = 0; i < lvl; i++) {
         if (!pte_valid(pte)) return NULL;
         pte = (pte_t*)pte_addr(pte);
         int index = PTE_INDEX(i + 1, va);

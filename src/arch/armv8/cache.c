@@ -36,7 +36,7 @@ void cache_arch_enumerate(struct cache *dscrp)
     dscrp->lvls = 0;
 
     clidr = MRS(CLIDR_EL1);
-    for(int i = 0; i < CLIDR_CTYPE_NUM; i++){
+    for (size_t i = 0; i < CLIDR_CTYPE_NUM; i++){
         if((temp = bit64_extract(clidr, i*CLIDR_CTYPE_LEN, CLIDR_CTYPE_LEN)) != 0){
             dscrp->lvls++;
             switch(temp){
@@ -58,7 +58,7 @@ void cache_arch_enumerate(struct cache *dscrp)
         }
     }
 
-    for(int lvl = 0; lvl < dscrp->lvls; lvl++){
+    for (size_t lvl = 0; lvl < dscrp->lvls; lvl++){
         
         uint64_t csselr = 0;
         uint64_t ccsidr = 0;

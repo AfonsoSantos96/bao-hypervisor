@@ -52,7 +52,7 @@ void cpu_init(cpuid_t cpu_id, phys_addr_t load_addr)
         ipi_cpumsg_handlers = (cpu_msg_handler_t*)&_ipi_cpumsg_handlers_start;
         ipi_cpumsg_handler_num =
             ((size_t)&_ipi_cpumsg_handlers_size) / sizeof(cpu_msg_handler_t);
-        for (int i = 0; i < ipi_cpumsg_handler_num; i++) {
+        for (size_t i = 0; i < ipi_cpumsg_handler_num; i++) {
             ((size_t*)&_ipi_cpumsg_handlers_id_start)[i] = i;
         }
     }

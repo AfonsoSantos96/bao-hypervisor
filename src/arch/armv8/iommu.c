@@ -86,7 +86,7 @@ int iommu_arch_vm_init(struct vm *vm, const struct vm_config *config)
     vm->iommu.arch.ctx_id = -1;
 
     /* This section relates only to arm's iommu so we parse it here. */
-    for (int i = 0; i < config->platform.arch.smmu.group_num; i++) {
+    for (size_t i = 0; i < config->platform.arch.smmu.group_num; i++) {
         /* Register each group. */
         const struct smmu_group *group =
             &config->platform.arch.smmu.smmu_groups[i];

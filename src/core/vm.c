@@ -177,7 +177,7 @@ static void vm_map_img_rgn(struct vm* vm, const struct vm_config* config,
 
 static void vm_init_mem_regions(struct vm* vm, const struct vm_config* config)
 {
-    for (int i = 0; i < config->platform.region_num; i++) {
+    for (size_t i = 0; i < config->platform.region_num; i++) {
         struct mem_region* reg = &config->platform.regions[i];
         int img_is_in_rgn = range_in_range(
             config->image.base_addr, config->image.size, reg->base, reg->size);
@@ -193,7 +193,7 @@ static void vm_init_ipc(struct vm* vm, const struct vm_config* config)
 {
     vm->ipc_num = config->platform.ipc_num;
     vm->ipcs = config->platform.ipcs;
-    for (int i = 0; i < config->platform.ipc_num; i++) {
+    for (size_t i = 0; i < config->platform.ipc_num; i++) {
         struct ipc *ipc = &config->platform.ipcs[i];
         struct shmem *shmem = ipc_get_shmem(ipc->shmem_id);
         if(shmem == NULL) {
@@ -219,7 +219,7 @@ static void vm_init_ipc(struct vm* vm, const struct vm_config* config)
 
 static void vm_init_dev(struct vm* vm, const struct vm_config* config)
 {
-    for (int i = 0; i < config->platform.dev_num; i++) {
+    for (size_t i = 0; i < config->platform.dev_num; i++) {
         struct dev_region* dev = &config->platform.devs[i];
 
         size_t n = ALIGN(dev->size, PAGE_SIZE) / PAGE_SIZE;
@@ -228,14 +228,14 @@ static void vm_init_dev(struct vm* vm, const struct vm_config* config)
                                         (virt_addr_t)dev->va, n);
         mem_map_dev(&vm->as, va, dev->pa, n);
 
-        for (int j = 0; j < dev->interrupt_num; j++) {
+        for (size_t j = 0; j < dev->interrupt_num; j++) {
             interrupts_vm_assign(vm, dev->interrupts[j]);
         }
     }
 
     /* iommu */
     if (iommu_vm_init(vm, config) >= 0) {
-        for (int i = 0; i < config->platform.dev_num; i++) {
+        for (size_t i = 0; i < config->platform.dev_num; i++) {
             struct dev_region* dev = &config->platform.devs[i];
             if (dev->id) {
                 if(iommu_vm_add_device(vm, dev->id) < 0){
@@ -364,7 +364,7 @@ emul_handler_t vm_emul_get_reg(struct vm* vm, virt_addr_t addr)
 
 void vm_msg_broadcast(struct vm* vm, struct cpu_msg* msg)
 {
-    for (int i = 0, n = 0; n < vm->cpu_num - 1; i++) {
+    for (size_t i = 0, n = 0; n < vm->cpu_num - 1; i++) {
         if (((1U << i) & vm->cpus) && (i != cpu.id)) {
             n++;
             cpu_send_msg(i, msg);
@@ -378,7 +378,7 @@ __attribute__((weak)) cpumap_t vm_translate_to_pcpu_mask(struct vm* vm,
 {
     cpumap_t pmask = 0;
     int shift;
-    for (int i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         if ((mask & (1ULL << i)) &&
             ((shift = vm_translate_to_pcpuid(vm, i)) >= 0)) {
             pmask |= (1ULL << shift);
@@ -393,7 +393,7 @@ __attribute__((weak)) cpumap_t vm_translate_to_vcpu_mask(struct vm* vm,
 {
     cpumap_t pmask = 0;
     int shift;
-    for (int i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         if ((mask & (1ULL << i)) &&
             ((shift = vm_translate_to_vcpuid(vm, i)) >= 0)) {
             pmask |= (1ULL << shift);

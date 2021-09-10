@@ -52,7 +52,7 @@ struct smmu_priv smmu;
  * @sme: starting point of the loop cursor
  */
 #define smmu_for_each_sme(sme)                                             \
-    for (int __bit = bitmap_get(smmu.sme_bitmap, sme); sme < smmu.sme_num; \
+    for (size_t __bit = bitmap_get(smmu.sme_bitmap, sme); sme < smmu.sme_num; \
          __bit = bitmap_get(smmu.sme_bitmap, ++sme))                       \
         if (!__bit)                                                        \
             continue;                                                      \
@@ -185,11 +185,11 @@ void smmu_init()
     smmu.hw.glbl_rs0->GFSR = smmu.hw.glbl_rs0->GFSR;
     smmu.hw.glbl_rs0->NSGFSR = smmu.hw.glbl_rs0->NSGFSR;
 
-    for (int i = 0; i < smmu.sme_num; i++) {
+    for (size_t i = 0; i < smmu.sme_num; i++) {
         smmu.hw.glbl_rs0->SMR[i] = 0;
     }
 
-    for (int i = 0; i < smmu.ctx_num; i++) {
+    for (size_t i = 0; i < smmu.ctx_num; i++) {
         smmu.hw.cntxt[i].SCTLR = 0;
         smmu.hw.cntxt[i].FSR = -1;
     }

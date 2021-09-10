@@ -19,19 +19,19 @@ void config_adjust_to_va(struct config *config, phys_addr_t phys)
 {
     adjust_ptr(config->shmemlist, config);
 
-    for (int i = 0; i < config->vmlist_size; i++) {
+    for (size_t i = 0; i < config->vmlist_size; i++) {
         adjust_ptr(config->vmlist[i].image.load_addr, phys);
 
 	    adjust_ptr(config->vmlist[i].platform.regions, config);
 
 	    if(adjust_ptr(config->vmlist[i].platform.devs, config)){
-	        for (int j = 0; j < config->vmlist[i].platform.dev_num; j++) {
+	        for (size_t j = 0; j < config->vmlist[i].platform.dev_num; j++) {
 	    	    adjust_ptr(config->vmlist[i].platform.devs[j].interrupts, config);
 	        }
 	    }
 
 	    if(adjust_ptr(config->vmlist[i].platform.ipcs, config)){
-	        for (int j = 0; j < config->vmlist[i].platform.ipc_num; j++) {
+	        for (size_t j = 0; j < config->vmlist[i].platform.ipc_num; j++) {
 	    	    adjust_ptr(config->vmlist[i].platform.ipcs[j].interrupts, config);
 	        }
 	    }

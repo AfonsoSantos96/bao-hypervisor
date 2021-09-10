@@ -28,7 +28,7 @@ volatile struct plic_hart_hw plic_hart[PLIC_PLAT_CNTXT_NUM]
 static int plic_scan_max_int()
 {
     int res = 0;
-    for (int i = 1; i < PLIC_MAX_INTERRUPTS; i++) {
+    for (size_t i = 1; i < PLIC_MAX_INTERRUPTS; i++) {
         plic_global.prio[i] = -1;
         if (plic_global.prio[i] == 0) {
             res = i - 1;
@@ -43,12 +43,12 @@ void plic_init()
 {
     PLIC_IMPL_INTERRUPTS = plic_scan_max_int();
 
-    for (int i = 0; i <= PLIC_IMPL_INTERRUPTS; i++) {
+    for (size_t i = 0; i <= PLIC_IMPL_INTERRUPTS; i++) {
         plic_global.prio[i] = 0;
     }
 
-    for (int i = 0; i < PLIC_PLAT_CNTXT_NUM; i++) {
-        for (int j = 0; j < PLIC_NUM_ENBL_REGS; j++) {
+    for (size_t i = 0; i < PLIC_PLAT_CNTXT_NUM; i++) {
+        for (size_t j = 0; j < PLIC_NUM_ENBL_REGS; j++) {
             plic_global.enbl[i][j] = 0;
         }
     }

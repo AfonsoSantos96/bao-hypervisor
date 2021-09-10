@@ -118,7 +118,7 @@ static inline void gicc_init()
     MSR(ICC_SRE_EL2, ICC_SRE_SRE_BIT);
     ISB();
 
-    for (int i = 0; i < gich_num_lrs(); i++) {
+    for (size_t i = 0; i < gich_num_lrs(); i++) {
         gich_write_lr(i, 0);
     }
 
@@ -135,7 +135,7 @@ static inline void gicr_init()
     gicr[cpu.id].ICPENDR0 = -1;
     gicr[cpu.id].ICACTIVER0 = -1;
 
-    for (int i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
+    for (size_t i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
         gicr[cpu.id].IPRIORITYR[i] = -1;
     }
 }
@@ -146,12 +146,12 @@ void gicc_save_state(struct gicc_state *state)
     state->BPR = MRS(ICC_BPR1_EL1);
     state->priv_ISENABLER = gicr[cpu.id].ISENABLER0;
 
-    for (int i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
+    for (size_t i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
         state->priv_IPRIORITYR[i] = gicr[cpu.id].IPRIORITYR[i];
     }
 
     state->HCR = MRS(ICH_HCR_EL2);
-    for (int i = 0; i < gich_num_lrs(); i++) {
+    for (size_t i = 0; i < gich_num_lrs(); i++) {
         state->LR[i] = gich_read_lr(i);
     }
 }
@@ -165,12 +165,12 @@ void gicc_restore_state(struct gicc_state *state)
     MSR(ICC_BPR1_EL1, state->BPR);
     gicr[cpu.id].ISENABLER0 = state->priv_ISENABLER;
 
-    for (int i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
+    for (size_t i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
         gicr[cpu.id].IPRIORITYR[i] = state->priv_IPRIORITYR[i];
     }
 
     MSR(ICH_HCR_EL2, state->HCR);
-    for (int i = 0; i < gich_num_lrs(); i++) {
+    for (size_t i = 0; i < gich_num_lrs(); i++) {
         gich_write_lr(i, state->LR[i]);
     }
 }

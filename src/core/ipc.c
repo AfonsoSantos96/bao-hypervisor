@@ -45,7 +45,7 @@ static struct ipc* ipc_find_by_shmemid(struct vm* vm, size_t shmem_id) {
 
     struct ipc* ipc_obj = NULL;
 
-    for(int i = 0; i < vm->ipc_num; i++) {
+    for (size_t i = 0; i < vm->ipc_num; i++) {
         if(vm->ipcs[i].shmem_id == shmem_id) {
             ipc_obj = &vm->ipcs[i];
             break;
@@ -95,7 +95,7 @@ unsigned long ipc_hypercall(unsigned long ipc_id, unsigned long ipc_event,
         };
         struct cpu_msg msg = {IPC_CPUSMG_ID, IPC_NOTIFY, data.raw};
 
-        for (int i = 0; i < platform.cpu_num; i++) {
+        for (size_t i = 0; i < platform.cpu_num; i++) {
             if (ipc_cpu_masters & (1ULL << i)) {
                 cpu_send_msg(i, &msg);
             }
@@ -109,7 +109,7 @@ unsigned long ipc_hypercall(unsigned long ipc_id, unsigned long ipc_event,
 }
 
 static void ipc_alloc_shmem() {
-    for (int i = 0; i < shmem_table_size; i++) {
+    for (size_t i = 0; i < shmem_table_size; i++) {
         struct shmem *shmem = &shmem_table[i];
         if(!shmem->place_phys) {
             size_t n_pg = NUM_PAGES(shmem->size);
@@ -126,14 +126,14 @@ static void ipc_setup_masters(const struct vm_config* vm_config, bool vm_master)
     
     static spinlock_t lock = SPINLOCK_INITVAL;
 
-    for(int i = 0; i < vm_config_ptr->shmemlist_size; i++) {
+    for (size_t i = 0; i < vm_config_ptr->shmemlist_size; i++) {
         vm_config_ptr->shmemlist[i].cpu_masters = 0;
     }
 
     cpu_sync_barrier(&cpu_glb_sync);
 
     if(vm_master) {
-        for(int i = 0; i < vm_config->platform.ipc_num; i++) {
+        for (size_t i = 0; i < vm_config->platform.ipc_num; i++) {
             spin_lock(&lock);
             struct shmem *shmem = ipc_get_shmem(vm_config->platform.ipcs[i].shmem_id);
             if(shmem != NULL) {
