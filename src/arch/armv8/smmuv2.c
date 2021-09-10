@@ -83,8 +83,8 @@ inline uint16_t smmu_sme_get_mask(uint32_t sme)
 
 static void smmu_check_features()
 {
-    int version = bit32_extract(smmu.hw.glbl_rs0->IDR7, SMMUV2_IDR7_MAJOR_OFF,
-                              SMMUV2_IDR7_MAJOR_LEN);
+    unsigned int version = bit32_extract(smmu.hw.glbl_rs0->IDR7,
+                            SMMUV2_IDR7_MAJOR_OFF, SMMUV2_IDR7_MAJOR_LEN);
     if (version != 2) {
         ERROR("smmu unsupported version: %d", version);
     }
@@ -115,11 +115,11 @@ static void smmu_check_features()
         ERROR("smmuv2 does not support 4kb page granule");
     }
 
-    int pasize = bit32_extract(smmu.hw.glbl_rs0->IDR2, SMMUV2_IDR2_OAS_OFF,
+    size_t pasize = bit32_extract(smmu.hw.glbl_rs0->IDR2, SMMUV2_IDR2_OAS_OFF,
                              SMMUV2_IDR2_OAS_LEN);
-    int ipasize = bit32_extract(smmu.hw.glbl_rs0->IDR2, SMMUV2_IDR2_IAS_OFF,
+    size_t ipasize = bit32_extract(smmu.hw.glbl_rs0->IDR2, SMMUV2_IDR2_IAS_OFF,
                               SMMUV2_IDR2_IAS_LEN);
-    int parange = 0;
+    size_t parange = 0;
     parange = MRS(ID_AA64MMFR0_EL1);
     parange &= ID_AA64MMFR0_PAR_MSK;
 

@@ -82,7 +82,7 @@ void vcpu_writepc(struct vcpu *vcpu, unsigned long pc)
     vcpu->regs->sepc = pc;
 }
 
-static int find_max_alignment(virt_addr_t addr)
+static size_t find_max_alignment(virt_addr_t addr)
 {
     for (size_t i = 3; i > 0; i--) {
         virt_addr_t mask = (1 << i) - 1;
@@ -206,7 +206,7 @@ bool vm_readmem(struct vm *vm, void *dest, virt_addr_t vmaddr, size_t n, bool ex
 
     if (vm == cpu.vcpu->vm) {
         while (n > 0 && !cpu.arch.hlv_except) {
-            int width = find_max_alignment(((virt_addr_t)dest) | vmaddr);
+            size_t width = find_max_alignment(((virt_addr_t)dest) | vmaddr);
             while(width > n) width = PPOT(width);
             /**
              * You can only load aligned halfword or word instructions.

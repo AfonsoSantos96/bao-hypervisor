@@ -34,11 +34,11 @@ static inline void as_map_physical_identity(struct addr_space *as) {
         struct mem_region *reg = &platform.regions[i];
         phys_addr_t base = reg->base & lvl_mask;
         phys_addr_t top = (reg->base + reg->size) & lvl_mask;
-        int num_entries = ((top - base - 1) / lvl_size) + 1;
+        size_t num_entries = ((top - base - 1) / lvl_size) + 1;
 
         phys_addr_t addr = base;
         for (size_t j = 0; j < num_entries; j++) {
-            int index = PTE_INDEX(lvl, addr);
+            size_t index = PTE_INDEX(lvl, addr);
             pte_set(&pt[index], addr, PTE_SUPERPAGE | PTE_HYP_FLAGS);
             addr += lvl_size;
         }
@@ -63,7 +63,7 @@ bool mem_translate(struct addr_space *as, virt_addr_t va, phys_addr_t *pa)
             break;  
         }
         pte = (pte_t*)pte_addr(pte);
-        int index = PTE_INDEX(i + 1, va);
+        size_t index = PTE_INDEX(i + 1, va);
         pte = &pte[index];
     }
     if (pte && pte_valid(pte)) {

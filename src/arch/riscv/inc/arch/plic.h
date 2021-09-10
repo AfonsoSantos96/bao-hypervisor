@@ -44,7 +44,7 @@ struct plic_hart_hw {
 
 extern volatile struct plic_global_hw plic_global;
 extern volatile struct plic_hart_hw plic_hart[PLIC_PLAT_CNTXT_NUM];
-extern int PLIC_IMPL_INTERRUPTS;
+extern size_t PLIC_IMPL_INTERRUPTS;
 
 void plic_init();
 void plic_cpu_init();
@@ -58,7 +58,7 @@ uint32_t plic_get_threshold(irqid_t int_id);
 bool plic_get_pend(irqid_t int_id);
 
 struct plic_cntxt {
-    int hart_id;
+    cpuid_t hart_id;
     enum { PRIV_M = 3, PRIV_S = 2, PRIV_U = 0 } mode;
 };
 

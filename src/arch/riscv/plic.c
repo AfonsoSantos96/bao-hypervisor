@@ -17,7 +17,7 @@
 #include <interrupts.h>
 #include <cpu.h>
 
-int PLIC_IMPL_INTERRUPTS;
+size_t PLIC_IMPL_INTERRUPTS;
 
 volatile struct plic_global_hw plic_global
     __attribute__((section(".devices")));
@@ -25,9 +25,9 @@ volatile struct plic_global_hw plic_global
 volatile struct plic_hart_hw plic_hart[PLIC_PLAT_CNTXT_NUM]
     __attribute__((section(".devices")));
 
-static int plic_scan_max_int()
+static size_t plic_scan_max_int()
 {
-    int res = 0;
+    size_t res = 0;
     for (size_t i = 1; i < PLIC_MAX_INTERRUPTS; i++) {
         plic_global.prio[i] = -1;
         if (plic_global.prio[i] == 0) {

@@ -179,7 +179,7 @@ static void vm_init_mem_regions(struct vm* vm, const struct vm_config* config)
 {
     for (size_t i = 0; i < config->platform.region_num; i++) {
         struct mem_region* reg = &config->platform.regions[i];
-        int img_is_in_rgn = range_in_range(
+        bool img_is_in_rgn = range_in_range(
             config->image.base_addr, config->image.size, reg->base, reg->size);
         if (img_is_in_rgn) {
             vm_map_img_rgn(vm, config, reg);
@@ -377,7 +377,7 @@ __attribute__((weak)) cpumap_t vm_translate_to_pcpu_mask(struct vm* vm,
                                                          size_t len)
 {
     cpumap_t pmask = 0;
-    int shift;
+    size_t shift;
     for (size_t i = 0; i < len; i++) {
         if ((mask & (1ULL << i)) &&
             ((shift = vm_translate_to_pcpuid(vm, i)) >= 0)) {
@@ -392,7 +392,7 @@ __attribute__((weak)) cpumap_t vm_translate_to_vcpu_mask(struct vm* vm,
                                                          size_t len)
 {
     cpumap_t pmask = 0;
-    int shift;
+    size_t shift;
     for (size_t i = 0; i < len; i++) {
         if ((mask & (1ULL << i)) &&
             ((shift = vm_translate_to_vcpuid(vm, i)) >= 0)) {
