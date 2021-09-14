@@ -36,14 +36,14 @@ struct page_table_dscr armv8_pt_s2_dscr = {
     .lvl_term = (bool[]){false, true, true, true},
 };
 
-uint64_t parange_table[] = {32, 36, 40, 42, 44, 48};
+size_t parange_table[] = {32, 36, 40, 42, 44, 48};
 
 struct page_table_dscr* hyp_pt_dscr = &armv8_pt_dscr;
 struct page_table_dscr* vm_pt_dscr = &armv8_pt_s2_dscr;
 
-uint64_t parange __attribute__((section(".data")));
+size_t parange __attribute__((section(".data")));
 
-void pt_set_recursive(struct page_table* pt, uint64_t index)
+void pt_set_recursive(struct page_table* pt, size_t index)
 {
     phys_addr_t pa;
     mem_translate(&cpu.as, (virt_addr_t)pt->root, &pa);
@@ -58,13 +58,13 @@ pte_t* pt_get_pte(struct page_table* pt, size_t lvl, virt_addr_t va)
 {
     struct page_table* cpu_pt = &cpu.as.pt;
 
-    uint64_t rec_ind_off = cpu_pt->dscr->lvl_off[cpu_pt->dscr->lvls - lvl - 1];
-    uint64_t rec_ind_len = cpu_pt->dscr->lvl_wdt[cpu_pt->dscr->lvls - lvl - 1];
-    uint64_t mask = (1UL << rec_ind_off) - 1;
-    uint64_t rec_ind_mask = ((1UL << rec_ind_len) - 1) & ~mask;
-    uint64_t rec_ind = ((pt->root_flags & PT_ROOT_FLAGS_REC_IND_MSK) >>
+    size_t rec_ind_off = cpu_pt->dscr->lvl_off[cpu_pt->dscr->lvls - lvl - 1];
+    size_t rec_ind_len = cpu_pt->dscr->lvl_wdt[cpu_pt->dscr->lvls - lvl - 1];
+    pte_t mask = (1UL << rec_ind_off) - 1;
+    pte_t rec_ind_mask = ((1UL << rec_ind_len) - 1) & ~mask;
+    size_t rec_ind = ((pt->root_flags & PT_ROOT_FLAGS_REC_IND_MSK) >>
                         PT_ROOT_FLAGS_REC_IND_OFF);
-    uint64_t addr = ~mask;
+    pte_t addr = ~mask;
     addr &= PTE_ADDR_MSK;
     addr &= ~(rec_ind_mask);
     addr |= ((rec_ind << rec_ind_off) & rec_ind_mask);

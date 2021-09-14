@@ -145,9 +145,9 @@ void smmu_init()
 
     smmu.hw.glbl_rs0 = (struct smmu_glbl_rs0_hw*)smmu_glbl_rs0;
 
-    uint32_t pg_size =
+    size_t pg_size =
         smmu.hw.glbl_rs0->IDR1 & SMMUV2_IDR1_PAGESIZE_BIT ? 0x10000 : 0x1000;
-    uint32_t num_page =
+    size_t num_page =
         1ULL << (bit32_extract(smmu.hw.glbl_rs0->IDR1, SMMUV2_IDR1_NUMPAGEDXB_OFF,
                              SMMUV2_IDR1_NUMPAGEDXB_LEN) +
                  1);
@@ -234,7 +234,7 @@ static int smmu_cb_ttba_offset(int t0sz)
     return offset;
 }
 
-void smmu_write_ctxbnk(int32_t ctx_id, phys_addr_t root_pt, uint32_t vm_id)
+void smmu_write_ctxbnk(int32_t ctx_id, phys_addr_t root_pt, vmid_t vm_id)
 {
     spin_lock(&smmu.ctx_lock);
     if (!bitmap_get(smmu.ctxbank_bitmap, ctx_id)) {

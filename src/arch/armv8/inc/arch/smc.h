@@ -25,7 +25,7 @@ struct smc_res {
     unsigned long x3;
 };
 
-uint64_t smc_call(unsigned long x0, unsigned long x1, unsigned long x2, 
+unsigned long smc_call(unsigned long x0, unsigned long x1, unsigned long x2,
                     unsigned long x3, struct smc_res *res);
 
 #endif

@@ -390,7 +390,7 @@ void smmu_init();
 
 int smmu_alloc_ctxbnk();
 int smmu_alloc_sme();
-void smmu_write_ctxbnk(int32_t ctx_id, phys_addr_t root_pt, uint32_t vm_id);
+void smmu_write_ctxbnk(int32_t ctx_id, phys_addr_t root_pt, vmid_t vm_id);
 void smmu_write_sme(uint32_t sme, uint16_t mask, streamid_t id, bool group);
 void smmu_write_s2c(uint32_t sme, int32_t ctx_id);
 uint32_t smmu_sme_get_ctx(uint32_t sme);

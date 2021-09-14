@@ -30,10 +30,10 @@ void vmm_arch_init()
      * machine.
      */
 
-    static uint64_t min_parange = 0b111;
+    static size_t min_parange = 0b111;
     static spinlock_t lock = SPINLOCK_INITVAL;
 
-    uint64_t temp_parange = MRS(ID_AA64MMFR0_EL1) & ID_AA64MMFR0_PAR_MSK;
+    size_t temp_parange = MRS(ID_AA64MMFR0_EL1) & ID_AA64MMFR0_PAR_MSK;
     spin_lock(&lock);
     if(temp_parange < min_parange) {
         min_parange = temp_parange;
