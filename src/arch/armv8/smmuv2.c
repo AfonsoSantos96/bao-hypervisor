@@ -83,7 +83,7 @@ inline uint16_t smmu_sme_get_mask(uint32_t sme)
 
 static void smmu_check_features()
 {
-    unsigned int version = bit32_extract(smmu.hw.glbl_rs0->IDR7,
+    unsigned version = bit32_extract(smmu.hw.glbl_rs0->IDR7,
                             SMMUV2_IDR7_MAJOR_OFF, SMMUV2_IDR7_MAJOR_LEN);
     if (version != 2) {
         ERROR("smmu unsupported version: %d", version);
