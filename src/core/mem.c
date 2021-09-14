@@ -76,7 +76,7 @@ struct page_pool {
     size_t size;
     size_t free;
     size_t last;
-    bitmap_t bitmap;
+    bitmap_t* bitmap;
     spinlock_t lock;
 };
 
@@ -686,10 +686,10 @@ int mem_map_reclr(struct addr_space *as, vaddr_t va, struct ppages *ppages,
      */
     size_t reclrd_num =
         n / (COLOR_NUM * COLOR_SIZE) * COLOR_SIZE *
-        bitmap_count((bitmap_t)&as->colors, 0, COLOR_NUM, false);
+        bitmap_count((bitmap_t*)&as->colors, 0, COLOR_NUM, false);
     size_t clr_offset = (ppages->base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
     for (size_t i = 0; i < (n % (COLOR_NUM * COLOR_SIZE)); i++) {
-        if (!bitmap_get((bitmap_t)&as->colors,
+        if (!bitmap_get((bitmap_t*)&as->colors,
                         (i + clr_offset) / COLOR_SIZE % COLOR_NUM))
             reclrd_num++;
     }
@@ -733,7 +733,7 @@ int mem_map_reclr(struct addr_space *as, vaddr_t va, struct ppages *ppages,
          * If image page is already color, just map it.
          * Otherwise first copy it to the previously allocated pages.
          */
-        if (bitmap_get((bitmap_t)&as->colors,
+        if (bitmap_get((bitmap_t*)&as->colors,
                        ((i + clr_offset) / COLOR_SIZE % COLOR_NUM))) {
             pte_set(pte, paddr, PTE_PAGE | flags);
 
@@ -893,7 +893,7 @@ bool root_pool_set_up_bitmap(paddr_t load_addr)
     size_t bitmap_base = load_addr + image_size + config_size + cpu_size;
 
     struct ppages bitmap_pp = mem_ppages_get(bitmap_base, bitmap_size);
-    bitmap_t root_bitmap = (bitmap_t)
+    bitmap_t* root_bitmap = (bitmap_t*)
         mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL_VA, bitmap_size);
     if (root_bitmap == NULL) return false;
 
@@ -959,7 +959,7 @@ static void pp_init(struct page_pool *pool, paddr_t base, size_t size)
     pages = mem_alloc_ppages(cpu.as.colors, bitmap_size, false);
     if (pages.size != bitmap_size) return;
 
-    if ((pool->bitmap = (bitmap_t)mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL,
+    if ((pool->bitmap = (bitmap_t*)mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL,
                                     NULL_VA, bitmap_size)) == NULL)
         return;
 

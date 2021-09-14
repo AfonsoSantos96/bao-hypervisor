@@ -92,7 +92,7 @@ cpumap_t vm_translate_to_vcpu_mask(struct vm* vm, cpumap_t mask, size_t len);
 
 static inline cpuid_t vm_translate_to_pcpuid(struct vm* vm, cpuid_t vcpuid)
 {
-    ssize_t i = bitmap_find_nth((bitmap_t)&vm->cpus, sizeof(vm->cpus) * 8,
+    ssize_t i = bitmap_find_nth((bitmap_t*)&vm->cpus, sizeof(vm->cpus) * 8,
                            vcpuid + 1, 0, true);
     if(i < 0) {
         return INVALID_CPUID;
@@ -104,7 +104,7 @@ static inline cpuid_t vm_translate_to_pcpuid(struct vm* vm, cpuid_t vcpuid)
 static inline cpuid_t vm_translate_to_vcpuid(struct vm* vm, cpuid_t pcpuid)
 {
     if (vm->cpus & (1UL << pcpuid)) {
-        return (cpuid_t)bitmap_count((bitmap_t)&vm->cpus, 0, pcpuid, true);
+        return (cpuid_t)bitmap_count((bitmap_t*)&vm->cpus, 0, pcpuid, true);
     } else {
         return INVALID_CPUID;
     }
