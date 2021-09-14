@@ -19,7 +19,7 @@
 #include <vm.h>
 
 struct iommu_device {
-    uint32_t id;
+    streamid_t id;
 };
 
 struct iommu_dev_node {
