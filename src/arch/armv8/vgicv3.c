@@ -291,7 +291,6 @@ void vgic_init(struct vm *vm, const struct gic_dscrp *gic_dscrp)
     }
 
     struct emul_mem gicd_emu = {.va_base = gic_dscrp->gicd_addr,
-                           .pa_base = (uint64_t)&gicd,
                            .size = ALIGN(sizeof(struct gicd_hw), PAGE_SIZE),
                            .handler = vgicd_emul_handler};
     vm_emul_add_mem(vm, &gicd_emu);
@@ -301,7 +300,6 @@ void vgic_init(struct vm *vm, const struct gic_dscrp *gic_dscrp)
         uint64_t phy_cpuid = vcpu->phys_id;
         struct emul_mem gicr_emu = {
             .va_base = gic_dscrp->gicr_addr + sizeof(struct gicr_hw) * vcpu->id,
-            .pa_base = (uint64_t) & (gicr[phy_cpuid]),
             .size = ALIGN(sizeof(struct gicr_hw), PAGE_SIZE),
             .handler = vgicr_emul_handler};
         vm_emul_add_mem(vm, &gicr_emu);
