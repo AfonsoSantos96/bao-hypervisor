@@ -108,9 +108,9 @@ void cache_arch_enumerate(struct cache *dscrp)
     }
 }
 
-void cache_flush_range(virt_addr_t base, size_t size)
+void cache_flush_range(vaddr_t base, size_t size)
 {
-    virt_addr_t cache_addr = base;
+    vaddr_t cache_addr = base;
     uint64_t ctr = MRS(CTR_EL0);
     size_t min_line_size = 1UL << bit64_extract(ctr, CTR_DMINLINE_OFF,
         CTR_DMINLINE_LEN);

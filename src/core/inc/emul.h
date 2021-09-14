@@ -19,7 +19,7 @@
 #include <bao.h>
 
 struct emul_access {
-    virt_addr_t addr;
+    vaddr_t addr;
     bool write;
     bool sign_ext;
     size_t width;
@@ -30,14 +30,14 @@ struct emul_access {
 typedef bool (*emul_handler_t)(struct emul_access*);
 
 struct emul_mem {
-    virt_addr_t va_base;
-    phys_addr_t pa_base;
+    vaddr_t va_base;
+    paddr_t pa_base;
     size_t size;
     emul_handler_t handler;
 };
 
 struct emul_reg {
-    virt_addr_t addr;
+    vaddr_t addr;
     emul_handler_t handler;
 };
 

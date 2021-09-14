@@ -108,11 +108,11 @@ static inline void cpu_sync_barrier(struct cpu_synctoken* token)
 
 static inline struct cpuif* cpu_if(cpuid_t cpu_id)
 {
-    return (struct cpuif*)(((virt_addr_t)&_cpu_if_base) +
+    return (struct cpuif*)(((vaddr_t)&_cpu_if_base) +
            (cpu_id * ALIGN(sizeof(struct cpuif), PAGE_SIZE)));
 }
 
-void cpu_init(cpuid_t cpu_id, phys_addr_t load_addr);
+void cpu_init(cpuid_t cpu_id, paddr_t load_addr);
 void cpu_send_msg(cpuid_t cpu, struct cpu_msg* msg);
 bool cpu_get_msg(struct cpu_msg* msg);
 void cpu_msg_handler();
@@ -120,7 +120,7 @@ void cpu_msg_set_handler(cpuid_t id, cpu_msg_handler_t handler);
 void cpu_idle();
 void cpu_idle_wakeup();
 
-void cpu_arch_init(cpuid_t cpu_id, phys_addr_t load_addr);
+void cpu_arch_init(cpuid_t cpu_id, paddr_t load_addr);
 void cpu_arch_idle();
 
 #endif /* __ASSEMBLER__ */

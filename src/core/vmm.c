@@ -122,17 +122,17 @@ void vmm_init()
         vm_config = &vm_config_ptr->vmlist[vm_id];
         if (master) {
             size_t vm_npages = NUM_PAGES(sizeof(struct vm));
-            virt_addr_t va = mem_alloc_vpage(&cpu.as, SEC_HYP_VM,
-                                            (virt_addr_t)BAO_VM_BASE,
+            vaddr_t va = mem_alloc_vpage(&cpu.as, SEC_HYP_VM,
+                                            (vaddr_t)BAO_VM_BASE,
                                             vm_npages);
             mem_map(&cpu.as, va, NULL, vm_npages, PTE_HYP_FLAGS);
             memset((void*)va, 0, vm_npages * PAGE_SIZE);
             fence_ord_write();
             vm_assign[vm_id].vm_shared_table =
-                *pt_get_pte(&cpu.as.pt, 0, (virt_addr_t)BAO_VM_BASE);
+                *pt_get_pte(&cpu.as.pt, 0, (vaddr_t)BAO_VM_BASE);
         } else {
             while (vm_assign[vm_id].vm_shared_table == 0);
-            pte_t* pte = pt_get_pte(&cpu.as.pt, 0, (virt_addr_t)BAO_VM_BASE);
+            pte_t* pte = pt_get_pte(&cpu.as.pt, 0, (vaddr_t)BAO_VM_BASE);
             *pte = vm_assign[vm_id].vm_shared_table;
             fence_sync_write();
         }
@@ -141,7 +141,7 @@ void vmm_init()
     cpu_sync_barrier(&cpu_glb_sync);
 
     if (cpu.id == CPU_MASTER) {
-        mem_free_vpage(&cpu.as, (virt_addr_t)vm_assign, vmass_npages, true);
+        mem_free_vpage(&cpu.as, (vaddr_t)vm_assign, vmass_npages, true);
     }
 
     ipc_init(vm_config, master);

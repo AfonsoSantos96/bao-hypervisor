@@ -39,7 +39,7 @@ struct sbiret {
 struct sbi_hsm {
     spinlock_t lock;
     enum { STARTED, STOPPED, START_PENDING, STOP_PENDING } state;
-    virt_addr_t start_addr;
+    vaddr_t start_addr;
     unsigned priv;
 };
 

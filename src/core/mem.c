@@ -34,7 +34,7 @@ extern uint8_t _image_start, _image_end, _dmem_phys_beg, _dmem_beg,
 
 extern uint8_t _dev_init_table_start, _dev_init_table_end;
 
-void switch_space(struct cpu *, phys_addr_t);
+void switch_space(struct cpu *, paddr_t);
 
 /**
  * An important note about sections its that they must have diferent entries
@@ -42,20 +42,20 @@ void switch_space(struct cpu *, phys_addr_t);
  */
 
 struct section {
-    virt_addr_t beg;
-    virt_addr_t end;
+    vaddr_t beg;
+    vaddr_t end;
     bool shared;
     spinlock_t lock;
 };
 
 struct section hyp_secs[] = {
-    [SEC_HYP_GLOBAL] = {(virt_addr_t)&_dmem_beg, (virt_addr_t)&_cpu_private_beg - 1, true,
+    [SEC_HYP_GLOBAL] = {(vaddr_t)&_dmem_beg, (vaddr_t)&_cpu_private_beg - 1, true,
                         SPINLOCK_INITVAL},
-    [SEC_HYP_IMAGE] = {(virt_addr_t)&_image_start, (virt_addr_t)&_image_end - 1, true, SPINLOCK_INITVAL},
-    [SEC_HYP_DEVICE] = {(virt_addr_t)&_image_end, (virt_addr_t)&_dmem_beg - 1, true, SPINLOCK_INITVAL},
-    [SEC_HYP_PRIVATE] = {(virt_addr_t)&_cpu_private_beg, (virt_addr_t)&_cpu_private_end - 1, false,
+    [SEC_HYP_IMAGE] = {(vaddr_t)&_image_start, (vaddr_t)&_image_end - 1, true, SPINLOCK_INITVAL},
+    [SEC_HYP_DEVICE] = {(vaddr_t)&_image_end, (vaddr_t)&_dmem_beg - 1, true, SPINLOCK_INITVAL},
+    [SEC_HYP_PRIVATE] = {(vaddr_t)&_cpu_private_beg, (vaddr_t)&_cpu_private_end - 1, false,
                          SPINLOCK_INITVAL},
-    [SEC_HYP_VM] = {(virt_addr_t)&_vm_beg, (virt_addr_t)&_vm_end - 1, true, SPINLOCK_INITVAL},
+    [SEC_HYP_VM] = {(vaddr_t)&_vm_beg, (vaddr_t)&_vm_end - 1, true, SPINLOCK_INITVAL},
 };
 
 struct section vm_secs[] = {
@@ -72,7 +72,7 @@ struct {
 
 struct page_pool {
     node_t node;  // must be first element
-    phys_addr_t base;
+    paddr_t base;
     size_t size;
     size_t free;
     size_t last;
@@ -86,7 +86,7 @@ static struct objcache pagepool_cache;
 
 static bool config_found = false;
 
-static inline size_t pp_next_clr(phys_addr_t base, size_t from, colormap_t colors)
+static inline size_t pp_next_clr(paddr_t base, size_t from, colormap_t colors)
 {
     size_t clr_offset = (base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
     size_t index = from;
@@ -277,7 +277,7 @@ struct ppages mem_alloc_ppages(colormap_t colors, size_t n, bool aligned)
     return pages;
 }
 
-static struct section *mem_find_sec(struct addr_space *as, virt_addr_t va)
+static struct section *mem_find_sec(struct addr_space *as, vaddr_t va)
 {
     for (size_t i = 0; i < sections[as->type].sec_size; i++) {
         if ((va >= sections[as->type].sec[i].beg) &&
@@ -290,7 +290,7 @@ static struct section *mem_find_sec(struct addr_space *as, virt_addr_t va)
 }
 
 static inline bool pte_allocable(struct addr_space *as, pte_t *pte, size_t lvl,
-                                 size_t left, virt_addr_t addr)
+                                 size_t left, vaddr_t addr)
 {
     return (lvl == (as->pt.dscr->lvls - 1)) ||
            (pt_lvl_terminal(&as->pt, lvl) && !pte_valid(pte) &&
@@ -299,7 +299,7 @@ static inline bool pte_allocable(struct addr_space *as, pte_t *pte, size_t lvl,
 }
 
 static inline pte_t *mem_alloc_pt(struct addr_space *as, pte_t *parent, size_t lvl,
-                                  virt_addr_t addr)
+                                  vaddr_t addr)
 {
     /* Must have lock on as and va section to call */
     size_t ptsize = pt_size(&as->pt, lvl) / PAGE_SIZE;
@@ -313,8 +313,8 @@ static inline pte_t *mem_alloc_pt(struct addr_space *as, pte_t *parent, size_t l
 }
 
 static inline bool pt_pte_mappable(struct addr_space *as, pte_t *pte, size_t lvl,
-                                   size_t left, virt_addr_t vaddr,
-                                   phys_addr_t paddr)
+                                   size_t left, vaddr_t vaddr,
+                                   paddr_t paddr)
 {
     return !pte_valid(pte) &&
            (pt_lvlsize(&as->pt, lvl) <= (left * PAGE_SIZE)) &&
@@ -322,7 +322,7 @@ static inline bool pt_pte_mappable(struct addr_space *as, pte_t *pte, size_t lvl
            ((paddr % pt_lvlsize(&as->pt, lvl)) == 0);
 }
 
-static void mem_expand_pte(struct addr_space *as, virt_addr_t va, size_t lvl)
+static void mem_expand_pte(struct addr_space *as, vaddr_t va, size_t lvl)
 {
     /* Must have lock on as and va section to call */
 
@@ -365,7 +365,7 @@ static void mem_expand_pte(struct addr_space *as, virt_addr_t va, size_t lvl)
              */
 
             lvl++;
-            phys_addr_t paddr = pte_addr(&pte_val);
+            paddr_t paddr = pte_addr(&pte_val);
             size_t entry = pt_getpteindex(&as->pt, pte, lvl);
             size_t nentries = pt_nentries(&as->pt, lvl);
             size_t lvlsz = pt_lvlsize(&as->pt, lvl);
@@ -387,7 +387,7 @@ static void mem_expand_pte(struct addr_space *as, virt_addr_t va, size_t lvl)
     }
 }
 
-static void mem_inflate_pt(struct addr_space *as, virt_addr_t va, size_t length)
+static void mem_inflate_pt(struct addr_space *as, vaddr_t va, size_t length)
 {
     /* Must have lock on as and va section to call */
 
@@ -396,7 +396,7 @@ static void mem_inflate_pt(struct addr_space *as, virt_addr_t va, size_t length)
      * as a next level page table.
      */
     for (size_t lvl = 0; lvl < as->pt.dscr->lvls - 1; lvl++) {
-        virt_addr_t vaddr = va;
+        vaddr_t vaddr = va;
         size_t lvlsz = pt_lvlsize(&as->pt, lvl);
         while (vaddr < (va + length)) {
             mem_expand_pte(as, vaddr, lvl);
@@ -405,17 +405,17 @@ static void mem_inflate_pt(struct addr_space *as, virt_addr_t va, size_t length)
     }
 }
 
-virt_addr_t mem_alloc_vpage(struct addr_space *as, enum AS_SEC section,
-                            virt_addr_t at, size_t n)
+vaddr_t mem_alloc_vpage(struct addr_space *as, enum AS_SEC section,
+                            vaddr_t at, size_t n)
 {
     size_t lvl = 0;
     size_t entry = 0;
     size_t nentries = 0;
     size_t lvlsze = 0;
     size_t count = 0;
-    virt_addr_t addr = NULL_VA;
-    virt_addr_t vpage = NULL_VA;
-    virt_addr_t top = MAX_VA;
+    vaddr_t addr = NULL_VA;
+    vaddr_t vpage = NULL_VA;
+    vaddr_t top = MAX_VA;
     pte_t *pte = NULL;
     bool failed = false;
 
@@ -503,11 +503,11 @@ virt_addr_t mem_alloc_vpage(struct addr_space *as, enum AS_SEC section,
     return vpage;
 }
 
-void mem_free_vpage(struct addr_space *as, virt_addr_t at, size_t n,
+void mem_free_vpage(struct addr_space *as, vaddr_t at, size_t n,
                     bool free_ppages)
 {
-    virt_addr_t vaddr = at;
-    virt_addr_t top = at + (n * PAGE_SIZE);
+    vaddr_t vaddr = at;
+    vaddr_t top = at + (n * PAGE_SIZE);
     size_t lvl = 0;
 
     spin_lock(&as->lock);
@@ -531,7 +531,7 @@ void mem_free_vpage(struct addr_space *as, virt_addr_t at, size_t n,
 
             while ((entry < nentries) && (vaddr < top)) {
                 if (!pte_table(&as->pt, pte, lvl)) {
-                    virt_addr_t vpage_base = vaddr & ~(lvlsz - 1);
+                    vaddr_t vpage_base = vaddr & ~(lvlsz - 1);
 
                     if (vaddr > vpage_base || top < (vpage_base + lvlsz)) {
                         mem_expand_pte(as, vaddr, lvl);
@@ -540,7 +540,7 @@ void mem_free_vpage(struct addr_space *as, virt_addr_t at, size_t n,
                     }
 
                     if (free_ppages) {
-                        phys_addr_t paddr = pte_addr(pte);
+                        paddr_t paddr = pte_addr(pte);
                         struct ppages ppages =
                             mem_ppages_get(paddr, lvlsz / PAGE_SIZE);
                         mem_free_ppages(&ppages);
@@ -573,12 +573,12 @@ void mem_free_vpage(struct addr_space *as, virt_addr_t at, size_t n,
     spin_unlock(&as->lock);
 }
 
-int mem_map(struct addr_space *as, virt_addr_t va, struct ppages *ppages,
+int mem_map(struct addr_space *as, vaddr_t va, struct ppages *ppages,
             size_t n, pte_t flags)
 {
     size_t count = 0;
     pte_t *pte = NULL;
-    virt_addr_t vaddr = va & ~(PAGE_SIZE - 1);
+    vaddr_t vaddr = va & ~(PAGE_SIZE - 1);
 
     struct section *sec = mem_find_sec(as, vaddr);
 
@@ -605,13 +605,13 @@ int mem_map(struct addr_space *as, virt_addr_t va, struct ppages *ppages,
         for (size_t i = 0; i < ppages->size; i++) {
             pte = pt_get_pte(&as->pt, as->pt.dscr->lvls - 1, vaddr);
             index = pp_next_clr(ppages->base, index, ppages->colors);
-            phys_addr_t paddr = ppages->base + (index * PAGE_SIZE);
+            paddr_t paddr = ppages->base + (index * PAGE_SIZE);
             pte_set(pte, paddr, PTE_PAGE | flags);
             vaddr += PAGE_SIZE;
             index++;
         }
     } else {
-        phys_addr_t paddr = ppages ? ppages->base : 0;
+        paddr_t paddr = ppages ? ppages->base : 0;
         while (count < n) {
             size_t lvl = 0;
             for (lvl = 0; lvl < as->pt.dscr->lvls; lvl++) {
@@ -672,7 +672,7 @@ int mem_map(struct addr_space *as, virt_addr_t va, struct ppages *ppages,
     return 0;
 }
 
-int mem_map_reclr(struct addr_space *as, virt_addr_t va, struct ppages *ppages,
+int mem_map_reclr(struct addr_space *as, vaddr_t va, struct ppages *ppages,
                     size_t n, pte_t flags)
 {
     if (ppages == NULL) {
@@ -702,7 +702,7 @@ int mem_map_reclr(struct addr_space *as, virt_addr_t va, struct ppages *ppages,
         return mem_map(as, va, ppages, n, flags);
     }
 
-    virt_addr_t reclrd_va_base =
+    vaddr_t reclrd_va_base =
         mem_alloc_vpage(&cpu.as, SEC_HYP_VM, NULL_VA, reclrd_num);
     struct ppages reclrd_ppages = mem_alloc_ppages(as->colors, reclrd_num, false);
     mem_map(&cpu.as, reclrd_va_base, &reclrd_ppages, reclrd_num, PTE_HYP_FLAGS);
@@ -710,14 +710,14 @@ int mem_map_reclr(struct addr_space *as, virt_addr_t va, struct ppages *ppages,
     /**
      * Map original image onto hypervisor address space.
      */
-    virt_addr_t phys_va_base = mem_alloc_vpage(&cpu.as, SEC_HYP_VM, NULL_VA, n);
+    vaddr_t phys_va_base = mem_alloc_vpage(&cpu.as, SEC_HYP_VM, NULL_VA, n);
     mem_map(&cpu.as, phys_va_base, ppages, n, PTE_HYP_FLAGS);
 
     pte_t *pte = NULL;
-    virt_addr_t vaddr = va & ~(PAGE_SIZE - 1);
-    phys_addr_t paddr = ppages->base;
-    virt_addr_t clrd_vaddr = reclrd_va_base;
-    virt_addr_t phys_va = phys_va_base;
+    vaddr_t vaddr = va & ~(PAGE_SIZE - 1);
+    paddr_t paddr = ppages->base;
+    vaddr_t clrd_vaddr = reclrd_va_base;
+    vaddr_t phys_va = phys_va_base;
     size_t index = 0;
 
     /**
@@ -740,7 +740,7 @@ int mem_map_reclr(struct addr_space *as, virt_addr_t va, struct ppages *ppages,
         } else {
             memcpy((void*)clrd_vaddr, (void*)phys_va, PAGE_SIZE);
             index = pp_next_clr(reclrd_ppages.base, index, as->colors);
-            phys_addr_t clrd_paddr = reclrd_ppages.base + (index * PAGE_SIZE);
+            paddr_t clrd_paddr = reclrd_ppages.base + (index * PAGE_SIZE);
             pte_set(pte, clrd_paddr, PTE_PAGE | flags);
 
             clrd_vaddr += PAGE_SIZE;
@@ -853,7 +853,7 @@ bool mem_reserve_ppages(struct ppages *ppages)
     return mem_reserve_ppages_in_pool_list(&page_pool_list, ppages);
 }
 
-int mem_map_dev(struct addr_space *as, virt_addr_t va, phys_addr_t base, 
+int mem_map_dev(struct addr_space *as, vaddr_t va, paddr_t base, 
                 size_t n)
 {
     struct ppages pages = mem_ppages_get(base, n);
@@ -863,7 +863,7 @@ int mem_map_dev(struct addr_space *as, virt_addr_t va, phys_addr_t base,
 
 void *mem_alloc_page(size_t n, enum AS_SEC sec, bool phys_aligned)
 {
-    virt_addr_t vpage = NULL_VA;
+    vaddr_t vpage = NULL_VA;
     struct ppages ppages = mem_alloc_ppages(cpu.as.colors, n, phys_aligned);
 
     if (ppages.size == n) {
@@ -880,7 +880,7 @@ void *mem_alloc_page(size_t n, enum AS_SEC sec, bool phys_aligned)
     return (void*)vpage;
 }
 
-bool root_pool_set_up_bitmap(phys_addr_t load_addr)
+bool root_pool_set_up_bitmap(paddr_t load_addr)
 {
     size_t image_size = (size_t)(&_image_end - &_image_start);
     size_t config_size = (size_t)(&_config_end - &_config_start);
@@ -898,20 +898,20 @@ bool root_pool_set_up_bitmap(phys_addr_t load_addr)
     if (root_bitmap == NULL) return false;
 
     root_pool.bitmap = root_bitmap;
-    mem_map(&cpu.as, (virt_addr_t)root_pool.bitmap, &bitmap_pp, bitmap_size, PTE_HYP_FLAGS);
+    mem_map(&cpu.as, (vaddr_t)root_pool.bitmap, &bitmap_pp, bitmap_size, PTE_HYP_FLAGS);
     memset((void*)root_pool.bitmap, 0, bitmap_size * PAGE_SIZE);
 
     return mem_reserve_ppool_ppages(&root_pool, &bitmap_pp);
 }
 
-bool pp_root_reserve_hyp_mem(phys_addr_t load_addr)
+bool pp_root_reserve_hyp_mem(paddr_t load_addr)
 {
     size_t image_size = (size_t)(&_image_end - &_image_start);
     size_t config_size = (size_t)(&_config_end - &_config_start);
     size_t cpu_size =
         platform.cpu_num *
         (ALIGN(sizeof(struct cpu), PAGE_SIZE) + (PT_SIZE * (PT_LVLS - 1)));
-    phys_addr_t cpu_base_addr = load_addr + image_size + config_size;
+    paddr_t cpu_base_addr = load_addr + image_size + config_size;
 
     struct ppages images_ppages = mem_ppages_get(load_addr, NUM_PAGES(image_size));
     struct ppages cpu_ppages = mem_ppages_get(cpu_base_addr, NUM_PAGES(cpu_size));
@@ -922,7 +922,7 @@ bool pp_root_reserve_hyp_mem(phys_addr_t load_addr)
     return image_reserved && cpu_reserved;
 }
 
-static bool pp_root_init(phys_addr_t load_addr, struct mem_region *root_region)
+static bool pp_root_init(paddr_t load_addr, struct mem_region *root_region)
 {
     memset((void*)&root_pool, 0, sizeof(struct page_pool));
 
@@ -942,7 +942,7 @@ static bool pp_root_init(phys_addr_t load_addr, struct mem_region *root_region)
     return true;
 }
 
-static void pp_init(struct page_pool *pool, phys_addr_t base, size_t size)
+static void pp_init(struct page_pool *pool, paddr_t base, size_t size)
 {
     struct ppages pages;
 
@@ -963,14 +963,14 @@ static void pp_init(struct page_pool *pool, phys_addr_t base, size_t size)
                                     NULL_VA, bitmap_size)) == NULL)
         return;
 
-    mem_map(&cpu.as, (virt_addr_t)pool->bitmap, &pages, bitmap_size, PTE_HYP_FLAGS);
+    mem_map(&cpu.as, (vaddr_t)pool->bitmap, &pages, bitmap_size, PTE_HYP_FLAGS);
     memset((void*)pool->bitmap, 0, bitmap_size * PAGE_SIZE);
 
     pool->last = 0;
     pool->free = pool->size - bitmap_size;
 }
 
-bool mem_reserve_config(phys_addr_t config_addr, struct page_pool *pool)
+bool mem_reserve_config(paddr_t config_addr, struct page_pool *pool)
 {
     if (config_found) return true;
 
@@ -1020,7 +1020,7 @@ bool mem_reserve_vm_cfg(struct page_pool *pool)
 
 /* true: no reserving necessary, or reserve was successful
  * false: nedded to reserve memory, but error occured */
-bool mem_reserve_physical_memory(phys_addr_t config_addr, struct page_pool *pool)
+bool mem_reserve_physical_memory(paddr_t config_addr, struct page_pool *pool)
 {
     if (pool == NULL) return false;
 
@@ -1035,7 +1035,7 @@ bool mem_reserve_physical_memory(phys_addr_t config_addr, struct page_pool *pool
     return true;
 }
 
-bool mem_create_ppools(phys_addr_t config_addr, struct mem_region *root_mem_region)
+bool mem_create_ppools(paddr_t config_addr, struct mem_region *root_mem_region)
 {
     /* Add remaining memory regions to a temporary page pool list */
     objcache_init(&pagepool_cache, sizeof(struct page_pool), SEC_HYP_GLOBAL, true);
@@ -1056,19 +1056,19 @@ bool mem_create_ppools(phys_addr_t config_addr, struct mem_region *root_mem_regi
     return true;
 }
 
-bool mem_map_vm_config(phys_addr_t config_addr)
+bool mem_map_vm_config(paddr_t config_addr)
 {
     vm_config_ptr =
         (struct config*)mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL_VA, 1);
     if (vm_config_ptr == NULL) return false;
 
     struct ppages pages = mem_ppages_get(config_addr, 1);
-    mem_map(&cpu.as, (virt_addr_t)vm_config_ptr, &pages, 1, PTE_HYP_FLAGS);
+    mem_map(&cpu.as, (vaddr_t)vm_config_ptr, &pages, 1, PTE_HYP_FLAGS);
     if (vm_config_ptr->config_header_size > PAGE_SIZE) {
         size_t n =
             NUM_PAGES(((size_t)vm_config_ptr->config_header_size) - PAGE_SIZE);
-        virt_addr_t va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL,
-                            ((virt_addr_t)vm_config_ptr) + PAGE_SIZE, n);
+        vaddr_t va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL,
+                            ((vaddr_t)vm_config_ptr) + PAGE_SIZE, n);
         if (va == NULL_VA) return false;
         pages = mem_ppages_get(config_addr + PAGE_SIZE, n);
         mem_map(&cpu.as, va, &pages, n, PTE_HYP_FLAGS);
@@ -1078,7 +1078,7 @@ bool mem_map_vm_config(phys_addr_t config_addr)
     return true;
 }
 
-bool mem_init_vm_config(phys_addr_t config_addr)
+bool mem_init_vm_config(paddr_t config_addr)
 {
     if (!mem_map_vm_config(config_addr)) {
         return false;
@@ -1091,7 +1091,7 @@ bool mem_init_vm_config(phys_addr_t config_addr)
     return true;
 }
 
-struct mem_region *mem_find_root_region(phys_addr_t load_addr)
+struct mem_region *mem_find_root_region(paddr_t load_addr)
 {
     size_t image_size = (size_t)(&_image_end - &_image_start);
 
@@ -1110,7 +1110,7 @@ struct mem_region *mem_find_root_region(phys_addr_t load_addr)
     return root_mem_region;
 }
 
-bool mem_setup_root_pool(phys_addr_t load_addr,
+bool mem_setup_root_pool(paddr_t load_addr,
                          struct mem_region **root_mem_region)
 {
     *root_mem_region = mem_find_root_region(load_addr);
@@ -1124,7 +1124,7 @@ bool mem_setup_root_pool(phys_addr_t load_addr,
 void *copy_space(void *base, const size_t size, struct ppages *pages)
 {
     *pages = mem_alloc_ppages(cpu.as.colors, NUM_PAGES(size), false);
-    virt_addr_t va = mem_alloc_vpage(&cpu.as, SEC_HYP_PRIVATE, NULL_VA, NUM_PAGES(size));
+    vaddr_t va = mem_alloc_vpage(&cpu.as, SEC_HYP_PRIVATE, NULL_VA, NUM_PAGES(size));
     mem_map(&cpu.as, va, pages, NUM_PAGES(size), PTE_HYP_FLAGS);
     memcpy((void*)va, base, size);
 
@@ -1143,10 +1143,10 @@ void *copy_space(void *base, const size_t size, struct ppages *pages)
  * structure, so true coloring is actually never achieved. The drawbacks of
  * this limitation are yet to be seen, and are in need of more testing.
  */
-void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr)
+void color_hypervisor(const paddr_t load_addr, const paddr_t config_addr)
 {
     volatile static pte_t shared_pte;
-    virt_addr_t va = NULL_VA;
+    vaddr_t va = NULL_VA;
     struct cpu *cpu_new;
     struct ppages p_cpu;
     struct ppages p_image;
@@ -1178,10 +1178,10 @@ void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr
     memset((void*)cpu_new->root_pt, 0, sizeof(cpu_new->root_pt));
     as_init(&cpu_new->as, AS_HYP_CPY, HYP_ASID, cpu_new->root_pt, colors);
     va = mem_alloc_vpage(&cpu_new->as, SEC_HYP_PRIVATE,
-                        (virt_addr_t)BAO_CPU_BASE,
+                        (vaddr_t)BAO_CPU_BASE,
                         NUM_PAGES(sizeof(struct cpu)));
 
-    if (va != (virt_addr_t)BAO_CPU_BASE)
+    if (va != (vaddr_t)BAO_CPU_BASE)
         ERROR("Can't allocate virtual address for cpuspace");
 
     mem_map(&cpu_new->as, va, &p_cpu, NUM_PAGES(sizeof(struct cpu)), PTE_HYP_FLAGS);
@@ -1197,22 +1197,22 @@ void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr
     if (cpu.id == CPU_MASTER) {
         copy_space(&_image_start, image_size, &p_image);
         va = mem_alloc_vpage(&cpu_new->as, SEC_HYP_IMAGE,
-                            (virt_addr_t) &_image_start, NUM_PAGES(image_size));
+                            (vaddr_t) &_image_start, NUM_PAGES(image_size));
 
-        if (va != (virt_addr_t)&_image_start)
+        if (va != (vaddr_t)&_image_start)
             ERROR("Can't allocate virtual address for Bao Image");
 
         mem_map(&cpu_new->as, va, &p_image,
                 NUM_PAGES(image_size), PTE_HYP_FLAGS);
         shared_pte = pte_addr(pt_get_pte(&cpu_new->as.pt, 0,
-            (virt_addr_t)&_image_start));
+            (vaddr_t)&_image_start));
     } else {
         pte_t *image_pte = pt_get_pte(&cpu_new->as.pt, 0,
-                                    (virt_addr_t)&_image_start);
+                                    (vaddr_t)&_image_start);
 
         /* Wait for CPU_MASTER to get image page table entry */
         while (shared_pte == 0);
-        pte_set(image_pte, (phys_addr_t)shared_pte, PTE_TABLE | PTE_HYP_FLAGS);
+        pte_set(image_pte, (paddr_t)shared_pte, PTE_TABLE | PTE_HYP_FLAGS);
     }
 
     /*
@@ -1220,16 +1220,16 @@ void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr
      * all the other CPUs, it is therefore needed to allocate this additional
      * virtual page into global space to allow communication.
      */
-    phys_addr_t p_intferface_addr;
-    mem_translate(&cpu.as, (virt_addr_t)&cpu_new->interface, &p_intferface_addr);
+    paddr_t p_intferface_addr;
+    mem_translate(&cpu.as, (vaddr_t)&cpu_new->interface, &p_intferface_addr);
     p_interface = mem_ppages_get(
         p_intferface_addr,
         NUM_PAGES(sizeof(cpu_new->interface)));
     va = mem_alloc_vpage(
         &cpu_new->as, SEC_HYP_GLOBAL,
-        (virt_addr_t)&_cpu_if_base + (cpu.id * sizeof(cpu_new->interface)),
+        (vaddr_t)&_cpu_if_base + (cpu.id * sizeof(cpu_new->interface)),
         NUM_PAGES(sizeof(cpu_new->interface)));
-    if (va != (virt_addr_t)&_cpu_if_base + (cpu.id * sizeof(cpu_new->interface)))
+    if (va != (vaddr_t)&_cpu_if_base + (cpu.id * sizeof(cpu_new->interface)))
         ERROR("Can't allocate address for cpu interface");
 
     mem_map(&cpu_new->as, va, &p_interface,
@@ -1249,16 +1249,16 @@ void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr
         /* Map configuration onto new space */
         size_t config_size = NUM_PAGES(vm_config_ptr->config_header_size);
         struct ppages config_pages = mem_ppages_get(config_addr, config_size);
-        mem_map(&cpu_new->as, (virt_addr_t)vm_config_ptr, &config_pages,
+        mem_map(&cpu_new->as, (vaddr_t)vm_config_ptr, &config_pages,
                 config_size, PTE_HYP_FLAGS);
 
         /* Copy root pool bitmap */
         copy_space((void*)root_pool.bitmap, bitmap_size, &p_bitmap);
         va = mem_alloc_vpage(&cpu_new->as, SEC_HYP_GLOBAL,
-                             (virt_addr_t)root_pool.bitmap,
+                             (vaddr_t)root_pool.bitmap,
                              NUM_PAGES(bitmap_size));
 
-        if (va != (virt_addr_t)root_pool.bitmap)
+        if (va != (vaddr_t)root_pool.bitmap)
             ERROR("Can't allocate address for cpu interface");
 
         mem_map(&cpu_new->as, va, &p_bitmap,
@@ -1266,8 +1266,8 @@ void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr
     }
     cpu_sync_barrier(&cpu_glb_sync);
 
-    phys_addr_t p_root_pt_addr;
-    mem_translate(&cpu.as, (virt_addr_t)cpu_new->root_pt, &p_root_pt_addr);
+    paddr_t p_root_pt_addr;
+    mem_translate(&cpu.as, (vaddr_t)cpu_new->root_pt, &p_root_pt_addr);
     switch_space(cpu_new, p_root_pt_addr);
 
     /**
@@ -1275,8 +1275,8 @@ void color_hypervisor(const phys_addr_t load_addr, const phys_addr_t config_addr
      * to main memmory
      */
 
-    cache_flush_range((virt_addr_t)&_image_start, image_size);
-    cache_flush_range((virt_addr_t)&_cpu_private_beg, sizeof(struct cpu));
+    cache_flush_range((vaddr_t)&_image_start, image_size);
+    cache_flush_range((vaddr_t)&_cpu_private_beg, sizeof(struct cpu));
 
     /**
      * Bao's code from here's on still uses the static global variables, so
@@ -1352,7 +1352,7 @@ void as_init(struct addr_space *as, enum AS_TYPE type, asid_t id,
     as_arch_init(as);
 }
 
-void mem_init(phys_addr_t load_addr, phys_addr_t config_addr)
+void mem_init(paddr_t load_addr, paddr_t config_addr)
 {
     as_init(&cpu.as, AS_HYP, HYP_ASID, cpu.root_pt, 0);
 
@@ -1371,7 +1371,7 @@ void mem_init(phys_addr_t load_addr, phys_addr_t config_addr)
 
         if (config_is_builtin()) {
             config_addr =
-                (phys_addr_t)(&_config_start - &_image_start) + load_addr;
+                (paddr_t)(&_config_start - &_image_start) + load_addr;
         }
 
         if (!mem_init_vm_config(config_addr)) {

@@ -75,7 +75,7 @@
 
 struct psci_ctx {
     spinlock_t lock;
-    phys_addr_t entrypoint;
+    paddr_t entrypoint;
     unsigned long context_id;
     enum { ON, OFF, ON_PENDING } state;
 };
@@ -97,7 +97,7 @@ struct psci_off_state {
     uint64_t vtcr_el2;
     uint64_t vttbr_el2;
     uint64_t wakeup_reason;
-    phys_addr_t flat_map;
+    paddr_t flat_map;
     struct gicc_state gicc_state;
 } __attribute__((packed, aligned(8)));
 

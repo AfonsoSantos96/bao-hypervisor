@@ -20,7 +20,7 @@
 #include <arch/sysregs.h>
 #include <arch/fences.h>
 
-static inline void tlb_hyp_inv_va(virt_addr_t va)
+static inline void tlb_hyp_inv_va(vaddr_t va)
 {
     asm volatile(
         "dsb  ish\n\t"
@@ -38,7 +38,7 @@ static inline void tlb_hyp_inv_all()
         "isb\n\t");
 }
 
-static inline void tlb_vm_inv_va(vmid_t vmid, virt_addr_t va)
+static inline void tlb_vm_inv_va(vmid_t vmid, vaddr_t va)
 {
     uint64_t vttbr = 0;
     vttbr = MRS(VTTBR_EL2);

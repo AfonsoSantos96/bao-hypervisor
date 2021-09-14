@@ -34,7 +34,7 @@ void as_arch_init(struct addr_space* as)
     pt_set_recursive(&as->pt, index);
 }
 
-bool mem_translate(struct addr_space* as, virt_addr_t va, phys_addr_t* pa)
+bool mem_translate(struct addr_space* as, vaddr_t va, paddr_t* pa)
 {
     uint64_t par = 0, par_saved = 0;
 

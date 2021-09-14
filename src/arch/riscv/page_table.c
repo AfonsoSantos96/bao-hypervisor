@@ -40,7 +40,7 @@ struct page_table_dscr* hyp_pt_dscr = &sv39_pt_dscr;
 struct page_table_dscr* vm_pt_dscr = &sv39x4_pt_dscr;
 #endif
 
-pte_t* pt_get_pte(struct page_table* pt, size_t lvl, virt_addr_t va)
+pte_t* pt_get_pte(struct page_table* pt, size_t lvl, vaddr_t va)
 {
     pte_t* pte = &(pt->root[PTE_INDEX(0, va)]);
 
@@ -54,7 +54,7 @@ pte_t* pt_get_pte(struct page_table* pt, size_t lvl, virt_addr_t va)
     return pte;
 }
 
-pte_t* pt_get(struct page_table* pt, size_t lvl, virt_addr_t va)
+pte_t* pt_get(struct page_table* pt, size_t lvl, vaddr_t va)
 {
     uintptr_t pte = (uintptr_t)pt_get_pte(pt, lvl, va);
     return (pte_t*)(pte & ~(PAGE_SIZE - 1));

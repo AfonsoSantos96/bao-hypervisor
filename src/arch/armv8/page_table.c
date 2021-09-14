@@ -45,8 +45,8 @@ size_t parange __attribute__((section(".data")));
 
 void pt_set_recursive(struct page_table* pt, size_t index)
 {
-    phys_addr_t pa;
-    mem_translate(&cpu.as, (virt_addr_t)pt->root, &pa);
+    paddr_t pa;
+    mem_translate(&cpu.as, (vaddr_t)pt->root, &pa);
     pte_t* pte = cpu.as.pt.root + index;
     pte_set(pte, pa, PTE_TABLE | PTE_HYP_FLAGS);
     pt->root_flags &= ~PT_ROOT_FLAGS_REC_IND_MSK;
@@ -54,7 +54,7 @@ void pt_set_recursive(struct page_table* pt, size_t index)
         (index << PT_ROOT_FLAGS_REC_IND_OFF) & PT_ROOT_FLAGS_REC_IND_MSK;
 }
 
-pte_t* pt_get_pte(struct page_table* pt, size_t lvl, virt_addr_t va)
+pte_t* pt_get_pte(struct page_table* pt, size_t lvl, vaddr_t va)
 {
     struct page_table* cpu_pt = &cpu.as.pt;
 
@@ -73,7 +73,7 @@ pte_t* pt_get_pte(struct page_table* pt, size_t lvl, virt_addr_t va)
     return (pte_t*)addr;
 }
 
-pte_t* pt_get(struct page_table* pt, size_t lvl, virt_addr_t va)
+pte_t* pt_get(struct page_table* pt, size_t lvl, vaddr_t va)
 {
     if (lvl == 0) return pt->root;
 

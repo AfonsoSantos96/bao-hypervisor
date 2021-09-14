@@ -15,7 +15,7 @@
 
 #include <config.h>
 
-void config_adjust_to_va(struct config *config, phys_addr_t phys)
+void config_adjust_to_va(struct config *config, paddr_t phys)
 {
     adjust_ptr(config->shmemlist, config);
 

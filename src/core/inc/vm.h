@@ -79,13 +79,13 @@ extern struct vm vm;
 extern struct config* vm_config_ptr;
 
 void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t vm_id);
-void vm_start(struct vm* vm, virt_addr_t entry);
+void vm_start(struct vm* vm, vaddr_t entry);
 struct vcpu* vm_get_vcpu(struct vm* vm, cpuid_t vcpuid);
 void vm_emul_add_mem(struct vm* vm, struct emul_mem* emu);
 void vm_emul_add_reg(struct vm* vm, struct emul_reg* emu);
-emul_handler_t vm_emul_get_mem(struct vm* vm, virt_addr_t addr);
-emul_handler_t vm_emul_get_reg(struct vm* vm, virt_addr_t addr);
-void vcpu_init(struct vcpu* vcpu, struct vm* vm, virt_addr_t entry);
+emul_handler_t vm_emul_get_mem(struct vm* vm, vaddr_t addr);
+emul_handler_t vm_emul_get_reg(struct vm* vm, vaddr_t addr);
+void vcpu_init(struct vcpu* vcpu, struct vm* vm, vaddr_t entry);
 void vm_msg_broadcast(struct vm* vm, struct cpu_msg* msg);
 cpumap_t vm_translate_to_pcpu_mask(struct vm* vm, cpumap_t mask, size_t len);
 cpumap_t vm_translate_to_vcpu_mask(struct vm* vm, cpumap_t mask, size_t len);
@@ -125,6 +125,6 @@ void vcpu_writereg(struct vcpu* vcpu, unsigned long reg, unsigned long val);
 unsigned long vcpu_readpc(struct vcpu* vcpu);
 void vcpu_writepc(struct vcpu* vcpu, unsigned long pc);
 void vcpu_arch_run(struct vcpu* vcpu);
-void vcpu_arch_reset(struct vcpu* vcpu, virt_addr_t entry);
+void vcpu_arch_reset(struct vcpu* vcpu, vaddr_t entry);
 
 #endif /* __VM_H__ */

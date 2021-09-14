@@ -36,8 +36,8 @@ static int32_t iommu_vm_arch_init_ctx(struct vm *vm)
         /* Set up ctx bank to vm address space in an available ctx. */
         ctx_id = smmu_alloc_ctxbnk();
         if (ctx_id >= 0) {
-            phys_addr_t rootpt;
-            mem_translate(&cpu.as, (virt_addr_t)vm->as.pt.root, &rootpt);
+            paddr_t rootpt;
+            mem_translate(&cpu.as, (vaddr_t)vm->as.pt.root, &rootpt);
             smmu_write_ctxbnk(ctx_id, rootpt, vm->id);
             vm->iommu.arch.ctx_id = ctx_id;
         } else {

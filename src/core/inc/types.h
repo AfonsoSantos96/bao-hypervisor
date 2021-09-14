@@ -25,10 +25,10 @@ typedef signed long ssize_t;
 typedef unsigned long asid_t;
 typedef unsigned long vmid_t;
 
-typedef uintptr_t phys_addr_t;
-typedef uintptr_t virt_addr_t;
-#define NULL_VA ((virt_addr_t)NULL)
-#define MAX_VA  ((virt_addr_t)-1)
+typedef uintptr_t paddr_t;
+typedef uintptr_t vaddr_t;
+#define NULL_VA ((vaddr_t)NULL)
+#define MAX_VA  ((vaddr_t)-1)
 
 typedef unsigned long colormap_t;
 

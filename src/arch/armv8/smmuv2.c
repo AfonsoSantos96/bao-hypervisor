@@ -138,7 +138,7 @@ void smmu_init()
      * Map the first 4k so we can read all the info we need to further
      * allocate smmu registers.
      */
-    virt_addr_t smmu_glbl_rs0 = mem_alloc_vpage(
+    vaddr_t smmu_glbl_rs0 = mem_alloc_vpage(
         &cpu.as, SEC_HYP_GLOBAL, NULL_VA, NUM_PAGES(sizeof(struct smmu_glbl_rs0_hw)));
     mem_map_dev(&cpu.as, smmu_glbl_rs0, platform.arch.smmu.base,
                 NUM_PAGES(sizeof(struct smmu_glbl_rs0_hw)));
@@ -154,12 +154,12 @@ void smmu_init()
     int32_t ctx_bank_num = bit32_extract(
         smmu.hw.glbl_rs0->IDR1, SMMUV2_IDR1_NUMCB_OFF, SMMUV2_IDR1_NUMCB_LEN);
 
-    virt_addr_t smmu_glbl_rs1 = mem_alloc_vpage(
+    vaddr_t smmu_glbl_rs1 = mem_alloc_vpage(
         &cpu.as, SEC_HYP_GLOBAL, NULL_VA, NUM_PAGES(sizeof(struct smmu_glbl_rs1_hw)));
     mem_map_dev(&cpu.as, smmu_glbl_rs1, platform.arch.smmu.base + pg_size,
                 NUM_PAGES(sizeof(struct smmu_glbl_rs1_hw)));
 
-    virt_addr_t smmu_cntxt = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL_VA,
+    vaddr_t smmu_cntxt = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL_VA,
         NUM_PAGES((pg_size * ctx_bank_num)));
     mem_map_dev(&cpu.as, smmu_cntxt,
                 platform.arch.smmu.base + (num_page * pg_size),
@@ -234,7 +234,7 @@ static int smmu_cb_ttba_offset(int t0sz)
     return offset;
 }
 
-void smmu_write_ctxbnk(int32_t ctx_id, phys_addr_t root_pt, vmid_t vm_id)
+void smmu_write_ctxbnk(int32_t ctx_id, paddr_t root_pt, vmid_t vm_id)
 {
     spin_lock(&smmu.ctx_lock);
     if (!bitmap_get(smmu.ctxbank_bitmap, ctx_id)) {

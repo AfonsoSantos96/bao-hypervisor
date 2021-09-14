@@ -22,7 +22,7 @@
 
 struct vm_arch {
     struct vgicd vgicd;
-    virt_addr_t vgicr_addr;
+    vaddr_t vgicr_addr;
 };
 
 struct vcpu_arch {

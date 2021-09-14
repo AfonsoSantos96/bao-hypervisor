@@ -32,7 +32,7 @@ extern size_t COLOR_NUM;
 extern size_t COLOR_SIZE;
 
 void cache_enumerate();
-void cache_flush_range(virt_addr_t base, size_t size);
+void cache_flush_range(vaddr_t base, size_t size);
 
 void cache_arch_enumerate(struct cache* dscrp);
 
