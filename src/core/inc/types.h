@@ -34,6 +34,7 @@ typedef unsigned long colormap_t;
 
 typedef unsigned long cpuid_t;
 typedef unsigned long cpumap_t;
+#define INVALID_CPUID   ((cpuid_t)-1)
 
 typedef unsigned irqid_t;
 typedef unsigned streamid_t;

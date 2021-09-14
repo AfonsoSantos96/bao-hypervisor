@@ -142,11 +142,13 @@ int32_t psci_cpu_on_handler(unsigned long target_cpu, unsigned long entrypoint,
         }
 
         cpuid_t pcpuid = vm_translate_to_pcpuid(vm, target_vcpu->id);
-
-        struct cpu_msg msg = {PSCI_CPUSMG_ID, PSCI_MSG_ON};
-        cpu_send_msg(pcpuid, &msg);
-
-        ret = PSCI_E_SUCCESS;
+        if (pcpuid == INVALID_CPUID) {
+            ret = PSCI_E_INVALID_PARAMS;
+        } else {
+            struct cpu_msg msg = {PSCI_CPUSMG_ID, PSCI_MSG_ON};
+            cpu_send_msg(pcpuid, &msg);
+            ret = PSCI_E_SUCCESS;
+        }
 
     } else {
         ret = PSCI_E_INVALID_PARAMS;
