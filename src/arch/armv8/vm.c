@@ -27,7 +27,7 @@ void vm_arch_init(struct vm* vm, const struct vm_config* config)
     }
 }
 
-struct vcpu* vm_get_vcpu_by_mpidr(struct vm* vm, uint64_t mpidr)
+struct vcpu* vm_get_vcpu_by_mpidr(struct vm* vm, unsigned long mpidr)
 {
     list_foreach(vm->vcpu_list, struct vcpu, vcpu)
     {
@@ -39,7 +39,7 @@ struct vcpu* vm_get_vcpu_by_mpidr(struct vm* vm, uint64_t mpidr)
     return NULL;
 }
 
-static uint64_t vm_cpuid_to_mpidr(struct vm* vm, cpuid_t cpuid)
+static unsigned long vm_cpuid_to_mpidr(struct vm* vm, cpuid_t cpuid)
 {
     return platform_arch_cpuid_to_mpdir(&vm->config->platform, cpuid);
 }
