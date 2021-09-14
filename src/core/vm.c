@@ -91,7 +91,7 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     size_t n_img = NUM_PAGES(config->image.size);
     struct ppages src_pa_img = mem_ppages_get(config->image.load_addr, n_img);
     vaddr_t src_va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL_VA, n_img);
-    if (mem_map(&cpu.as, src_va, &src_pa_img, n_img, PTE_HYP_FLAGS)) {
+    if (!mem_map(&cpu.as, src_va, &src_pa_img, n_img, PTE_HYP_FLAGS)) {
         ERROR("mem_map failed %s", __func__);
     }
 
@@ -100,7 +100,7 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     size_t dst_phys = reg->phys + offset;
     struct ppages dst_pp = mem_ppages_get(dst_phys, n_img);
     vaddr_t dst_va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL_VA, n_img);
-    if (mem_map(&cpu.as, dst_va, &dst_pp, n_img, PTE_HYP_FLAGS)) {
+    if (!mem_map(&cpu.as, dst_va, &dst_pp, n_img, PTE_HYP_FLAGS)) {
         ERROR("mem_map failed %s", __func__);
     }
 
@@ -234,11 +234,11 @@ static void vm_init_dev(struct vm* vm, const struct vm_config* config)
     }
 
     /* iommu */
-    if (iommu_vm_init(vm, config) >= 0) {
+    if (iommu_vm_init(vm, config)) {
         for (size_t i = 0; i < config->platform.dev_num; i++) {
             struct dev_region* dev = &config->platform.devs[i];
             if (dev->id) {
-                if(iommu_vm_add_device(vm, dev->id) < 0){
+                if(!iommu_vm_add_device(vm, dev->id)){
                     ERROR("Failed to add device to iommu");
                 }
             }
