@@ -108,8 +108,8 @@ static inline void cpu_sync_barrier(struct cpu_synctoken* token)
 
 static inline struct cpuif* cpu_if(cpuid_t cpu_id)
 {
-    return ((void*)&_cpu_if_base) +
-           (cpu_id * ALIGN(sizeof(struct cpuif), PAGE_SIZE));
+    return (struct cpuif*)(((virt_addr_t)&_cpu_if_base) +
+           (cpu_id * ALIGN(sizeof(struct cpuif), PAGE_SIZE)));
 }
 
 void cpu_init(cpuid_t cpu_id, phys_addr_t load_addr);

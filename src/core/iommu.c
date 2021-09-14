@@ -62,7 +62,7 @@ int iommu_vm_add_device(struct vm *vm, streamid_t dev_id)
         struct iommu_dev_node *ptr = objcache_alloc(&vm->iommu.dev_oc);
         if(ptr != NULL){
             ptr->dev.id = dev_id;
-            list_push(&vm->iommu.dev_list, (void *)ptr);
+            list_push(&vm->iommu.dev_list, (node_t*)ptr);
         } else {
             res = -1;
         }

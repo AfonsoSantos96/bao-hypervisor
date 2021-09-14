@@ -98,7 +98,7 @@ bool pte_page(struct page_table* pt, pte_t* pte, size_t lvl)
 
 bool pte_table(struct page_table* pt, pte_t* pte, size_t lvl)
 {
-    if ((size_t)lvl == pt->dscr->lvls - 1) {
+    if (lvl == pt->dscr->lvls - 1) {
         return false;
     }
 
