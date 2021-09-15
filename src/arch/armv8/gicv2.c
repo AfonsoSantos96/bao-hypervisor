@@ -27,16 +27,16 @@ extern spinlock_t gicd_lock;
 volatile struct gicc_hw gicc __attribute__((section(".devices"), aligned(PAGE_SIZE)));
 volatile struct gich_hw gich __attribute__((section(".devices"), aligned(PAGE_SIZE)));
 
-static uint64_t gic_cpu_map[GIC_MAX_TARGETS];
+static cpuid_t gic_cpu_map[GIC_MAX_TARGETS];
 
-uint64_t NUM_LRS;
+size_t NUM_LRS;
 
-uint64_t gich_num_lrs()
+size_t gich_num_lrs()
 {
     return ((gich.VTR & GICH_VTR_MSK) >> GICH_VTR_OFF) + 1;
 }
 
-inline uint64_t gich_read_lr(size_t i)
+inline unsigned long gich_read_lr(size_t i)
 {
     if (i < NUM_LRS) {
         return gich.LR[i];
@@ -45,7 +45,7 @@ inline uint64_t gich_read_lr(size_t i)
     }
 }
 
-inline void gich_write_lr(size_t i, uint64_t val)
+inline void gich_write_lr(size_t i, unsigned long val)
 {
     if (i < NUM_LRS) {
         gich.LR[i] = val;
@@ -94,14 +94,14 @@ static inline void gicc_init()
 
     gich.HCR |= GICH_HCR_LRENPIE_BIT;
     
-    uint64_t sgi_targets = gicd.ITARGETSR[0] & BIT64_MASK(0, GIC_TARGET_BITS);
-    int64_t gic_cpu_id = 
+    uint32_t sgi_targets = gicd.ITARGETSR[0] & BIT32_MASK(0, GIC_TARGET_BITS);
+    ssize_t gic_cpu_id = 
         bitmap_find_nth((bitmap_t*)&sgi_targets, GIC_TARGET_BITS, 1, 0, true);
     if(gic_cpu_id < 0) {
         ERROR("cant find gic cpu id");
     }
 
-    gic_cpu_map[cpu.id] = gic_cpu_id;
+    gic_cpu_map[cpu.id] = (cpuid_t)gic_cpu_id;
 }
 
 void gicc_save_state(struct gicc_state *state)
@@ -213,9 +213,9 @@ static inline uint8_t gic_translate_cpu_to_trgt(uint8_t cpu_targets) {
 
 void gicd_set_trgt(irqid_t int_id, uint8_t cpu_targets)
 {
-    uint64_t reg_ind = GIC_TARGET_REG(int_id);
-    uint64_t off = GIC_TARGET_OFF(int_id);
-    uint32_t mask = BIT64_MASK(off, GIC_TARGET_BITS);
+    size_t reg_ind = GIC_TARGET_REG(int_id);
+    size_t off = GIC_TARGET_OFF(int_id);
+    uint32_t mask = BIT32_MASK(off, GIC_TARGET_BITS);
 
     spin_lock(&gicd_lock);
 
@@ -230,7 +230,7 @@ void gic_set_prio(irqid_t int_id, uint8_t prio)
     gicd_set_prio(int_id, prio);
 }
 
-uint64_t gic_get_prio(irqid_t int_id)
+uint8_t gic_get_prio(irqid_t int_id)
 {
     return gicd_get_prio(int_id);
 }
@@ -263,13 +263,13 @@ void gic_set_enable(irqid_t int_id, bool en)
 void gic_set_pend(irqid_t int_id, bool pend)
 {
     if (gic_is_sgi(int_id)) {
-        uint64_t reg_ind = GICD_SGI_REG(int_id);
-        uint64_t off = GICD_SGI_OFF(int_id);
+        size_t reg_ind = GICD_SGI_REG(int_id);
+        size_t off = GICD_SGI_OFF(int_id);
 
         if (pend) {
             gicd.SPENDSGIR[reg_ind] = (1U) << (off + cpu.id);
         } else {
-            gicd.CPENDSGIR[reg_ind] = BIT64_MASK(off, 8);
+            gicd.CPENDSGIR[reg_ind] = BIT32_MASK(off, 8);
         }
     } else {
         gicd_set_pend(int_id, pend);

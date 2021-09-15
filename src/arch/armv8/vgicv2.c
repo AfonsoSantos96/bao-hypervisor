@@ -35,7 +35,7 @@ bool vgic_int_has_other_target(struct vcpu *vcpu, struct vgic_int *interrupt)
     return !priv && has_other_targets;
 }
 
-cpumap_t vgic_int_ptarget_mask(struct vcpu *vcpu, struct vgic_int *interrupt)
+uint8_t vgic_int_ptarget_mask(struct vcpu *vcpu, struct vgic_int *interrupt)
 {
     return interrupt->targets;
 }
@@ -60,18 +60,18 @@ void vgicd_set_trgt_hw(struct vcpu *vcpu, struct vgic_int *interrupt)
 uint64_t vgicd_get_trgt(struct vcpu *vcpu, struct vgic_int *interrupt)
 {
     if (gic_is_priv(interrupt->id)) {
-        return (1ull << vcpu->id);
+        return (1 << vcpu->id);
     } else {
-        return (uint8_t)vm_translate_to_vcpu_mask(vcpu->vm, interrupt->targets,
+        return vm_translate_to_vcpu_mask(vcpu->vm, interrupt->targets,
                                                   GIC_TARGET_BITS);
     }
 }
 
 void vgicd_emul_sgiregs_access(struct emul_access *acc,
                                struct vgic_reg_handler_info *handlers,
-                               bool gicr_access, uint64_t vgicr_id)
+                               bool gicr_access, cpuid_t vgicr_id)
 {
-    uint32_t val = acc->write ? vcpu_readreg(cpu.vcpu, acc->reg) : 0;
+    unsigned long val = acc->write ? vcpu_readreg(cpu.vcpu, acc->reg) : 0;
 
     if ((acc->addr & 0xfff) == (((uintptr_t)&gicd.SGIR) & 0xfff)) {
         if (acc->write) {
@@ -117,7 +117,7 @@ struct vgic_reg_handler_info sgir_info = {
     0b0100,
 };
 
-void vgic_inject_sgi(struct vcpu *vcpu, struct vgic_int *interrupt, uint64_t source)
+void vgic_inject_sgi(struct vcpu *vcpu, struct vgic_int *interrupt, cpuid_t source)
 {
     spin_lock(&interrupt->lock);
 
@@ -145,7 +145,7 @@ void vgic_inject_sgi(struct vcpu *vcpu, struct vgic_int *interrupt, uint64_t sou
 void vgic_init(struct vm *vm, const struct gic_dscrp *gic_dscrp)
 {
     vm->arch.vgicd.CTLR = 0;
-    uint32_t vtyper_itln = vgic_get_itln(gic_dscrp);
+    size_t vtyper_itln = vgic_get_itln(gic_dscrp);
     vm->arch.vgicd.int_num = 32 * (vtyper_itln + 1);
     vm->arch.vgicd.TYPER =
         ((vtyper_itln << GICD_TYPER_ITLN_OFF) & GICD_TYPER_ITLN_MSK) |

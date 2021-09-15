@@ -29,14 +29,14 @@ struct gic_dscrp;
 struct vgic_int {
     struct vcpu *owner;
 #if (GIC_VERSION != GICV2)
-    uint64_t route;
+    unsigned long route;
     union {
-        uint64_t redist;
-        uint64_t route;
+        cpuid_t redist;
+        unsigned long route;
     } phys;
 #endif
     spinlock_t lock;
-    uint16_t id;
+    irqid_t id;
     uint8_t state;
     uint8_t prio;
     uint8_t cfg;
@@ -75,14 +75,14 @@ struct vgic_priv {
 #if (GIC_VERSION != GICV2)
     struct vgicr vgicr;
 #endif
-    int16_t curr_lrs[GIC_NUM_LIST_REGS];
+    irqid_t curr_lrs[GIC_NUM_LIST_REGS];
     struct vgic_int interrupts[GIC_CPU_PRIV];
 };
 
 void vgic_init(struct vm *vm, const struct gic_dscrp *gic_dscrp);
 void vgic_cpu_init(struct vcpu *vcpu);
 void vgic_set_hw(struct vm *vm, irqid_t id);
-void vgic_inject(struct vgicd *vgicd, irqid_t id, uint64_t source);
+void vgic_inject(struct vgicd *vgicd, irqid_t id, cpuid_t source);
 
 /* VGIC INTERNALS */
 
@@ -102,8 +102,8 @@ enum vgic_reg_handler_info_id {
 
 struct vgic_reg_handler_info {
     void (*reg_access)(struct emul_access *, struct vgic_reg_handler_info *,
-                       bool gicr_accces, uint64_t vgicr_id);
-    uint8_t alignment;
+                       bool gicr_accces, cpuid_t vgicr_id);
+    size_t alignment;
     size_t regid;
     vaddr_t regroup_base;
     size_t field_width;
@@ -121,14 +121,14 @@ bool vgic_remove_lr(struct vcpu *vcpu, struct vgic_int *interrupt);
 bool vgic_get_ownership(struct vcpu *vcpu, struct vgic_int *interrupt);
 void vgic_yield_ownership(struct vcpu *vcpu, struct vgic_int *interrupt);
 void vgic_emul_generic_access(struct emul_access *, struct vgic_reg_handler_info *,
-                              bool, uint64_t);
+                              bool, cpuid_t);
 void vgic_send_sgi_msg(struct vcpu *vcpu, cpumap_t pcpu_mask, irqid_t int_id);
-uint32_t vgic_get_itln(const struct gic_dscrp *gic_dscrp);
+size_t vgic_get_itln(const struct gic_dscrp *gic_dscrp);
 
 /* interface for version specific vgic */
 bool vgic_int_vcpu_is_target(struct vcpu *vcpu, struct vgic_int *interrupt);
 bool vgic_int_has_other_target(struct vcpu *vcpu, struct vgic_int *interrupt);
-uint64_t vgic_int_ptarget_mask(struct vcpu *vcpu, struct vgic_int *interrupt);
-void vgic_inject_sgi(struct vcpu *vcpu, struct vgic_int *interrupt, uint64_t source);
+uint8_t vgic_int_ptarget_mask(struct vcpu *vcpu, struct vgic_int *interrupt);
+void vgic_inject_sgi(struct vcpu *vcpu, struct vgic_int *interrupt, cpuid_t source);
 
 #endif /* __VGIC_H__ */

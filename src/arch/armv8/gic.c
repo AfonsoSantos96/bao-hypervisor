@@ -88,7 +88,7 @@ void gic_init()
 void gic_handle()
 {
     uint32_t ack = gicc_iar();
-    uint32_t id = bit32_extract(ack, GICC_IAR_ID_OFF, GICC_IAR_ID_LEN);
+    irqid_t id = bit32_extract(ack, GICC_IAR_ID_OFF, GICC_IAR_ID_LEN);
 
     if (id < GIC_FIRST_SPECIAL_INTID) {
         enum irq_res res = interrupts_handle(id);
@@ -97,22 +97,22 @@ void gic_handle()
     }
 }
 
-uint64_t gicd_get_prio(irqid_t int_id)
+uint8_t gicd_get_prio(irqid_t int_id)
 {
-    uint64_t reg_ind = GIC_PRIO_REG(int_id);
-    uint64_t off = GIC_PRIO_OFF(int_id);
+    size_t reg_ind = GIC_PRIO_REG(int_id);
+    size_t off = GIC_PRIO_OFF(int_id);
 
-    uint64_t prio =
-        gicd.IPRIORITYR[reg_ind] >> off & BIT64_MASK(off, GIC_PRIO_BITS);
+    uint8_t prio =
+        gicd.IPRIORITYR[reg_ind] >> off & BIT32_MASK(off, GIC_PRIO_BITS);
 
     return prio;
 }
 
 void gicd_set_icfgr(irqid_t int_id, uint8_t cfg)
 {
-    uint64_t reg_ind = (int_id * GIC_CONFIG_BITS) / (sizeof(uint32_t) * 8);
-    uint64_t off = (int_id * GIC_CONFIG_BITS) % (sizeof(uint32_t) * 8);
-    uint64_t mask = ((1U << GIC_CONFIG_BITS) - 1) << off;
+    size_t reg_ind = (int_id * GIC_CONFIG_BITS) / (sizeof(uint32_t) * 8);
+    size_t off = (int_id * GIC_CONFIG_BITS) % (sizeof(uint32_t) * 8);
+    uint32_t mask = ((1U << GIC_CONFIG_BITS) - 1) << off;
 
     spin_lock(&gicd_lock);
 
@@ -123,9 +123,9 @@ void gicd_set_icfgr(irqid_t int_id, uint8_t cfg)
 
 void gicd_set_prio(irqid_t int_id, uint8_t prio)
 {
-    uint64_t reg_ind = GIC_PRIO_REG(int_id);
-    uint64_t off = GIC_PRIO_OFF(int_id);
-    uint64_t mask = BIT64_MASK(off, GIC_PRIO_BITS);
+    size_t reg_ind = GIC_PRIO_REG(int_id);
+    size_t off = GIC_PRIO_OFF(int_id);
+    uint32_t mask = BIT32_MASK(off, GIC_PRIO_BITS);
 
     spin_lock(&gicd_lock);
 
@@ -137,7 +137,7 @@ void gicd_set_prio(irqid_t int_id, uint8_t prio)
 
 void gicd_set_pend(irqid_t int_id, bool pend)
 {
-    uint64_t reg_ind = GIC_INT_REG(int_id);
+    size_t reg_ind = GIC_INT_REG(int_id);
     if (pend) {
         gicd.ISPENDR[reg_ind] = GIC_INT_MASK(int_id);
     } else {
@@ -152,7 +152,7 @@ bool gicd_get_pend(irqid_t int_id)
 
 void gicd_set_act(irqid_t int_id, bool act)
 {
-    uint64_t reg_ind = GIC_INT_REG(int_id);
+    size_t reg_ind = GIC_INT_REG(int_id);
 
     if (act) {
         gicd.ISACTIVER[reg_ind] = GIC_INT_MASK(int_id);
@@ -168,8 +168,8 @@ bool gicd_get_act(irqid_t int_id)
 
 void gicd_set_enable(irqid_t int_id, bool en)
 {
-    uint64_t reg_ind = GIC_INT_REG(int_id);
-    uint64_t bit = GIC_INT_MASK(int_id);
+    size_t reg_ind = GIC_INT_REG(int_id);
+    uint32_t bit = GIC_INT_MASK(int_id);
 
     if (en) {
         gicd.ISENABLER[reg_ind] = bit;
