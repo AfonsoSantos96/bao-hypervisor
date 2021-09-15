@@ -284,12 +284,12 @@ typedef struct Uart_Zynq_hw bao_uart_t;
 
 /** Public Zynq UART interfaces */
 
-bool uart_init(struct Uart_Zynq_hw* uart);
-void uart_enable(struct Uart_Zynq_hw* uart);
-void uart_disable(struct Uart_Zynq_hw* uart);
-bool uart_set_baud_rate(struct Uart_Zynq_hw* uart, uint32_t baud_rate);
-uint32_t uart_getc(struct Uart_Zynq_hw* uart);
-void uart_putc(struct Uart_Zynq_hw* uart,int8_t c);
-void uart_puts(struct Uart_Zynq_hw* uart,const char *s);
+bool uart_init(volatile struct Uart_Zynq_hw* uart);
+void uart_enable(volatile struct Uart_Zynq_hw* uart);
+void uart_disable(volatile struct Uart_Zynq_hw* uart);
+bool uart_set_baud_rate(volatile struct Uart_Zynq_hw* uart, uint32_t baud_rate);
+uint32_t uart_getc(volatile struct Uart_Zynq_hw* uart);
+void uart_putc(volatile struct Uart_Zynq_hw* uart,int8_t c);
+void uart_puts(volatile struct Uart_Zynq_hw* uart,const char *s);
 
 #endif /* __UART_ZYNQ_H */

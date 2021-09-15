@@ -15,7 +15,7 @@
 
 #include <drivers/zynq_uart.h>
 
-bool uart_init(struct Uart_Zynq_hw* uart)
+bool uart_init(volatile struct Uart_Zynq_hw* uart)
 {
     uint32_t ret;
 
@@ -41,7 +41,7 @@ bool uart_init(struct Uart_Zynq_hw* uart)
     return true;
 }
 
-void uart_enable(struct Uart_Zynq_hw* uart)
+void uart_enable(volatile struct Uart_Zynq_hw* uart)
 {
     uint32_t ctrl_reg = uart->control;
 
@@ -51,7 +51,7 @@ void uart_enable(struct Uart_Zynq_hw* uart)
     uart->control = ctrl_reg;
 }
 
-void uart_disable(struct Uart_Zynq_hw* uart)
+void uart_disable(volatile struct Uart_Zynq_hw* uart)
 {
     uint32_t ctrl_reg = uart->control;
 
@@ -60,7 +60,7 @@ void uart_disable(struct Uart_Zynq_hw* uart)
     uart->control = ctrl_reg;
 }
 
-bool uart_set_baud_rate(struct Uart_Zynq_hw* uart, uint32_t baud_rate)
+bool uart_set_baud_rate(volatile struct Uart_Zynq_hw* uart, uint32_t baud_rate)
 {
     // uint32_t sel_clk =  UART_FREQ_CLK;
     uint8_t bdiv = 0;
@@ -96,7 +96,7 @@ bool uart_set_baud_rate(struct Uart_Zynq_hw* uart, uint32_t baud_rate)
     return true;
 }
 
-uint32_t uart_getc(struct Uart_Zynq_hw* uart)
+uint32_t uart_getc(volatile struct Uart_Zynq_hw* uart)
 {
     uint32_t data = 0;
 
@@ -111,7 +111,7 @@ uint32_t uart_getc(struct Uart_Zynq_hw* uart)
     return data;
 }
 
-void uart_putc(struct Uart_Zynq_hw* uart, int8_t c)
+void uart_putc(volatile struct Uart_Zynq_hw* uart, int8_t c)
 {
     /* Wait until txFIFO is not full */
     while (uart->ch_status & UART_CH_STATUS_TFUL);
@@ -119,7 +119,7 @@ void uart_putc(struct Uart_Zynq_hw* uart, int8_t c)
     uart->tx_rx_fifo = c;
 }
 
-void uart_puts(struct Uart_Zynq_hw* uart, const char* s)
+void uart_puts(volatile struct Uart_Zynq_hw* uart, const char* s)
 {
     while (*s) {
         uart_putc(uart, *s++);
