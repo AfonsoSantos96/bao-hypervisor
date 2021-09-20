@@ -30,36 +30,6 @@
 
 #ifndef __ASSEMBLER__
 
-<<<<<<< HEAD
-size_t bit_ctz(size_t n);
-size_t bit_clz(size_t n);
-
-static inline size_t bit_get(size_t word, size_t off)
-{
-    return word & (1UL << off);
-}
-
-static inline size_t bit_set(size_t word, size_t off)
-{
-    return word |= (1UL << off);
-}
-
-static inline size_t bit_clear(size_t word, size_t off)
-{
-    return word &= ~(1UL << off);
-}
-
-static inline size_t bit_extract(size_t word, size_t off, size_t len)
-{
-    return (word >> off) & BIT_MASK(0, len);
-}
-
-static inline size_t bit_insert(size_t word, size_t val, size_t off,
-                                  size_t len)
-{
-    return (~BIT_MASK(off, len) & word) | ((BIT_MASK(0, len) & val) << off);
-}
-=======
 #define BIT_OPS_GEN(PRE, TYPE, LIT, MASK) \
     static inline TYPE PRE ## _get(TYPE word, size_t off)\
     {\
@@ -86,7 +56,6 @@ static inline size_t bit_insert(size_t word, size_t val, size_t off,
 BIT_OPS_GEN(bit32, uint32_t, UINT32_C(1), BIT32_MASK);
 BIT_OPS_GEN(bit64, uint64_t, UINT64_C(1), BIT64_MASK);
 BIT_OPS_GEN(bit, unsigned long, (1UL), BIT_MASK);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 #endif /* |__ASSEMBLER__ */
 

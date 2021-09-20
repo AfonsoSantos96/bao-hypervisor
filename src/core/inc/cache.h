@@ -32,11 +32,7 @@ extern size_t COLOR_NUM;
 extern size_t COLOR_SIZE;
 
 void cache_enumerate();
-<<<<<<< HEAD
-void cache_flush_range(void* base, size_t size);
-=======
 void cache_flush_range(vaddr_t base, size_t size);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 void cache_arch_enumerate(struct cache* dscrp);
 

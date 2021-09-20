@@ -16,23 +16,14 @@
 #include <platform.h>
 #include <arch/sysregs.h>
 
-<<<<<<< HEAD
-size_t platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
-                                      size_t cpuid)
-=======
 unsigned long platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
                                       cpuid_t cpuid)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if (cpuid > plat->cpu_num) {
         return ~(~MPIDR_RES1 & MPIDR_RES0_MSK); //return an invlid mpidr by inverting res bits
     }
 
-<<<<<<< HEAD
-    size_t mpidr = 0;
-=======
     unsigned long mpidr = 0;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
     bool found = false;
     if (plat->arch.clusters.num > 0) {
         for (size_t i = 0, j = 0; i < plat->arch.clusters.num; i++) {
@@ -62,23 +53,3 @@ unsigned long platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
 
     return mpidr;
 }
-<<<<<<< HEAD
-
-long platform_arch_mpidr_to_cpuid(const struct platform_desc* plat,
-                                      size_t mpidr){
-    long cpuid = 0; 
-    long i = 0;
-    for(i = 0; i < ((mpidr >> 8) & 0xff) && i < plat->arch.clusters.num; i++){
-        cpuid = plat->arch.clusters.core_num[i];
-    }
-
-    if(i < plat->arch.clusters.num){
-        cpuid += plat->arch.clusters.core_num[i];
-    } else {
-        cpuid = -1;
-    }
-    
-    return cpuid;
-} 
-=======
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff

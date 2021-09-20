@@ -87,28 +87,6 @@ enum wakeup_reason {
     PSCI_WAKEUP_NUM
 };
 
-<<<<<<< HEAD
-typedef struct {
-    size_t tcr_el2;
-    size_t ttbr0_el2;
-    size_t mair_el2;
-    size_t cptr_el2;
-    size_t hcr_el2;
-    size_t vmpidr_el2;
-    size_t vtcr_el2;
-    size_t vttbr_el2;
-    size_t wakeup_reason;
-    size_t flat_map;
-    gicc_state_t gicc_state;
-} __attribute__((packed, aligned(8))) psci_off_state_t;
-
-enum wakeup_reason {
-    PSCI_WAKEUP_CPU_OFF,
-    PSCI_WAKEUP_POWERDOWN,
-    PSCI_WAKEUP_IDLE,
-    PSCI_WAKEUP_NUM
-};
-=======
 struct psci_off_state {
     uint64_t tcr_el2;
     uint64_t ttbr0_el2;
@@ -122,44 +100,21 @@ struct psci_off_state {
     paddr_t flat_map;
     struct gicc_state gicc_state;
 } __attribute__((packed, aligned(8)));
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 /* --------------------------------
         SMC Trapping
 --------------------------------- */
 
-<<<<<<< HEAD
-long psci_smc_handler(size_t smc_fid, size_t x1, size_t x2,
-                         size_t x3);
-
-size_t psci_standby();
-size_t psci_power_down(size_t reason);
-=======
 int32_t psci_smc_handler(uint32_t smc_fid, unsigned long x1, unsigned long x2,
                          unsigned long x3);
 
 int32_t psci_standby();
 int32_t psci_power_down(enum wakeup_reason reason);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 /* --------------------------------
         SMC PSCI interface
 --------------------------------- */
 
-<<<<<<< HEAD
-size_t psci_version(void);
-
-size_t psci_cpu_suspend(size_t power_state, uintptr_t entrypoint,
-                          size_t context_id);
-
-size_t psci_cpu_off(void);
-
-size_t psci_cpu_on(size_t target_cpu, uintptr_t entrypoint,
-                     size_t context_id);
-
-size_t psci_affinity_info(size_t target_affinity,
-                            size_t lowest_affinity_level);
-=======
 int32_t psci_version(void);
 
 int32_t psci_cpu_suspend(uint32_t power_state, unsigned long entrypoint,
@@ -172,6 +127,5 @@ int32_t psci_cpu_on(unsigned long target_cpu, unsigned long entrypoint,
 
 int32_t psci_affinity_info(unsigned long target_affinity,
                             uint32_t lowest_affinity_level);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 #endif /* __PSCI_H__ */

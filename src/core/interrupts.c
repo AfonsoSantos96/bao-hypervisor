@@ -26,38 +26,22 @@ BITMAP_ALLOC(global_interrupt_bitmap, MAX_INTERRUPTS);
 
 irq_handler_t interrupt_handlers[MAX_INTERRUPTS];
 
-<<<<<<< HEAD
-inline void interrupts_cpu_sendipi(size_t target_cpu, size_t ipi_id)
-=======
 inline void interrupts_cpu_sendipi(cpuid_t target_cpu, irqid_t ipi_id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     interrupts_arch_ipi_send(target_cpu, ipi_id);
 }
 
-<<<<<<< HEAD
-inline void interrupts_cpu_enable(size_t int_id, bool en)
-=======
 inline void interrupts_cpu_enable(irqid_t int_id, bool en)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     interrupts_arch_enable(int_id, en);
 }
 
-<<<<<<< HEAD
-inline bool interrupts_check(size_t int_id)
-=======
 inline bool interrupts_check(irqid_t int_id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return interrupts_arch_check(int_id);
 }
 
-<<<<<<< HEAD
-inline void interrupts_clear(size_t int_id)
-=======
 inline void interrupts_clear(irqid_t int_id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     interrupts_arch_clear(int_id);
 }
@@ -73,29 +57,17 @@ inline void interrupts_init()
     interrupts_cpu_enable(IPI_CPU_MSG, true);
 }
 
-<<<<<<< HEAD
-static inline bool interrupt_is_reserved(size_t int_id)
-=======
 static inline bool interrupt_is_reserved(irqid_t int_id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return bitmap_get(hyp_interrupt_bitmap, int_id);
 }
 
-<<<<<<< HEAD
-inline void interrupts_vm_inject(vm_t *vm, size_t id)
-=======
 inline void interrupts_vm_inject(struct vm *vm, irqid_t id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     interrupts_arch_vm_inject(vm, id);
 }
 
-<<<<<<< HEAD
-enum irq_res interrupts_handle(size_t int_id)
-=======
 enum irq_res interrupts_handle(irqid_t int_id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if (vm_has_interrupt(cpu.vcpu->vm, int_id)) {
         interrupts_vm_inject(cpu.vcpu->vm, int_id);
@@ -112,11 +84,7 @@ enum irq_res interrupts_handle(irqid_t int_id)
     }
 }
 
-<<<<<<< HEAD
-void interrupts_vm_assign(vm_t *vm, size_t id)
-=======
 void interrupts_vm_assign(struct vm *vm, irqid_t id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if (interrupts_arch_conflict(global_interrupt_bitmap, id)) {
         ERROR("Interrupts conflict, id = %d\n", id);
@@ -128,11 +96,7 @@ void interrupts_vm_assign(struct vm *vm, irqid_t id)
     bitmap_set(global_interrupt_bitmap, id);
 }
 
-<<<<<<< HEAD
-void interrupts_reserve(size_t int_id, irq_handler_t handler)
-=======
 void interrupts_reserve(irqid_t int_id, irq_handler_t handler)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if (int_id < MAX_INTERRUPTS) {
         interrupt_handlers[int_id] = handler;

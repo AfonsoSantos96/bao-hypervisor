@@ -18,11 +18,7 @@
 #include <iommu.h>
 #include <arch/smmuv2.h>
 
-<<<<<<< HEAD
-long iommu_arch_init()
-=======
 bool iommu_arch_init()
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if(platform.arch.smmu.base){
         smmu_init();
@@ -40,15 +36,9 @@ static ssize_t iommu_vm_arch_init_ctx(struct vm *vm)
         /* Set up ctx bank to vm address space in an available ctx. */
         ctx_id = smmu_alloc_ctxbnk();
         if (ctx_id >= 0) {
-<<<<<<< HEAD
-            size_t rootpt;
-            mem_translate(&cpu.as, vm->as.pt.root, &rootpt);
-            smmu_write_ctxbnk(ctx_id, (void *)rootpt, vm->id);
-=======
             paddr_t rootpt;
             mem_translate(&cpu.as, (vaddr_t)vm->as.pt.root, &rootpt);
             smmu_write_ctxbnk(ctx_id, rootpt, vm->id);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
             vm->iommu.arch.ctx_id = ctx_id;
         } else {
             INFO("iommu: smmuv2 could not allocate ctx for vm: %d", vm->id);
@@ -59,11 +49,7 @@ static ssize_t iommu_vm_arch_init_ctx(struct vm *vm)
     return ctx_id;
 }
 
-<<<<<<< HEAD
-static long iommu_vm_arch_add(vm_t *vm, uint16_t mask, uint16_t id)
-=======
 static bool iommu_vm_arch_add(struct vm *vm, streamid_t mask, streamid_t id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     ssize_t vm_ctx = iommu_vm_arch_init_ctx(vm);
     streamid_t glbl_mask = vm->iommu.arch.global_mask;
@@ -88,20 +74,12 @@ static bool iommu_vm_arch_add(struct vm *vm, streamid_t mask, streamid_t id)
     return true;
 }
 
-<<<<<<< HEAD
-inline long iommu_arch_vm_add_device(vm_t *vm, int id)
-=======
 inline bool iommu_arch_vm_add_device(struct vm *vm, streamid_t id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return iommu_vm_arch_add(vm, 0, id);
 }
 
-<<<<<<< HEAD
-long iommu_arch_vm_init(vm_t *vm, const vm_config_t *config)
-=======
 bool iommu_arch_vm_init(struct vm *vm, const struct vm_config *config)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     vm->iommu.arch.global_mask = 
         config->platform.arch.smmu.global_mask | platform.arch.smmu.global_mask;

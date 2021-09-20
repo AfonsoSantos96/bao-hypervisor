@@ -35,15 +35,9 @@ size_t vsprintk(char *buf, const char *fmt, va_list args)
 
         if (*fmt == '%') {
             ++fmt;
-<<<<<<< HEAD
-            size_t is_unsigned = 0;
-            size_t zero_padding = 0;
-            size_t is_long = 0;
-=======
             bool is_unsigned = false;
             bool zero_padding = false;
             bool is_long = false;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
             if (*fmt == '0') {
                 ++fmt;
@@ -57,19 +51,11 @@ size_t vsprintk(char *buf, const char *fmt, va_list args)
 
             switch (*fmt) {
                 case 'x': {
-<<<<<<< HEAD
-                    size_t number = is_long ? va_arg(args, size_t) : va_arg(args, uint32_t);
-                    int length = is_long ? 16 : 8;
-                    int length_in_bits = is_long ? 64 : 32;
-                    int byte = 0;
-                    int i = 0;
-=======
                     unsigned long number = is_long ? va_arg(args, unsigned long) : va_arg(args, unsigned);
                     size_t length = is_long ? 16 : 8;
                     size_t length_in_bits = is_long ? 64 : 32;
                     uint8_t byte = 0;
                     size_t i = 0;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
                     bool keep_zeros = false;
 
                     for (i = 0; i < length; i++) {
@@ -99,22 +85,14 @@ size_t vsprintk(char *buf, const char *fmt, va_list args)
                     bool keep_zeros = false;
 
                     if (!is_unsigned) {
-<<<<<<< HEAD
-                        long int number_signed = is_long ? va_arg(args, long int) : va_arg(args, int32_t);
-=======
                         unsigned long number_signed = is_long ? va_arg(args, unsigned long) : va_arg(args, unsigned);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
                         if (number_signed < 0) {
                             *str++ = 0x2d;
                             number_signed = -(number_signed);
                         }
                         number = number_signed;
                     } else {
-<<<<<<< HEAD
-                        number = is_long ? va_arg(args, size_t) : va_arg(args, uint32_t);
-=======
                         number = is_long ? va_arg(args, unsigned long) : va_arg(args, unsigned);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
                     }
 
                     divisor_value_uint64_t = 1000000000;

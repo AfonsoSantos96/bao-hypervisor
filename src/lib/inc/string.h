@@ -18,24 +18,12 @@
 
 #include <bao.h>
 
-<<<<<<< HEAD
-#define WORD_TYPE unsigned long
-#define WORD_SIZE (sizeof(WORD_TYPE *))
-
-void *memcpy(void *dst, const void *src, unsigned int count);
-void *memset(void *dest, unsigned int c, unsigned int count);
-
-char *strcat(char *dest, char *src);
-unsigned int strlen(const char *s);
-unsigned int strnlen(const char *s, size_t n);
-=======
 void *memcpy(void *dst, const void *src, size_t count);
 void *memset(void *dest, uint8_t c, size_t count);
 
 char *strcat(char *dest, char *src);
 size_t strlen(const char *s);
 size_t strnlen(const char *s, size_t n);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 char *strcpy(char *dest, char *src);
 
 #endif /* __STRING_H_ */

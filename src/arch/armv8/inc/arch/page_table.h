@@ -130,29 +130,16 @@
 
 #ifndef __ASSEMBLER__
 
-<<<<<<< HEAD
-    typedef uintptr_t pte_t;
-extern size_t parange;
-extern size_t parange_table[];
-=======
 typedef uint64_t pte_t;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 extern size_t parange;
 extern size_t parange_table[];
 
-<<<<<<< HEAD
-void pt_set_recursive(page_table_t* pt, size_t index);
-
-static inline void pte_set(pte_t* pte, size_t addr, size_t type,
-                           size_t flags)
-=======
 struct page_table;
 
 void pt_set_recursive(struct page_table* pt, size_t index);
 
 static inline void pte_set(pte_t* pte, paddr_t addr, pte_t flags)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     *pte = (addr & PTE_ADDR_MSK) | (flags & PTE_FLAGS_MSK);
 }
@@ -162,29 +149,17 @@ static inline bool pte_valid(pte_t* pte)
     return (*pte & PTE_VALID);
 }
 
-<<<<<<< HEAD
-static inline void pte_set_rsw(pte_t* pte, size_t flag)
-=======
 static inline void pte_set_rsw(pte_t* pte, pte_t flag)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     *pte = (*pte & ~PTE_RSW_MSK) | (flag & PTE_RSW_MSK);
 }
 
-<<<<<<< HEAD
-static inline bool pte_check_rsw(pte_t* pte, size_t flag)
-=======
 static inline bool pte_check_rsw(pte_t* pte, pte_t flag)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return (*pte & PTE_RSW_MSK) == (flag & PTE_RSW_MSK);
 }
 
-<<<<<<< HEAD
-static inline uintptr_t pte_addr(pte_t* pte)
-=======
 static inline paddr_t pte_addr(pte_t* pte)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return (paddr_t)(*pte & PTE_ADDR_MSK);
 }

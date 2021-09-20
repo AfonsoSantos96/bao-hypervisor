@@ -34,11 +34,7 @@ void as_arch_init(struct addr_space* as)
     pt_set_recursive(&as->pt, index);
 }
 
-<<<<<<< HEAD
-bool mem_translate(addr_space_t* as, void* va, intptr_t* pa)
-=======
 bool mem_translate(struct addr_space* as, vaddr_t va, paddr_t* pa)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     size_t par = 0, par_saved = 0;
 
@@ -59,11 +55,7 @@ bool mem_translate(struct addr_space* as, vaddr_t va, paddr_t* pa)
         return false;
     } else {
         if (pa != NULL)
-<<<<<<< HEAD
-            *pa = (par & PAR_PA_MSK) | (((size_t)va) & (PAGE_SIZE - 1));
-=======
             *pa = (par & PAR_PA_MSK) | (va & (PAGE_SIZE - 1));
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
         return true;
     }
 }

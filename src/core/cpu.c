@@ -30,15 +30,6 @@ struct cpu cpu __attribute__((section(".cpu_private")));
 
 struct cpu_synctoken cpu_glb_sync = {.ready = false};
 
-<<<<<<< HEAD
-objcache_t msg_cache;
-extern cpu_msg_handler_t _ipi_cpumsg_handlers_start;
-extern size_t _ipi_cpumsg_handlers_size, _ipi_cpumsg_handlers_id_start;
-cpu_msg_handler_t *ipi_cpumsg_handlers;
-size_t ipi_cpumsg_handler_num;
-
-void cpu_init(size_t cpu_id, size_t load_addr)
-=======
 struct objcache msg_cache;
 extern uint8_t _ipi_cpumsg_handlers_start;
 extern uint8_t _ipi_cpumsg_handlers_size;
@@ -47,7 +38,6 @@ cpu_msg_handler_t *ipi_cpumsg_handlers;
 size_t ipi_cpumsg_handler_num;
 
 void cpu_init(cpuid_t cpu_id, paddr_t load_addr)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     cpu_arch_init(cpu_id, load_addr);
 
@@ -63,22 +53,14 @@ void cpu_init(cpuid_t cpu_id, paddr_t load_addr)
         ipi_cpumsg_handler_num =
             ((size_t)&_ipi_cpumsg_handlers_size) / sizeof(cpu_msg_handler_t);
         for (size_t i = 0; i < ipi_cpumsg_handler_num; i++) {
-<<<<<<< HEAD
-            (&_ipi_cpumsg_handlers_id_start)[i] = i;
-=======
             ((size_t*)&_ipi_cpumsg_handlers_id_start)[i] = i;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
         }
     }
 
     cpu_sync_barrier(&cpu_glb_sync);
 }
 
-<<<<<<< HEAD
-void cpu_send_msg(size_t trgtcpu, cpu_msg_t *msg)
-=======
 void cpu_send_msg(cpuid_t trgtcpu, struct cpu_msg *msg)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     struct cpu_msg_node *node = objcache_alloc(&msg_cache);
     if (node == NULL) ERROR("cant allocate msg node");

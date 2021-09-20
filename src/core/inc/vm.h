@@ -32,32 +32,18 @@
 #include <iommu.h>
 #include <ipc.h>
 
-<<<<<<< HEAD
-typedef struct vm {
-    size_t id;
-=======
 struct vm {
     vmid_t id;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
     const struct vm_config* config;
 
     spinlock_t lock;
-<<<<<<< HEAD
-    cpu_synctoken_t sync;
-    size_t master;
-
-    list_t vcpu_list;
-    size_t cpu_num;
-    size_t cpus;
-=======
     struct cpu_synctoken sync;
     cpuid_t master;
 
     struct list vcpu_list;
     size_t cpu_num;
     cpumap_t cpus;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
     struct addr_space as;
 
@@ -80,13 +66,8 @@ struct vcpu {
     struct arch_regs* regs;
     struct vcpu_arch arch;
 
-<<<<<<< HEAD
-    size_t id;
-    uint32_t phys_id;
-=======
     cpuid_t id;
     cpuid_t phys_id;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
     bool active;
 
     struct vm* vm;
@@ -97,21 +78,6 @@ struct vcpu {
 extern struct vm vm;
 extern struct config* vm_config_ptr;
 
-<<<<<<< HEAD
-void vm_init(vm_t* vm, const vm_config_t* config, bool master, size_t vm_id);
-void vm_start(vm_t* vm, size_t entry);
-vcpu_t* vm_get_vcpu(vm_t* vm, size_t vcpuid);
-void vm_emul_add_mem(vm_t* vm, emul_mem_t* emu);
-void vm_emul_add_reg(vm_t* vm, emul_reg_t* emu);
-emul_handler_t vm_emul_get_mem(vm_t* vm, size_t addr);
-emul_handler_t vm_emul_get_reg(vm_t* vm, size_t addr);
-void vcpu_init(vcpu_t* vcpu, vm_t* vm, size_t entry);
-void vm_msg_broadcast(vm_t* vm, cpu_msg_t* msg);
-size_t vm_translate_to_pcpu_mask(vm_t* vm, size_t mask, size_t len);
-size_t vm_translate_to_vcpu_mask(vm_t* vm, size_t mask, size_t len);
-
-static inline long vm_translate_to_pcpuid(vm_t* vm, size_t vcpuid)
-=======
 void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t vm_id);
 void vm_start(struct vm* vm, vaddr_t entry);
 struct vcpu* vm_get_vcpu(struct vm* vm, cpuid_t vcpuid);
@@ -125,7 +91,6 @@ cpumap_t vm_translate_to_pcpu_mask(struct vm* vm, cpumap_t mask, size_t len);
 cpumap_t vm_translate_to_vcpu_mask(struct vm* vm, cpumap_t mask, size_t len);
 
 static inline cpuid_t vm_translate_to_pcpuid(struct vm* vm, cpuid_t vcpuid)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     ssize_t i = bitmap_find_nth((bitmap_t*)&vm->cpus, sizeof(vm->cpus) * 8,
                            vcpuid + 1, 0, true);
@@ -136,11 +101,7 @@ static inline cpuid_t vm_translate_to_pcpuid(struct vm* vm, cpuid_t vcpuid)
     }
 }
 
-<<<<<<< HEAD
-static inline size_t vm_translate_to_vcpuid(vm_t* vm, size_t pcpuid)
-=======
 static inline cpuid_t vm_translate_to_vcpuid(struct vm* vm, cpuid_t pcpuid)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if (vm->cpus & (1UL << pcpuid)) {
         return (cpuid_t)bitmap_count((bitmap_t*)&vm->cpus, 0, pcpuid, true);
@@ -149,28 +110,13 @@ static inline cpuid_t vm_translate_to_vcpuid(struct vm* vm, cpuid_t pcpuid)
     }
 }
 
-<<<<<<< HEAD
-static inline size_t vm_has_interrupt(vm_t* vm, size_t int_id)
-=======
 static inline bool vm_has_interrupt(struct vm* vm, irqid_t int_id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return !!bitmap_get(vm->interrupt_bitmap, int_id);
 }
 
 /* ------------------------------------------------------------*/
 
-<<<<<<< HEAD
-void vm_arch_init(vm_t* vm, const vm_config_t* config);
-void vcpu_arch_init(vcpu_t* vcpu, vm_t* vm);
-void vcpu_run(vcpu_t* vcpu);
-size_t vcpu_readreg(vcpu_t* vcpu, size_t reg);
-void vcpu_writereg(vcpu_t* vcpu, size_t reg, size_t val);
-size_t vcpu_readpc(vcpu_t* vcpu);
-void vcpu_writepc(vcpu_t* vcpu, size_t pc);
-void vcpu_arch_run(vcpu_t* vcpu);
-void vcpu_arch_reset(vcpu_t* vcpu, size_t entry);
-=======
 void vm_arch_init(struct vm* vm, const struct vm_config* config);
 void vcpu_arch_init(struct vcpu* vcpu, struct vm* vm);
 void vcpu_run(struct vcpu* vcpu);
@@ -180,6 +126,5 @@ unsigned long vcpu_readpc(struct vcpu* vcpu);
 void vcpu_writepc(struct vcpu* vcpu, unsigned long pc);
 void vcpu_arch_run(struct vcpu* vcpu);
 void vcpu_arch_reset(struct vcpu* vcpu, vaddr_t entry);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 #endif /* __VM_H__ */

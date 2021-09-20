@@ -20,11 +20,7 @@ static struct cache cache_dscr;
 size_t COLOR_NUM = 1;
 size_t COLOR_SIZE = 1;
 
-<<<<<<< HEAD
-static void cache_calc_colors(cache_t* dscrp, size_t page_size)
-=======
 static void cache_calc_colors(struct cache* dscrp, size_t page_size)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if (dscrp->lvls == 0) {
         /* No cache? */

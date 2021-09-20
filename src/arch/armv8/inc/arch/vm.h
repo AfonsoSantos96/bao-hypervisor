@@ -25,19 +25,11 @@ struct vm_arch {
     vaddr_t vgicr_addr;
 };
 
-<<<<<<< HEAD
-typedef struct {
-    size_t vmpidr;
-    vgic_priv_t vgic_priv;
-    psci_ctx_t psci_ctx;
-} vcpu_arch_t;
-=======
 struct vcpu_arch {
     unsigned long vmpidr;
     struct vgic_priv vgic_priv;
     struct psci_ctx psci_ctx;
 };
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 struct arch_regs {
     size_t x[31];
@@ -46,11 +38,7 @@ struct arch_regs {
 } __attribute__((aligned(16)));  // makes size always aligned to 16 to respect
                                  // stack alignment
 
-<<<<<<< HEAD
-vcpu_t* vm_get_vcpu_by_mpidr(vm_t* vm, size_t mpidr);
-=======
 struct vcpu* vm_get_vcpu_by_mpidr(struct vm* vm, unsigned long mpidr);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 void vcpu_arch_entry();
 
 

@@ -29,17 +29,10 @@ struct gic_dscrp;
 struct vgic_int {
     struct vcpu *owner;
 #if (GIC_VERSION != GICV2)
-<<<<<<< HEAD
-    size_t route;
-    union {
-        size_t redist;
-        size_t route;
-=======
     unsigned long route;
     union {
         cpuid_t redist;
         unsigned long route;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
     } phys;
 #endif
     spinlock_t lock;

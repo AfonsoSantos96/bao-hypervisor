@@ -37,25 +37,15 @@ struct cpuif {
 
 struct vcpu;
 
-<<<<<<< HEAD
-typedef struct cpu {
-    size_t id;
-    addr_space_t as;
-=======
 struct cpu {
     cpuid_t id;
     struct addr_space as;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
     struct vcpu* vcpu;
 
     struct cpu_arch arch;
 
-<<<<<<< HEAD
-    unsigned char root_pt[PT_SIZE] __attribute__((aligned(PT_SIZE)));
-=======
     pte_t root_pt[PT_SIZE/sizeof(pte_t)] __attribute__((aligned(PT_SIZE)));
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
     unsigned char stack[STACK_SIZE] __attribute__((aligned(PAGE_SIZE)));
 
@@ -67,15 +57,6 @@ struct cpu {
 
 extern struct cpu cpu;
 
-<<<<<<< HEAD
-typedef struct {
-    unsigned int handler;
-    unsigned int event;
-    size_t data;
-} cpu_msg_t;
-
-void cpu_send_msg(size_t cpu, cpu_msg_t* msg);
-=======
 struct cpu_msg {
     uint32_t handler;
     uint32_t event;
@@ -83,7 +64,6 @@ struct cpu_msg {
 };
 
 void cpu_send_msg(cpuid_t cpu, struct cpu_msg* msg);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 typedef void (*cpu_msg_handler_t)(uint32_t event, size_t data);
 
@@ -98,19 +78,11 @@ struct cpu_synctoken {
     volatile size_t n;
     volatile bool ready;
     volatile size_t count;
-<<<<<<< HEAD
-} cpu_synctoken_t;
-=======
 };
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 extern struct cpu_synctoken cpu_glb_sync;
 
-<<<<<<< HEAD
-static inline void cpu_sync_init(cpu_synctoken_t* token, size_t n)
-=======
 static inline void cpu_sync_init(struct cpu_synctoken* token, size_t n)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     token->lock = SPINLOCK_INITVAL;
     token->n = n;
@@ -134,27 +106,12 @@ static inline void cpu_sync_barrier(struct cpu_synctoken* token)
     while (token->count < next_count);
 }
 
-<<<<<<< HEAD
-static inline cpuif_t* cpu_if(size_t cpu_id)
-=======
 static inline struct cpuif* cpu_if(cpuid_t cpu_id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return (struct cpuif*)(((vaddr_t)&_cpu_if_base) +
            (cpu_id * ALIGN(sizeof(struct cpuif), PAGE_SIZE)));
 }
 
-<<<<<<< HEAD
-void cpu_init(size_t cpu_id, size_t load_addr);
-void cpu_send_msg(size_t cpu, cpu_msg_t* msg);
-bool cpu_get_msg(cpu_msg_t* msg);
-void cpu_msg_handler();
-void cpu_msg_set_handler(size_t id, cpu_msg_handler_t handler);
-void cpu_idle();
-void cpu_idle_wakeup();
-
-void cpu_arch_init(size_t cpu_id, size_t load_addr);
-=======
 void cpu_init(cpuid_t cpu_id, paddr_t load_addr);
 void cpu_send_msg(cpuid_t cpu, struct cpu_msg* msg);
 bool cpu_get_msg(struct cpu_msg* msg);
@@ -164,7 +121,6 @@ void cpu_idle();
 void cpu_idle_wakeup();
 
 void cpu_arch_init(cpuid_t cpu_id, paddr_t load_addr);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 void cpu_arch_idle();
 
 #endif /* __ASSEMBLER__ */

@@ -15,20 +15,12 @@
 
 #include <string.h>
 
-<<<<<<< HEAD
-void *memcpy(void *dst, const void *src, unsigned int count)
-{
-    int i;
-    unsigned char *dst_tmp = dst;
-    const unsigned char *src_tmp = src;
-=======
 void *memcpy(void *dst, const void *src, size_t count)
 {
     size_t i;
     uint8_t *dst_tmp = dst;
     const uint8_t *src_tmp = src;
     static const size_t WORD_SIZE = sizeof(unsigned long);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
     if (!((uintptr_t)src & (WORD_SIZE - 1)) &&
         !((uintptr_t)dst & (WORD_SIZE - 1))) {
@@ -51,11 +43,7 @@ void *memcpy(void *dst, const void *src, size_t count)
     return dst;
 }
 
-<<<<<<< HEAD
-void *memset(void *dest, unsigned int c, unsigned int count)
-=======
 void *memset(void *dest, uint8_t c, size_t count)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     unsigned char *d;
     d = (unsigned char *)dest;
@@ -78,11 +66,7 @@ char *strcat(char *dest, char *src)
     return (save);
 }
 
-<<<<<<< HEAD
-unsigned int strlen(const char *s)
-=======
 size_t strlen(const char *s)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     const char *sc;
     for (sc = s; *sc != '\0'; ++sc) {
@@ -91,11 +75,7 @@ size_t strlen(const char *s)
     return sc - s;
 }
 
-<<<<<<< HEAD
-unsigned int strnlen(const char *s, size_t n)
-=======
 size_t strnlen(const char *s, size_t n)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     const char *str;
 
@@ -115,11 +95,7 @@ char *strcpy(char *dest, char *src)
     return tmp;
 }
 
-<<<<<<< HEAD
-unsigned int strcmp(char *str0, char *str1)
-=======
 int strcmp(char *str0, char *str1)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     char *tmp0 = str0, *tmp1 = str1;
 
@@ -128,9 +104,5 @@ int strcmp(char *str0, char *str1)
         tmp1++;
     }
 
-<<<<<<< HEAD
-    return (unsigned int)(tmp0 != tmp1);
-=======
     return (int)(tmp0 - tmp1);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 }

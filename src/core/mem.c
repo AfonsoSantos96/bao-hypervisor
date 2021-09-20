@@ -34,11 +34,7 @@ extern uint8_t _image_start, _image_end, _dmem_phys_beg, _dmem_beg,
 
 extern uint8_t _dev_init_table_start, _dev_init_table_end;
 
-<<<<<<< HEAD
-void switch_space(cpu_t *, size_t);
-=======
 void switch_space(struct cpu *, paddr_t);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 /**
  * An important note about sections its that they must have diferent entries
@@ -76,11 +72,7 @@ struct {
 
 struct page_pool {
     node_t node;  // must be first element
-<<<<<<< HEAD
-    size_t base;
-=======
     paddr_t base;
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
     size_t size;
     size_t free;
     size_t last;
@@ -94,11 +86,7 @@ static struct objcache pagepool_cache;
 
 static bool config_found = false;
 
-<<<<<<< HEAD
-static inline size_t pp_next_clr(size_t base, int from, size_t colors)
-=======
 static inline size_t pp_next_clr(paddr_t base, size_t from, colormap_t colors)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     size_t clr_offset = (base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
     size_t index = from;
@@ -130,13 +118,8 @@ static void mem_free_ppages(struct ppages *ppages)
     }
 }
 
-<<<<<<< HEAD
-static bool pp_alloc_clr(page_pool_t *pool, size_t n, size_t colors,
-                         ppages_t *ppages)
-=======
 static bool pp_alloc_clr(struct page_pool *pool, size_t n, colormap_t colors,
                          struct ppages *ppages)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     size_t allocated = 0;
 
@@ -223,10 +206,6 @@ static bool pp_alloc(struct page_pool *pool, size_t n, bool aligned,
     ppages->size = 0;
 
     bool ok = false;
-<<<<<<< HEAD
-    long base = -1;
-=======
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
     if (n == 0) return -1;
 
@@ -283,11 +262,7 @@ static bool pp_alloc(struct page_pool *pool, size_t n, bool aligned,
     return ok;
 }
 
-<<<<<<< HEAD
-ppages_t mem_alloc_ppages(size_t colors, size_t n, bool aligned)
-=======
 struct ppages mem_alloc_ppages(colormap_t colors, size_t n, bool aligned)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     struct ppages pages = {.size = 0};
 

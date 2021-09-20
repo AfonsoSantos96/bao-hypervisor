@@ -34,15 +34,6 @@ struct iommu_vm {
 void iommu_init();
 
 /* iommu api for vms. */
-<<<<<<< HEAD
-long iommu_vm_init(vm_t *vm, const vm_config_t *config);
-long iommu_vm_add_device(vm_t *vm, int dev_id);
-
-/* Must be implemented by architecture. */
-long iommu_arch_init();
-long iommu_arch_vm_init(vm_t *vm, const vm_config_t *config);
-long iommu_arch_vm_add_device(vm_t *vm, int id);
-=======
 bool iommu_vm_init(struct vm *vm, const struct vm_config *config);
 bool iommu_vm_add_device(struct vm *vm, streamid_t dev_id);
 
@@ -50,6 +41,5 @@ bool iommu_vm_add_device(struct vm *vm, streamid_t dev_id);
 bool iommu_arch_init();
 bool iommu_arch_vm_init(struct vm *vm, const struct vm_config *config);
 bool iommu_arch_vm_add_device(struct vm *vm, streamid_t id);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 #endif

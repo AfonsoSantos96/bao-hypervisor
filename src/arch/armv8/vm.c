@@ -39,11 +39,7 @@ struct vcpu* vm_get_vcpu_by_mpidr(struct vm* vm, unsigned long mpidr)
     return NULL;
 }
 
-<<<<<<< HEAD
-static size_t vm_cpuid_to_mpidr(vm_t* vm, size_t cpuid)
-=======
 static unsigned long vm_cpuid_to_mpidr(struct vm* vm, cpuid_t cpuid)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return platform_arch_cpuid_to_mpdir(&vm->config->platform, cpuid);
 }
@@ -55,13 +51,8 @@ void vcpu_arch_init(struct vcpu* vcpu, struct vm* vm)
 
     vcpu->arch.psci_ctx.state = vcpu->id == 0 ? ON : OFF;
 
-<<<<<<< HEAD
-    size_t root_pt_pa;
-    mem_translate(&cpu.as, vm->as.pt.root, &root_pt_pa);
-=======
     paddr_t root_pt_pa;
     mem_translate(&cpu.as, (vaddr_t)vm->as.pt.root, &root_pt_pa);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
     MSR(VTTBR_EL2, ((vm->id << VTTBR_VMID_OFF) & VTTBR_VMID_MSK) |
                        (root_pt_pa & ~VTTBR_VMID_MSK));
 
@@ -71,11 +62,7 @@ void vcpu_arch_init(struct vcpu* vcpu, struct vm* vm)
     vgic_cpu_init(vcpu);
 }
 
-<<<<<<< HEAD
-void vcpu_arch_reset(vcpu_t* vcpu, size_t entry)
-=======
 void vcpu_arch_reset(struct vcpu* vcpu, vaddr_t entry)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     memset(vcpu->regs, 0, sizeof(struct arch_regs));
 
@@ -98,40 +85,24 @@ void vcpu_arch_reset(struct vcpu* vcpu, vaddr_t entry)
      */
 }
 
-<<<<<<< HEAD
-size_t vcpu_readreg(vcpu_t* vcpu, size_t reg)
-=======
 unsigned long vcpu_readreg(struct vcpu* vcpu, unsigned long reg)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if (reg > 30) return 0;
     return vcpu->regs->x[reg];
 }
 
-<<<<<<< HEAD
-void vcpu_writereg(vcpu_t* vcpu, size_t reg, size_t val)
-=======
 void vcpu_writereg(struct vcpu* vcpu, unsigned long reg, unsigned long val)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if (reg > 30) return;
     vcpu->regs->x[reg] = val;
 }
 
-<<<<<<< HEAD
-size_t vcpu_readpc(vcpu_t* vcpu)
-=======
 unsigned long vcpu_readpc(struct vcpu* vcpu)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return vcpu->regs->elr_el2;
 }
 
-<<<<<<< HEAD
-void vcpu_writepc(vcpu_t* vcpu, size_t pc)
-=======
 void vcpu_writepc(struct vcpu* vcpu, unsigned long pc)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     vcpu->regs->elr_el2 = pc;
 }

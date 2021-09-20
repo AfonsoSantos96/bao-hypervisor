@@ -29,11 +29,7 @@ struct emul_node {
     };
 };
 
-<<<<<<< HEAD
-static void vm_master_init(vm_t* vm, const vm_config_t* config, size_t vm_id)
-=======
 static void vm_master_init(struct vm* vm, const struct vm_config* config, vmid_t vm_id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     vm->master = cpu.id;
     vm->config = config;
@@ -102,15 +98,9 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     /* map new address */
     size_t offset = config->image.base_addr - reg->base;
     size_t dst_phys = reg->phys + offset;
-<<<<<<< HEAD
-    ppages_t dst_pp = mem_ppages_get(dst_phys, n_img);
-    void* dst_va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL, n_img);
-    if (mem_map(&cpu.as, dst_va, &dst_pp, n_img, PTE_HYP_FLAGS)) {
-=======
     struct ppages dst_pp = mem_ppages_get(dst_phys, n_img);
     vaddr_t dst_va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL_VA, n_img);
     if (!mem_map(&cpu.as, dst_va, &dst_pp, n_img, PTE_HYP_FLAGS)) {
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
         ERROR("mem_map failed %s", __func__);
     }
 
@@ -189,11 +179,7 @@ static void vm_init_mem_regions(struct vm* vm, const struct vm_config* config)
 {
     for (size_t i = 0; i < config->platform.region_num; i++) {
         struct mem_region* reg = &config->platform.regions[i];
-<<<<<<< HEAD
-        size_t img_is_in_rgn = range_in_range(
-=======
         bool img_is_in_rgn = range_in_range(
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
             config->image.base_addr, config->image.size, reg->base, reg->size);
         if (img_is_in_rgn) {
             vm_map_img_rgn(vm, config, reg);
@@ -208,13 +194,8 @@ static void vm_init_ipc(struct vm* vm, const struct vm_config* config)
     vm->ipc_num = config->platform.ipc_num;
     vm->ipcs = config->platform.ipcs;
     for (size_t i = 0; i < config->platform.ipc_num; i++) {
-<<<<<<< HEAD
-        ipc_t *ipc = &config->platform.ipcs[i];
-        shmem_t *shmem = ipc_get_shmem(ipc->shmem_id);
-=======
         struct ipc *ipc = &config->platform.ipcs[i];
         struct shmem *shmem = ipc_get_shmem(ipc->shmem_id);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
         if(shmem == NULL) {
             WARNING("Invalid shmem id in configuration. Ignored.");
             continue;
@@ -266,11 +247,7 @@ static void vm_init_dev(struct vm* vm, const struct vm_config* config)
       
 }
 
-<<<<<<< HEAD
-void vm_init(vm_t* vm, const vm_config_t* config, bool master, size_t vm_id)
-=======
 void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t vm_id)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     /**
      * Before anything else, initialize vm structure.
@@ -313,11 +290,7 @@ void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t 
     cpu_sync_barrier(&vm->sync);
 }
 
-<<<<<<< HEAD
-vcpu_t* vm_get_vcpu(vm_t* vm, size_t vcpuid)
-=======
 struct vcpu* vm_get_vcpu(struct vm* vm, unsigned long vcpuid)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     list_foreach(vm->vcpu_list, struct vcpu, vcpu)
     {
@@ -356,11 +329,7 @@ void vm_emul_add_reg(struct vm* vm, struct emul_reg* emu)
 
 }    
 
-<<<<<<< HEAD
-static inline emul_handler_t vm_emul_get(vm_t* vm, enum emul_type type, size_t addr)
-=======
 static inline emul_handler_t vm_emul_get(struct vm* vm, enum emul_type type, vaddr_t addr)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     emul_handler_t handler = NULL;
     list_foreach(vm->emul_list, struct emul_node, node)
@@ -383,20 +352,12 @@ static inline emul_handler_t vm_emul_get(struct vm* vm, enum emul_type type, vad
     return handler;
 }
 
-<<<<<<< HEAD
-emul_handler_t vm_emul_get_mem(vm_t* vm, size_t addr)
-=======
 emul_handler_t vm_emul_get_mem(struct vm* vm, vaddr_t addr)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return vm_emul_get(vm, EMUL_MEM, addr);
 }
 
-<<<<<<< HEAD
-emul_handler_t vm_emul_get_reg(vm_t* vm, size_t addr)
-=======
 emul_handler_t vm_emul_get_reg(struct vm* vm, vaddr_t addr)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return vm_emul_get(vm, EMUL_REG, addr);
 }
@@ -411,18 +372,6 @@ void vm_msg_broadcast(struct vm* vm, struct cpu_msg* msg)
     }
 }
 
-<<<<<<< HEAD
-__attribute__((weak)) size_t vm_translate_to_pcpu_mask(vm_t* vm,
-                                                         size_t mask,
-                                                         size_t len)
-{
-    size_t pmask = 0;
-    long shift;
-    for (size_t i = 0; i < len; i++) {
-        if ((mask & (1UL << i)) &&
-            ((shift = vm_translate_to_pcpuid(vm, i)) >= 0)) {
-            pmask |= (1UL << shift);
-=======
 __attribute__((weak)) cpumap_t vm_translate_to_pcpu_mask(struct vm* vm,
                                                          cpumap_t mask,
                                                          size_t len)
@@ -433,24 +382,11 @@ __attribute__((weak)) cpumap_t vm_translate_to_pcpu_mask(struct vm* vm,
         if ((mask & (1ULL << i)) &&
             ((shift = vm_translate_to_pcpuid(vm, i)) != INVALID_CPUID)) {
             pmask |= (1ULL << shift);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
         }
     }
     return pmask;
 }
 
-<<<<<<< HEAD
-__attribute__((weak)) size_t vm_translate_to_vcpu_mask(vm_t* vm,
-                                                         size_t mask,
-                                                         size_t len)
-{
-    size_t pmask = 0;
-    int shift;
-    for (size_t i = 0; i < len; i++) {
-        if ((mask & (1UL << i)) &&
-            ((shift = vm_translate_to_vcpuid(vm, i)) >= 0)) {
-            pmask |= (1UL << shift);
-=======
 __attribute__((weak)) cpumap_t vm_translate_to_vcpu_mask(struct vm* vm,
                                                          cpumap_t mask,
                                                          size_t len)
@@ -461,7 +397,6 @@ __attribute__((weak)) cpumap_t vm_translate_to_vcpu_mask(struct vm* vm,
         if ((mask & (1ULL << i)) &&
             ((shift = vm_translate_to_vcpuid(vm, i)) != INVALID_CPUID)) {
             pmask |= (1ULL << shift);
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
         }
     }
     return pmask;
