@@ -24,11 +24,7 @@
 #include <platform.h>
 #include <vmm.h>
 
-<<<<<<< HEAD
-void init(size_t cpu_id, size_t load_addr, size_t config_addr)
-=======
 void init(cpuid_t cpu_id, paddr_t load_addr, paddr_t config_addr)
->>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     /**
      * These initializations must be executed first and in fixed order.
