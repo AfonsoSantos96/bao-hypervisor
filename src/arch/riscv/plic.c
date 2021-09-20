@@ -17,18 +17,18 @@
 #include <interrupts.h>
 #include <cpu.h>
 
-int PLIC_IMPL_INTERRUPTS;
+size_t PLIC_IMPL_INTERRUPTS;
 
-volatile plic_global_t plic_global
+volatile struct plic_global_hw plic_global
     __attribute__((section(".devices")));
 
-volatile plic_hart_t plic_hart[PLIC_PLAT_CNTXT_NUM]
+volatile struct plic_hart_hw plic_hart[PLIC_PLAT_CNTXT_NUM]
     __attribute__((section(".devices")));
 
-static int plic_scan_max_int()
+static size_t plic_scan_max_int()
 {
-    int res = 0;
-    for (int i = 1; i < PLIC_MAX_INTERRUPTS; i++) {
+    size_t res = 0;
+    for (size_t i = 1; i < PLIC_MAX_INTERRUPTS; i++) {
         plic_global.prio[i] = -1;
         if (plic_global.prio[i] == 0) {
             res = i - 1;
@@ -43,12 +43,12 @@ void plic_init()
 {
     PLIC_IMPL_INTERRUPTS = plic_scan_max_int();
 
-    for (int i = 0; i <= PLIC_IMPL_INTERRUPTS; i++) {
+    for (size_t i = 0; i <= PLIC_IMPL_INTERRUPTS; i++) {
         plic_global.prio[i] = 0;
     }
 
-    for (int i = 0; i < PLIC_PLAT_CNTXT_NUM; i++) {
-        for (int j = 0; j < PLIC_NUM_ENBL_REGS; j++) {
+    for (size_t i = 0; i < PLIC_PLAT_CNTXT_NUM; i++) {
+        for (size_t j = 0; j < PLIC_NUM_ENBL_REGS; j++) {
             plic_global.enbl[i][j] = 0;
         }
     }
@@ -56,16 +56,16 @@ void plic_init()
 
 void plic_cpu_init()
 {
-    cpu.arch.plic_cntxt = plic_plat_cntxt_to_id((plic_cntxt_t){cpu.id, PRIV_S});
+    cpu.arch.plic_cntxt = plic_plat_cntxt_to_id((struct plic_cntxt){cpu.id, PRIV_S});
     plic_hart[cpu.arch.plic_cntxt].threshold = 0;
 }
 
 bool plic_cntxt_valid(unsigned cntxt_id) {
-    plic_cntxt_t cntxt = plic_plat_id_to_cntxt(cntxt_id);
+    struct plic_cntxt cntxt = plic_plat_id_to_cntxt(cntxt_id);
     return (cntxt_id < PLIC_PLAT_CNTXT_NUM) && (cntxt.mode <= PRIV_S);
 }
 
-void plic_set_enbl(unsigned cntxt, unsigned int_id, bool en)
+void plic_set_enbl(unsigned cntxt, irqid_t int_id, bool en)
 {
     int reg_ind = int_id / (sizeof(uint32_t) * 8);
     uint32_t mask = 1U << (int_id % (sizeof(uint32_t) * 8));
@@ -80,7 +80,7 @@ void plic_set_enbl(unsigned cntxt, unsigned int_id, bool en)
     }
 }
 
-bool plic_get_enbl(unsigned cntxt, unsigned int_id)
+bool plic_get_enbl(unsigned cntxt, irqid_t int_id)
 {
     int reg_ind = int_id / (sizeof(uint32_t) * 8);
     uint32_t mask = 1U << (int_id % (sizeof(uint32_t) * 8));
@@ -91,14 +91,14 @@ bool plic_get_enbl(unsigned cntxt, unsigned int_id)
         return false;
 }
 
-void plic_set_prio(unsigned int_id, uint32_t prio)
+void plic_set_prio(irqid_t int_id, uint32_t prio)
 {
     if (int_id <= PLIC_IMPL_INTERRUPTS) {
         plic_global.prio[int_id] = prio;
     }
 }
 
-uint32_t plic_get_prio(unsigned int_id)
+uint32_t plic_get_prio(irqid_t int_id)
 {
     if (int_id <= PLIC_IMPL_INTERRUPTS)
         return plic_global.prio[int_id];
@@ -106,7 +106,7 @@ uint32_t plic_get_prio(unsigned int_id)
         return 0;
 }
 
-bool plic_get_pend(unsigned int_id)
+bool plic_get_pend(irqid_t int_id)
 {
     int reg_ind = int_id / 32;
     int mask = (1U << (int_id % 32));
@@ -149,19 +149,19 @@ void plic_handle()
  */
 
 __attribute__((weak))
-int plic_plat_cntxt_to_id(plic_cntxt_t cntxt){
+int plic_plat_cntxt_to_id(struct plic_cntxt cntxt){
     if(cntxt.mode != PRIV_M && cntxt.mode != PRIV_S) return -1;
     return (cntxt.hart_id*2) + (cntxt.mode == PRIV_M ? 0 : 1);
 }
 
 __attribute__((weak))
-plic_cntxt_t plic_plat_id_to_cntxt(int id){
-    plic_cntxt_t cntxt;
+struct plic_cntxt plic_plat_id_to_cntxt(int id){
+    struct plic_cntxt cntxt;
     if(id < PLIC_PLAT_CNTXT_NUM){
         cntxt.hart_id = id/2;
         cntxt.mode = (id%2) == 0 ? PRIV_M : PRIV_S; 
     } else {
-        return (plic_cntxt_t){-1};
+        return (struct plic_cntxt){-1};
     }
     return cntxt;
 }

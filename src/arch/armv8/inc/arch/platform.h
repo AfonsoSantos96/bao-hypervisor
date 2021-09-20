@@ -20,43 +20,41 @@
 
 struct arch_platform {
     struct gic_dscrp {
-        uint64_t gicc_addr;
-        uint64_t gich_addr;
-        uint64_t gicv_addr;
-        uint64_t gicd_addr;
-        uint64_t gicr_addr;
+        paddr_t gicc_addr;
+        paddr_t gich_addr;
+        paddr_t gicv_addr;
+        paddr_t gicd_addr;
+        paddr_t gicr_addr;
 
-        uint64_t maintenance_id;
+        irqid_t maintenance_id;
 
-        uint64_t interrupt_num;
+        size_t interrupt_num;
     } gic;
 
     struct {
-        uint64_t base;
-        uint64_t interrupt_id;
-        uint16_t global_mask;
+        paddr_t base;
+        irqid_t interrupt_id;
+        streamid_t global_mask;
 
-        uint32_t group_num;
+        size_t group_num;
         struct smmu_group {
-            uint16_t group_mask;
-            uint16_t group_id;
+            streamid_t group_mask;
+            streamid_t group_id;
         } *smmu_groups;
 
     } smmu;
 
     struct {
-        uint64_t base_addr;
+        paddr_t base_addr;
     } generic_timer;
 
     struct clusters {
-        uint64_t num;
-        uint8_t* core_num;
+        size_t num;
+        size_t* core_num;
     } clusters;
 };
 
 struct platform_desc;
-uint64_t platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
-                                      uint64_t cpuid);
-int64_t platform_arch_mpidr_to_cpuid(const struct platform_desc* plat,
-                                      uint64_t mpidr);
+unsigned long platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
+                                      cpuid_t cpuid);
 #endif /* __ARCH_PLATFORM_H__ */

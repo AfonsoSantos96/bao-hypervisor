@@ -24,8 +24,6 @@
 
 #ifndef __ASSEMBLER__
 
-
 #endif /* !__ASSEMBLER__ */
-
 
 #endif /* __ARCH_BAO_H__ */

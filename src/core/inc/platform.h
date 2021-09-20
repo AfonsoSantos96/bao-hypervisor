@@ -36,7 +36,11 @@ struct platform_desc {
     struct dev_region *devs;
 
     struct {
+<<<<<<< HEAD
         size_t base;
+=======
+        paddr_t base;
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
     } console;
 
     struct cache cache;

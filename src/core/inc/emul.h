@@ -18,6 +18,7 @@
 
 #include <bao.h>
 
+<<<<<<< HEAD
 typedef struct {
     size_t addr;
     bool write;
@@ -26,25 +27,50 @@ typedef struct {
     size_t reg;
     size_t reg_width;
 } emul_access_t;
+=======
+struct emul_access {
+    vaddr_t addr;
+    bool write;
+    bool sign_ext;
+    size_t width;
+    unsigned long reg;
+    size_t reg_width;
+};
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
-typedef bool (*emul_handler_t)(emul_access_t*);
+typedef bool (*emul_handler_t)(struct emul_access*);
 
+<<<<<<< HEAD
 typedef struct {
     size_t va_base;
     size_t pa_base;
     size_t size;
     size_t flags;
+=======
+struct emul_mem {
+    vaddr_t va_base;
+    size_t size;
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
     emul_handler_t handler;
-} emul_mem_t;
+};
 
+<<<<<<< HEAD
 typedef struct {
     size_t addr;
+=======
+struct emul_reg {
+    vaddr_t addr;
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
     emul_handler_t handler;
-} emul_reg_t;
+};
 
-bool emul_passthrough(emul_access_t*);
+bool emul_passthrough(struct emul_access*);
 
+<<<<<<< HEAD
 static inline void emul_write(emul_access_t* emul, size_t val)
+=======
+static inline void emul_write(struct emul_access* emul, uint64_t val)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     switch (emul->width) {
         case 1:
@@ -64,9 +90,15 @@ static inline void emul_write(emul_access_t* emul, size_t val)
     }
 }
 
+<<<<<<< HEAD
 static inline size_t emul_read(emul_access_t* emul)
 {
     size_t val = 0;
+=======
+static inline unsigned long emul_read(struct emul_access* emul)
+{
+    unsigned long val = 0;
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
     switch (emul->width) {
         case 1:

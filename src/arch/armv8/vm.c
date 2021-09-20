@@ -20,16 +20,16 @@
 #include <arch/tlb.h>
 #include <string.h>
 
-void vm_arch_init(vm_t* vm, const vm_config_t* config)
+void vm_arch_init(struct vm* vm, const struct vm_config* config)
 {
     if (vm->master == cpu.id) {
         vgic_init(vm, &config->platform.arch.gic);
     }
 }
 
-vcpu_t* vm_get_vcpu_by_mpidr(vm_t* vm, uint64_t mpidr)
+struct vcpu* vm_get_vcpu_by_mpidr(struct vm* vm, unsigned long mpidr)
 {
-    list_foreach(vm->vcpu_list, vcpu_t, vcpu)
+    list_foreach(vm->vcpu_list, struct vcpu, vcpu)
     {
         if ((vcpu->arch.vmpidr & MPIDR_AFF_MSK) == (mpidr & MPIDR_AFF_MSK))  {
             return vcpu;
@@ -39,20 +39,29 @@ vcpu_t* vm_get_vcpu_by_mpidr(vm_t* vm, uint64_t mpidr)
     return NULL;
 }
 
+<<<<<<< HEAD
 static size_t vm_cpuid_to_mpidr(vm_t* vm, size_t cpuid)
+=======
+static unsigned long vm_cpuid_to_mpidr(struct vm* vm, cpuid_t cpuid)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return platform_arch_cpuid_to_mpdir(&vm->config->platform, cpuid);
 }
 
-void vcpu_arch_init(vcpu_t* vcpu, vm_t* vm)
+void vcpu_arch_init(struct vcpu* vcpu, struct vm* vm)
 {
     vcpu->arch.vmpidr = vm_cpuid_to_mpidr(vm, vcpu->id);
     MSR(VMPIDR_EL2, vcpu->arch.vmpidr);
 
     vcpu->arch.psci_ctx.state = vcpu->id == 0 ? ON : OFF;
 
+<<<<<<< HEAD
     size_t root_pt_pa;
     mem_translate(&cpu.as, vm->as.pt.root, &root_pt_pa);
+=======
+    paddr_t root_pt_pa;
+    mem_translate(&cpu.as, (vaddr_t)vm->as.pt.root, &root_pt_pa);
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
     MSR(VTTBR_EL2, ((vm->id << VTTBR_VMID_OFF) & VTTBR_VMID_MSK) |
                        (root_pt_pa & ~VTTBR_VMID_MSK));
 
@@ -62,7 +71,11 @@ void vcpu_arch_init(vcpu_t* vcpu, vm_t* vm)
     vgic_cpu_init(vcpu);
 }
 
+<<<<<<< HEAD
 void vcpu_arch_reset(vcpu_t* vcpu, size_t entry)
+=======
+void vcpu_arch_reset(struct vcpu* vcpu, vaddr_t entry)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     memset(vcpu->regs, 0, sizeof(struct arch_regs));
 
@@ -85,36 +98,52 @@ void vcpu_arch_reset(vcpu_t* vcpu, size_t entry)
      */
 }
 
+<<<<<<< HEAD
 size_t vcpu_readreg(vcpu_t* vcpu, size_t reg)
+=======
+unsigned long vcpu_readreg(struct vcpu* vcpu, unsigned long reg)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if (reg > 30) return 0;
     return vcpu->regs->x[reg];
 }
 
+<<<<<<< HEAD
 void vcpu_writereg(vcpu_t* vcpu, size_t reg, size_t val)
+=======
+void vcpu_writereg(struct vcpu* vcpu, unsigned long reg, unsigned long val)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     if (reg > 30) return;
     vcpu->regs->x[reg] = val;
 }
 
+<<<<<<< HEAD
 size_t vcpu_readpc(vcpu_t* vcpu)
+=======
+unsigned long vcpu_readpc(struct vcpu* vcpu)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return vcpu->regs->elr_el2;
 }
 
+<<<<<<< HEAD
 void vcpu_writepc(vcpu_t* vcpu, size_t pc)
+=======
+void vcpu_writepc(struct vcpu* vcpu, unsigned long pc)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     vcpu->regs->elr_el2 = pc;
 }
 
-bool vm_readmem(vm_t* vm, void* dest, uintptr_t vmaddr, size_t n)
+bool vm_readmem(struct vm* vm, void* dest, vaddr_t vmaddr, size_t n)
 {
     // TODO
 
     return false;
 }
 
-void vcpu_arch_run(vcpu_t* vcpu)
+void vcpu_arch_run(struct vcpu* vcpu)
 {
     // TODO: consider using TPIDR_EL2 to store vcpu pointer
     if (vcpu->arch.psci_ctx.state == ON) {

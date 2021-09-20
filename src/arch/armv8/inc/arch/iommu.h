@@ -18,9 +18,9 @@
 
 #include <bao.h>
 
-typedef struct {
-    uint32_t global_mask;
-    int32_t ctx_id;
-} iommu_vm_arch_t;
+struct iommu_vm_arch {
+    streamid_t global_mask;
+    size_t ctx_id;
+};
 
 #endif

@@ -20,6 +20,7 @@
 #include <bao.h>
 #include <mem.h>
 
+<<<<<<< HEAD
 typedef struct ipc {
     size_t base;
     size_t size;
@@ -27,11 +28,26 @@ typedef struct ipc {
     size_t interrupt_num;
     intptr_t *interrupts;
 } ipc_t;
+=======
+struct ipc {
+    paddr_t base;
+    size_t size;
+    size_t shmem_id;
+    size_t interrupt_num;
+    irqid_t *interrupts;
+};
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
-typedef struct vm_config vm_config_t;
+struct vm_config;
 
+<<<<<<< HEAD
 long ipc_hypercall(size_t arg0, size_t arg1, size_t arg2);
 void ipc_init(const vm_config_t* vm_config, bool vm_master);
 shmem_t* ipc_get_shmem(size_t shmem_id);
+=======
+unsigned long ipc_hypercall(unsigned long arg0, unsigned long arg1, unsigned long arg2);
+void ipc_init(const struct vm_config* vm_config, bool vm_master);
+struct shmem* ipc_get_shmem(size_t shmem_id);
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 #endif /* IPC_H */

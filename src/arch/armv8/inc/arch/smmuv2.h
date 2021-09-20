@@ -56,77 +56,77 @@
 
 #define SMMU_SMR_ID_OFF 0
 #define SMMU_SMR_ID_LEN 15
-#define SMMU_SMR_ID(smr) bit_extract(smr, SMMU_SMR_ID_OFF, SMMU_SMR_ID_LEN)
+#define SMMU_SMR_ID(smr) bit32_extract(smr, SMMU_SMR_ID_OFF, SMMU_SMR_ID_LEN)
 
-#define SMMU_ID_MSK BIT_MASK(0, SMMU_SMR_ID_LEN)
+#define SMMU_ID_MSK BIT32_MASK(0, SMMU_SMR_ID_LEN)
 
 #define SMMU_SMR_MASK_OFF 16
 #define SMMU_SMR_MASK_LEN 15
-#define SMMU_SMR_MASK(smr) bit_extract(smr, SMMU_SMR_MASK_OFF, SMMU_SMR_MASK_LEN)
+#define SMMU_SMR_MASK(smr) bit32_extract(smr, SMMU_SMR_MASK_OFF, SMMU_SMR_MASK_LEN)
 
 #define SMMUV2_SMR_VALID (0x1 << 31)
 
 #define S2CR_IMPL_OFF         (30)
 #define S2CR_IMPL_LEN         (2)
-#define S2CR_IMPL_MASK        BIT_MASK(S2CR_IMPL_OFF, S2CR_IMPL_LEN)
+#define S2CR_IMPL_MASK        BIT32_MASK(S2CR_IMPL_OFF, S2CR_IMPL_LEN)
 
 #define S2CR_TRANSIENTCFG_OFF         (28)
 #define S2CR_TRANSIENTCFG_LEN         (2)
-#define S2CR_TRANSIENTCFG_MASK        BIT_MASK(S2CR_TRANSIENTCFG_OFF, S2CR_TRANSIENTCFG_LEN)
+#define S2CR_TRANSIENTCFG_MASK        BIT32_MASK(S2CR_TRANSIENTCFG_OFF, S2CR_TRANSIENTCFG_LEN)
 #define S2CR_TRANSIENTCFG_NON_TRANSIENT (0x2 << S2CR_TRANSIENTCFG_OFF)
 
 #define S2CR_INSTCFG_OFF         (26)
 #define S2CR_INSTCFG_LEN         (2)
-#define S2CR_INSTCFG_MASK        BIT_MASK(S2CR_INSTCFG_OFF, S2CR_INSTCFG_LEN)
+#define S2CR_INSTCFG_MASK        BIT32_MASK(S2CR_INSTCFG_OFF, S2CR_INSTCFG_LEN)
 #define S2CR_INSTCFG_DATA_ONLY   (0x2 << S2CR_INSTCFG_OFF)
 
 #define S2CR_PRIVCFG_OFF         (24)
 #define S2CR_PRIVCFG_LEN         (2)
-#define S2CR_PRIVCFG_MASK        BIT_MASK(S2CR_PRIVCFG_OFF, S2CR_PRIVCFG_LEN)
+#define S2CR_PRIVCFG_MASK        BIT32_MASK(S2CR_PRIVCFG_OFF, S2CR_PRIVCFG_LEN)
 
 #define S2CR_WACFG_OFF         (22)
 #define S2CR_WACFG_LEN         (2)
-#define S2CR_WACFG_MASK        BIT_MASK(S2CR_WACFG_OFF, S2CR_WACFG_LEN)
+#define S2CR_WACFG_MASK        BIT32_MASK(S2CR_WACFG_OFF, S2CR_WACFG_LEN)
 
 #define S2CR_RACFG_OFF         (20)
 #define S2CR_RACFG_LEN         (2)
-#define S2CR_RACFG_MASK        BIT_MASK(S2CR_RACFG_OFF, S2CR_RACFG_LEN)
+#define S2CR_RACFG_MASK        BIT32_MASK(S2CR_RACFG_OFF, S2CR_RACFG_LEN)
 
 #define S2CR_NSCFG_OFF         (18)
 #define S2CR_NSCFG_LEN         (2)
-#define S2CR_NSCFG_MASK        BIT_MASK(S2CR_NSCFG_OFF, S2CR_NSCFG_LEN)
+#define S2CR_NSCFG_MASK        BIT32_MASK(S2CR_NSCFG_OFF, S2CR_NSCFG_LEN)
 
 #define S2CR_TYPE_OFF         (16)
 #define S2CR_TYPE_LEN         (2)
-#define S2CR_TYPE_MASK        BIT_MASK(S2CR_TYPE_OFF, S2CR_TYPE_LEN)
+#define S2CR_TYPE_MASK        BIT32_MASK(S2CR_TYPE_OFF, S2CR_TYPE_LEN)
 
 #define S2CR_MemAttr_OFF         (12)
 #define S2CR_MemAttr_LEN         (4)
-#define S2CR_MemAttr_MASK        BIT_MASK(S2CR_MemAttr_OFF, S2CR_MemAttr_LEN)
+#define S2CR_MemAttr_MASK        BIT32_MASK(S2CR_MemAttr_OFF, S2CR_MemAttr_LEN)
 
 #define S2CR_MTCFG_OFF         (11)
 #define S2CR_MTCFG_LEN         (1)
-#define S2CR_MTCFG_MASK        BIT_MASK(S2CR_MTCFG_OFF, S2CR_MTCFG_LEN)
+#define S2CR_MTCFG_MASK        BIT32_MASK(S2CR_MTCFG_OFF, S2CR_MTCFG_LEN)
 
 #define S2CR_EXIDVALID_OFF         (10)
 #define S2CR_EXIDVALID_LEN         (1)
-#define S2CR_EXIDVALID_MASK        BIT_MASK(S2CR_EXIDVALID_OFF, S2CR_EXIDVALID_LEN)
+#define S2CR_EXIDVALID_MASK        BIT32_MASK(S2CR_EXIDVALID_OFF, S2CR_EXIDVALID_LEN)
 
 #define S2CR_SHCFG_OFF          (8)
 #define S2CR_SHCFG_LEN          (2)
-#define S2CR_SHCFG_MASK         BIT_MASK(S2CR_SHCFG_OFF, S2CR_SHCFG_LEN)
+#define S2CR_SHCFG_MASK         BIT32_MASK(S2CR_SHCFG_OFF, S2CR_SHCFG_LEN)
 #define S2CR_SHCFG_IN_SHR       (0x2 << S2CR_SHCFG_OFF)
 
 #define S2CR_CBNDX_OFF          (0)
 #define S2CR_CBNDX_LEN          (8)
-#define S2CR_CBNDX_MASK         BIT_MASK(S2CR_CBNDX_OFF, S2CR_CBNDX_LEN)
-#define S2CR_CBNDX(s2cr)        bit_extract(s2cr, S2CR_CBNDX_OFF, S2CR_CBNDX_LEN)
+#define S2CR_CBNDX_MASK         BIT32_MASK(S2CR_CBNDX_OFF, S2CR_CBNDX_LEN)
+#define S2CR_CBNDX(s2cr)        bit32_extract(s2cr, S2CR_CBNDX_OFF, S2CR_CBNDX_LEN)
 
 /* Don't clear implementation defined bits, clear everything else. */
 #define S2CR_CLEAR(s2cr)    (s2cr & S2CR_IMPL_MASK)
 #define S2CR_DFLT    (0)
 
-typedef struct {
+struct smmu_glbl_rs0_hw {
     uint32_t CR0;
     uint32_t SCR1;
     uint32_t CR2;
@@ -213,7 +213,7 @@ typedef struct {
     uint8_t pad17[0xFD0 - 0xE00];
     uint8_t impl3[0x1000 - 0xFD0];
 
-} __attribute__((__packed__, __aligned__(PAGE_SIZE))) smmu_glbl_rs0_t;
+} __attribute__((__packed__, __aligned__(PAGE_SIZE)));
 #define SMMUV2_CBAR_TYPE_S2             (0)
 #define SMMUV2_CBAR_TYPE_S1_S2FAULT     (0x2 << 16)
 #define SMMUV2_CBAR_VMID_MASK           (0xFF)
@@ -221,67 +221,67 @@ typedef struct {
 #define SMMUV2_CBAR_VA64                (0x1 << 0)
 
 #define SMMUV2_CB_TTBA_END     (48)
-#define SMMUV2_CB_TTBA(x)      BIT_MASK(x, (SMMUV2_CB_TTBA_END - x))
+#define SMMUV2_CB_TTBA(x)      BIT64_MASK(x, (SMMUV2_CB_TTBA_END - x))
 
 #define S2CR_IMPL_OFF         (30)
 #define S2CR_IMPL_LEN         (2)
-#define S2CR_IMPL_MASK        BIT_MASK(S2CR_IMPL_OFF, S2CR_IMPL_LEN)
+#define S2CR_IMPL_MASK        BIT32_MASK(S2CR_IMPL_OFF, S2CR_IMPL_LEN)
 
 #define S2CR_INSTCFG_OFF         (26)
 #define S2CR_INSTCFG_LEN         (2)
-#define S2CR_INSTCFG_MASK        BIT_MASK(S2CR_INSTCFG_OFF, S2CR_INSTCFG_LEN)
+#define S2CR_INSTCFG_MASK        BIT32_MASK(S2CR_INSTCFG_OFF, S2CR_INSTCFG_LEN)
 #define S2CR_INSTCFG_DATA_ONLY   (0x2 << S2CR_INSTCFG_OFF)
 
 #define S2CR_PRIVCFG_OFF         (24)
 #define S2CR_PRIVCFG_LEN         (2)
-#define S2CR_PRIVCFG_MASK        BIT_MASK(S2CR_PRIVCFG_OFF, S2CR_PRIVCFG_LEN)
+#define S2CR_PRIVCFG_MASK        BIT32_MASK(S2CR_PRIVCFG_OFF, S2CR_PRIVCFG_LEN)
 
 #define S2CR_WACFG_OFF         (22)
 #define S2CR_WACFG_LEN         (2)
-#define S2CR_WACFG_MASK        BIT_MASK(S2CR_WACFG_OFF, S2CR_WACFG_LEN)
+#define S2CR_WACFG_MASK        BIT32_MASK(S2CR_WACFG_OFF, S2CR_WACFG_LEN)
 
 #define S2CR_RACFG_OFF         (20)
 #define S2CR_RACFG_LEN         (2)
-#define S2CR_RACFG_MASK        BIT_MASK(S2CR_RACFG_OFF, S2CR_RACFG_LEN)
+#define S2CR_RACFG_MASK        BIT32_MASK(S2CR_RACFG_OFF, S2CR_RACFG_LEN)
 
 #define S2CR_NSCFG_OFF         (18)
 #define S2CR_NSCFG_LEN         (2)
-#define S2CR_NSCFG_MASK        BIT_MASK(S2CR_NSCFG_OFF, S2CR_NSCFG_LEN)
+#define S2CR_NSCFG_MASK        BIT32_MASK(S2CR_NSCFG_OFF, S2CR_NSCFG_LEN)
 
 #define S2CR_TYPE_OFF         (16)
 #define S2CR_TYPE_LEN         (2)
-#define S2CR_TYPE_MASK        BIT_MASK(S2CR_TYPE_OFF, S2CR_TYPE_LEN)
+#define S2CR_TYPE_MASK        BIT32_MASK(S2CR_TYPE_OFF, S2CR_TYPE_LEN)
 
 #define S2CR_MemAttr_OFF         (12)
 #define S2CR_MemAttr_LEN         (4)
-#define S2CR_MemAttr_MASK        BIT_MASK(S2CR_MemAttr_OFF, S2CR_MemAttr_LEN)
+#define S2CR_MemAttr_MASK        BIT32_MASK(S2CR_MemAttr_OFF, S2CR_MemAttr_LEN)
 
 #define S2CR_MTCFG_OFF         (11)
 #define S2CR_MTCFG_LEN         (1)
-#define S2CR_MTCFG_MASK        BIT_MASK(S2CR_MTCFG_OFF, S2CR_MTCFG_LEN)
+#define S2CR_MTCFG_MASK        BIT32_MASK(S2CR_MTCFG_OFF, S2CR_MTCFG_LEN)
 
 #define S2CR_EXIDVALID_OFF         (10)
 #define S2CR_EXIDVALID_LEN         (1)
-#define S2CR_EXIDVALID_MASK        BIT_MASK(S2CR_EXIDVALID_OFF, S2CR_EXIDVALID_LEN)
+#define S2CR_EXIDVALID_MASK        BIT32_MASK(S2CR_EXIDVALID_OFF, S2CR_EXIDVALID_LEN)
 
 #define S2CR_SHCFG_OFF         (8)
 #define S2CR_SHCFG_LEN         (2)
-#define S2CR_SHCFG_MASK        BIT_MASK(S2CR_SHCFG_OFF, S2CR_SHCFG_LEN)
+#define S2CR_SHCFG_MASK        BIT32_MASK(S2CR_SHCFG_OFF, S2CR_SHCFG_LEN)
 #define S2CR_SHCFG_IN_SHR      (0x2 << S2CR_SHCFG_OFF)
 
 #define S2CR_CBNDX_OFF         (0)
 #define S2CR_CBNDX_LEN         (8)
-#define S2CR_CBNDX_MASK        BIT_MASK(S2CR_CBNDX_OFF, S2CR_CBNDX_LEN)
+#define S2CR_CBNDX_MASK        BIT32_MASK(S2CR_CBNDX_OFF, S2CR_CBNDX_LEN)
 
 
-typedef struct {
+struct smmu_glbl_rs1_hw {
     uint32_t CBAR[128];
     uint8_t res1[0x400 - 0x200];
     uint32_t CBFRSYNRA[128];
     uint8_t res2[0x800 - 0x600];
     uint32_t CBA2R[128];
     uint8_t res3[0x1000-0xa00];
-} __attribute__((__packed__,__aligned__(PAGE_SIZE))) smmu_glbl_rs1_t;
+} __attribute__((__packed__,__aligned__(PAGE_SIZE)));
 
 #define SMMUV2_SCTLR_M          (0x1 << 0)
 #define SMMUV2_SCTLR_TRE        (0x1 << 1)
@@ -342,7 +342,7 @@ typedef struct {
 #define SMMUV2_TCR_PS_48B           (0x5 << SMMUV2_TCR_PS_OFF)
 #define SMMUV2_TCR_PS_52B           (0x6 << SMMUV2_TCR_PS_OFF)
 
-typedef struct {
+struct smmu_cntxt_hw {
     uint32_t SCTLR;
     uint32_t ACTLR;
     uint32_t RESUME;
@@ -384,20 +384,20 @@ typedef struct {
     uint8_t res12[0xfb8 - 0xf5c];
     uint32_t PMAUTHSTATUS;
     uint8_t res13[];
-} __attribute__((__packed__, __aligned__(PAGE_SIZE))) smmu_cntxt_t;
+} __attribute__((__packed__, __aligned__(PAGE_SIZE)));
 
 void smmu_init();
 
-int smmu_alloc_ctxbnk();
-int smmu_alloc_sme();
-void smmu_write_ctxbnk(int32_t ctx_id, void *root_pt, uint32_t vm_id);
-void smmu_write_sme(uint32_t sme, uint16_t mask, uint16_t id, bool group);
-void smmu_write_s2c(uint32_t sme, int32_t ctx_id);
-uint32_t smmu_sme_get_ctx(uint32_t sme);
-uint16_t smmu_sme_get_id(uint32_t sme);
-uint16_t smmu_sme_get_mask(uint32_t sme);
-bool smmu_sme_is_group(uint32_t sme);
-bool smmu_compatible_sme_exists(uint16_t mask, uint16_t id, uint32_t ctx,
+ssize_t smmu_alloc_ctxbnk();
+ssize_t smmu_alloc_sme();
+void smmu_write_ctxbnk(size_t ctx_id, paddr_t root_pt, vmid_t vm_id);
+void smmu_write_sme(size_t sme, streamid_t mask, streamid_t id, bool group);
+void smmu_write_s2c(size_t sme, size_t ctx_id);
+size_t smmu_sme_get_ctx(size_t sme);
+streamid_t smmu_sme_get_id(size_t sme);
+streamid_t smmu_sme_get_mask(size_t sme);
+bool smmu_sme_is_group(size_t sme);
+bool smmu_compatible_sme_exists(streamid_t mask, streamid_t id, size_t ctx,
                                 bool group);
 
 #endif

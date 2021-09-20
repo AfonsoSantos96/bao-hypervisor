@@ -15,9 +15,13 @@
 
 #include <config.h>
 
+<<<<<<< HEAD
 #define adjust_ptr(p, o) ((p) = (p) ? (typeof(p))(  (void*)(p) + (size_t)(o)) : (p))
 
 void config_adjust_to_va(struct config *config, size_t phys)
+=======
+void config_adjust_to_va(struct config *config, paddr_t phys)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     adjust_ptr(config->shmemlist, config);
 

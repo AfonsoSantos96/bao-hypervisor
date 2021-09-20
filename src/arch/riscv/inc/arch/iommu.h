@@ -20,9 +20,8 @@
  * No IOMMU is availble in the riscv architecture
  */
 
-typedef struct {
+struct iommu_vm_arch {
 
-} iommu_vm_arch_t;
-
+};
 
 #endif

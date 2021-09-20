@@ -30,33 +30,44 @@
 
 extern unsigned char _cpu_if_base;
 
-typedef struct {
-    list_t event_list;
+struct cpuif {
+    struct list event_list;
 
-} __attribute__((aligned(PAGE_SIZE))) cpuif_t;
+} __attribute__((aligned(PAGE_SIZE))) ;
 
-typedef struct vcpu vcpu_t;
+struct vcpu;
 
+<<<<<<< HEAD
 typedef struct cpu {
     size_t id;
     addr_space_t as;
+=======
+struct cpu {
+    cpuid_t id;
+    struct addr_space as;
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
-    vcpu_t* vcpu;
+    struct vcpu* vcpu;
 
-    cpu_arch_t arch;
+    struct cpu_arch arch;
 
+<<<<<<< HEAD
     unsigned char root_pt[PT_SIZE] __attribute__((aligned(PT_SIZE)));
+=======
+    pte_t root_pt[PT_SIZE/sizeof(pte_t)] __attribute__((aligned(PT_SIZE)));
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
     unsigned char stack[STACK_SIZE] __attribute__((aligned(PAGE_SIZE)));
 
     /******************* PUBLIC INTERFACE  **************************/
 
-    cpuif_t interface __attribute__((aligned(PAGE_SIZE)));
+    struct cpuif interface __attribute__((aligned(PAGE_SIZE)));
 
-} __attribute__((aligned(PAGE_SIZE))) cpu_t;
+} __attribute__((aligned(PAGE_SIZE)));
 
-extern cpu_t cpu;
+extern struct cpu cpu;
 
+<<<<<<< HEAD
 typedef struct {
     unsigned int handler;
     unsigned int event;
@@ -64,6 +75,15 @@ typedef struct {
 } cpu_msg_t;
 
 void cpu_send_msg(size_t cpu, cpu_msg_t* msg);
+=======
+struct cpu_msg {
+    uint32_t handler;
+    uint32_t event;
+    uint64_t data;
+};
+
+void cpu_send_msg(cpuid_t cpu, struct cpu_msg* msg);
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 typedef void (*cpu_msg_handler_t)(uint32_t event, size_t data);
 
@@ -73,16 +93,24 @@ typedef void (*cpu_msg_handler_t)(uint32_t event, size_t data);
     __attribute__((section(".ipi_cpumsg_handlers_id"),          \
                    used)) volatile const size_t handler_id;
 
-typedef struct {
+struct cpu_synctoken {
     spinlock_t lock;
     volatile size_t n;
     volatile bool ready;
     volatile size_t count;
+<<<<<<< HEAD
 } cpu_synctoken_t;
+=======
+};
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
-extern cpu_synctoken_t cpu_glb_sync;
+extern struct cpu_synctoken cpu_glb_sync;
 
+<<<<<<< HEAD
 static inline void cpu_sync_init(cpu_synctoken_t* token, size_t n)
+=======
+static inline void cpu_sync_init(struct cpu_synctoken* token, size_t n)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     token->lock = SPINLOCK_INITVAL;
     token->n = n;
@@ -90,7 +118,7 @@ static inline void cpu_sync_init(cpu_synctoken_t* token, size_t n)
     token->ready = true;
 }
 
-static inline void cpu_sync_barrier(cpu_synctoken_t* token)
+static inline void cpu_sync_barrier(struct cpu_synctoken* token)
 {
     // TODO: no fence/barrier needed in this function?
 
@@ -106,12 +134,17 @@ static inline void cpu_sync_barrier(cpu_synctoken_t* token)
     while (token->count < next_count);
 }
 
+<<<<<<< HEAD
 static inline cpuif_t* cpu_if(size_t cpu_id)
+=======
+static inline struct cpuif* cpu_if(cpuid_t cpu_id)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
-    return ((void*)&_cpu_if_base) +
-           (cpu_id * ALIGN(sizeof(cpuif_t), PAGE_SIZE));
+    return (struct cpuif*)(((vaddr_t)&_cpu_if_base) +
+           (cpu_id * ALIGN(sizeof(struct cpuif), PAGE_SIZE)));
 }
 
+<<<<<<< HEAD
 void cpu_init(size_t cpu_id, size_t load_addr);
 void cpu_send_msg(size_t cpu, cpu_msg_t* msg);
 bool cpu_get_msg(cpu_msg_t* msg);
@@ -121,6 +154,17 @@ void cpu_idle();
 void cpu_idle_wakeup();
 
 void cpu_arch_init(size_t cpu_id, size_t load_addr);
+=======
+void cpu_init(cpuid_t cpu_id, paddr_t load_addr);
+void cpu_send_msg(cpuid_t cpu, struct cpu_msg* msg);
+bool cpu_get_msg(struct cpu_msg* msg);
+void cpu_msg_handler();
+void cpu_msg_set_handler(cpuid_t id, cpu_msg_handler_t handler);
+void cpu_idle();
+void cpu_idle_wakeup();
+
+void cpu_arch_init(cpuid_t cpu_id, paddr_t load_addr);
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 void cpu_arch_idle();
 
 #endif /* __ASSEMBLER__ */

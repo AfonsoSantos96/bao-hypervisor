@@ -20,13 +20,13 @@
 #include <arch/sysregs.h>
 #include <arch/fences.h>
 
-static inline void tlb_hyp_inv_va(void* va)
+static inline void tlb_hyp_inv_va(vaddr_t va)
 {
     asm volatile(
         "dsb  ish\n\t"
         "tlbi vae2is, %0\n\t"
         "dsb  ish\n\t"
-        "isb\n\t" ::"r"(((uint64_t)va) >> 12));
+        "isb\n\t" ::"r"(va >> 12));
 }
 
 static inline void tlb_hyp_inv_all()
@@ -38,12 +38,12 @@ static inline void tlb_hyp_inv_all()
         "isb\n\t");
 }
 
-static inline void tlb_vm_inv_va(uint64_t vmid, void* va)
+static inline void tlb_vm_inv_va(vmid_t vmid, vaddr_t va)
 {
     uint64_t vttbr = 0;
     vttbr = MRS(VTTBR_EL2);
     bool switch_vmid =
-        bit_extract(vttbr, VTTBR_VMID_OFF, VTTBR_VMID_LEN) != vmid;
+        bit64_extract(vttbr, VTTBR_VMID_OFF, VTTBR_VMID_LEN) != vmid;
 
     if (switch_vmid) {
         MSR(VTTBR_EL2, ((vmid << VTTBR_VMID_OFF) & VTTBR_VMID_MSK));
@@ -51,7 +51,7 @@ static inline void tlb_vm_inv_va(uint64_t vmid, void* va)
         ISB();
     }
 
-    asm volatile("tlbi ipas2e1is, %0\n\t" ::"r"(((uint64_t)va) >> 12));
+    asm volatile("tlbi ipas2e1is, %0\n\t" ::"r"(va >> 12));
 
     if (switch_vmid) {
         DSB(ish);
@@ -59,12 +59,12 @@ static inline void tlb_vm_inv_va(uint64_t vmid, void* va)
     }
 }
 
-static inline void tlb_vm_inv_all(uint64_t vmid)
+static inline void tlb_vm_inv_all(vmid_t vmid)
 {
     uint64_t vttbr = 0;
     vttbr = MRS(VTTBR_EL2);
     bool switch_vmid =
-        bit_extract(vttbr, VTTBR_VMID_OFF, VTTBR_VMID_LEN) != vmid;
+        bit64_extract(vttbr, VTTBR_VMID_OFF, VTTBR_VMID_LEN) != vmid;
 
     if (switch_vmid) {
         MSR(VTTBR_EL2, ((vmid << VTTBR_VMID_OFF) & VTTBR_VMID_MSK));

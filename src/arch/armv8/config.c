@@ -15,9 +15,13 @@
 
 #include <config.h>
 
+<<<<<<< HEAD
 void config_arch_adjust_to_va(struct config *config, size_t phys)
+=======
+void config_arch_adjust_to_va(struct config *config, paddr_t phys)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
-    for (int i = 0; i < config->vmlist_size; i++) {
+    for (size_t i = 0; i < config->vmlist_size; i++) {
 	    adjust_ptr(config->vmlist[i].platform.arch.smmu.smmu_groups, config);
     }
 }

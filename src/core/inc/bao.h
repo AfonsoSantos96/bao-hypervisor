@@ -19,12 +19,10 @@
 
 #include <arch/bao.h>
 
+
 #ifndef __ASSEMBLER__
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-
+#include <types.h>
 #include <printk.h>
 #include <util.h>
 

@@ -19,17 +19,29 @@
  * TODO: No IOMMU available in riscv
  */
 
+<<<<<<< HEAD
 long iommu_arch_init()
+=======
+bool iommu_arch_init()
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {   
-    return 0;
+    return true;
 }
 
+<<<<<<< HEAD
 inline long iommu_arch_vm_add_device(vm_t *vm, long id)
+=======
+inline bool iommu_arch_vm_add_device(struct vm *vm, streamid_t id)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
-    return 0;
+    return true;
 }
 
+<<<<<<< HEAD
 long iommu_arch_vm_init(vm_t *vm, const vm_config_t *config)
+=======
+bool iommu_arch_vm_init(struct vm *vm, const struct vm_config *config)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
-    return 0;
+    return true;
 }

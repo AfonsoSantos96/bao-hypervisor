@@ -21,26 +21,26 @@
 #include <interrupts.h>
 #include <vm.h>
 
-bool vgic_int_vcpu_is_target(vcpu_t *vcpu, vgic_int_t *interrupt)
+bool vgic_int_vcpu_is_target(struct vcpu *vcpu, struct vgic_int *interrupt)
 {
     bool priv = gic_is_priv(interrupt->id);
     bool target = interrupt->targets & (1 << cpu.id);
     return priv || target;
 }
 
-bool vgic_int_has_other_target(vcpu_t *vcpu, vgic_int_t *interrupt)
+bool vgic_int_has_other_target(struct vcpu *vcpu, struct vgic_int *interrupt)
 {
     bool priv = gic_is_priv(interrupt->id);
     bool has_other_targets = (interrupt->targets & ~(1 << cpu.id)) != 0;
     return !priv && has_other_targets;
 }
 
-uint64_t vgic_int_ptarget_mask(vcpu_t *vcpu, vgic_int_t *interrupt)
+uint8_t vgic_int_ptarget_mask(struct vcpu *vcpu, struct vgic_int *interrupt)
 {
     return interrupt->targets;
 }
 
-bool vgicd_set_trgt(vcpu_t *vcpu, vgic_int_t *interrupt, uint64_t targets)
+bool vgicd_set_trgt(struct vcpu *vcpu, struct vgic_int *interrupt, cpumap_t targets)
 {
     if (gic_is_priv(interrupt->id)) {
         return false;
@@ -52,31 +52,31 @@ bool vgicd_set_trgt(vcpu_t *vcpu, vgic_int_t *interrupt, uint64_t targets)
     return prev_targets != targets;
 }
 
-void vgicd_set_trgt_hw(vcpu_t *vcpu, vgic_int_t *interrupt)
+void vgicd_set_trgt_hw(struct vcpu *vcpu, struct vgic_int *interrupt)
 {
     gicd_set_trgt(interrupt->id, interrupt->targets);
 }
 
-uint64_t vgicd_get_trgt(vcpu_t *vcpu, vgic_int_t *interrupt)
+uint64_t vgicd_get_trgt(struct vcpu *vcpu, struct vgic_int *interrupt)
 {
     if (gic_is_priv(interrupt->id)) {
-        return (1ull << vcpu->id);
+        return (1 << vcpu->id);
     } else {
-        return (uint8_t)vm_translate_to_vcpu_mask(vcpu->vm, interrupt->targets,
+        return vm_translate_to_vcpu_mask(vcpu->vm, interrupt->targets,
                                                   GIC_TARGET_BITS);
     }
 }
 
-void vgicd_emul_sgiregs_access(emul_access_t *acc,
+void vgicd_emul_sgiregs_access(struct emul_access *acc,
                                struct vgic_reg_handler_info *handlers,
-                               bool gicr_access, uint64_t vgicr_id)
+                               bool gicr_access, cpuid_t vgicr_id)
 {
-    uint32_t val = acc->write ? vcpu_readreg(cpu.vcpu, acc->reg) : 0;
+    unsigned long val = acc->write ? vcpu_readreg(cpu.vcpu, acc->reg) : 0;
 
-    if ((acc->addr & 0xfff) == (((uint64_t)&gicd.SGIR) & 0xfff)) {
+    if ((acc->addr & 0xfff) == (((uintptr_t)&gicd.SGIR) & 0xfff)) {
         if (acc->write) {
-            uint64_t trgtlist = 0;
-            uint64_t int_id = GICD_SGIR_SGIINTID(val);
+            cpumap_t trgtlist = 0;
+            irqid_t int_id = GICD_SGIR_SGIINTID(val);
             switch (GICD_SGIR_TRGLSTFLT(val)) {
                 case 0:
                     trgtlist = vm_translate_to_pcpu_mask(
@@ -105,7 +105,7 @@ struct vgic_reg_handler_info itargetr_info = {
     vgic_emul_generic_access,
     0b0101,
     VGIC_ITARGETSR_ID,
-    offsetof(gicd_t, ITARGETSR),
+    offsetof(struct gicd_hw, ITARGETSR),
     8,
     vgicd_get_trgt,
     vgicd_set_trgt,
@@ -117,7 +117,7 @@ struct vgic_reg_handler_info sgir_info = {
     0b0100,
 };
 
-void vgic_inject_sgi(vcpu_t *vcpu, vgic_int_t *interrupt, uint64_t source)
+void vgic_inject_sgi(struct vcpu *vcpu, struct vgic_int *interrupt, cpuid_t source)
 {
     spin_lock(&interrupt->lock);
 
@@ -142,31 +142,31 @@ void vgic_inject_sgi(vcpu_t *vcpu, vgic_int_t *interrupt, uint64_t source)
     spin_unlock(&interrupt->lock);
 }
 
-void vgic_init(vm_t *vm, const struct gic_dscrp *gic_dscrp)
+void vgic_init(struct vm *vm, const struct gic_dscrp *gic_dscrp)
 {
     vm->arch.vgicd.CTLR = 0;
-    uint64_t vtyper_itln = vgic_get_itln(gic_dscrp);
+    size_t vtyper_itln = vgic_get_itln(gic_dscrp);
     vm->arch.vgicd.int_num = 32 * (vtyper_itln + 1);
     vm->arch.vgicd.TYPER =
         ((vtyper_itln << GICD_TYPER_ITLN_OFF) & GICD_TYPER_ITLN_MSK) |
         (((vm->cpu_num - 1) << GICD_TYPER_CPUNUM_OFF) & GICD_TYPER_CPUNUM_MSK);
     vm->arch.vgicd.IIDR = gicd.IIDR;
 
-    size_t n = NUM_PAGES(sizeof(gicc_t));
-    void *va =
-        mem_alloc_vpage(&vm->as, SEC_VM_ANY, (void *)gic_dscrp->gicc_addr, n);
-    if (va != (void *)gic_dscrp->gicc_addr)
+    size_t n = NUM_PAGES(sizeof(struct gicc_hw));
+    vaddr_t va =
+        mem_alloc_vpage(&vm->as, SEC_VM_ANY, (vaddr_t)gic_dscrp->gicc_addr, n);
+    if (va != (vaddr_t)gic_dscrp->gicc_addr)
         ERROR("failed to alloc vm address space to hold gicc");
-    mem_map_dev(&vm->as, va, platform.arch.gic.gicv_addr, n);
+    mem_map_dev(&vm->as, va, (vaddr_t)platform.arch.gic.gicv_addr, n);
 
-    size_t vgic_int_size = vm->arch.vgicd.int_num * sizeof(vgic_int_t);
+    size_t vgic_int_size = vm->arch.vgicd.int_num * sizeof(struct vgic_int);
     vm->arch.vgicd.interrupts =
         mem_alloc_page(NUM_PAGES(vgic_int_size), SEC_HYP_VM, false);
     if (vm->arch.vgicd.interrupts == NULL) {
         ERROR("failed to alloc vgic");
     }
 
-    for (int i = 0; i < vm->arch.vgicd.int_num; i++) {
+    for (size_t i = 0; i < vm->arch.vgicd.int_num; i++) {
         vm->arch.vgicd.interrupts[i].owner = NULL;
         vm->arch.vgicd.interrupts[i].lock = SPINLOCK_INITVAL;
         vm->arch.vgicd.interrupts[i].id = i + GIC_CPU_PRIV;
@@ -179,17 +179,16 @@ void vgic_init(vm_t *vm, const struct gic_dscrp *gic_dscrp)
         vm->arch.vgicd.interrupts[i].enabled = false;
     }
 
-    emul_mem_t emu = {.va_base = gic_dscrp->gicd_addr,
-                      .pa_base = (uint64_t)&gicd,
-                      .size = ALIGN(sizeof(gicd_t), PAGE_SIZE),
+    struct emul_mem emu = {.va_base = gic_dscrp->gicd_addr,
+                      .size = ALIGN(sizeof(struct gicd_hw), PAGE_SIZE),
                       .handler = vgicd_emul_handler};
 
     vm_emul_add_mem(vm, &emu);
 }
 
-void vgic_cpu_init(vcpu_t *vcpu)
+void vgic_cpu_init(struct vcpu *vcpu)
 {
-    for (int i = 0; i < GIC_CPU_PRIV; i++) {
+    for (size_t i = 0; i < GIC_CPU_PRIV; i++) {
         vcpu->arch.vgic_priv.interrupts[i].owner = vcpu;
         vcpu->arch.vgic_priv.interrupts[i].lock = SPINLOCK_INITVAL;
         vcpu->arch.vgic_priv.interrupts[i].id = i;
@@ -203,7 +202,7 @@ void vgic_cpu_init(vcpu_t *vcpu)
         vcpu->arch.vgic_priv.interrupts[i].enabled = false;
     }
 
-    for (int i = 0; i < GIC_MAX_SGIS; i++) {
+    for (size_t i = 0; i < GIC_MAX_SGIS; i++) {
         vcpu->arch.vgic_priv.interrupts[i].enabled = true;
     }
 }

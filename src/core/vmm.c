@@ -40,7 +40,11 @@ void vmm_init()
         spinlock_t lock;
         bool master;
         size_t ncpus;
+<<<<<<< HEAD
         size_t cpus;
+=======
+        cpumap_t cpus;
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
         pte_t vm_shared_table;
     } * vm_assign;
 
@@ -61,14 +65,18 @@ void vmm_init()
 
     bool master = false;
     bool assigned = false;
-    size_t vm_id = 0;
-    vm_config_t *vm_config = NULL;
+    vmid_t vm_id = 0;
+    struct vm_config *vm_config = NULL;
 
     /**
      * Assign cpus according to vm affinity.
      */
     for (size_t i = 0; i < vm_config_ptr->vmlist_size && !assigned; i++) {
+<<<<<<< HEAD
         if (vm_config_ptr->vmlist[i].cpu_affinity & (1UL << cpu.id)) {      // ATENÇÃO: O UL MUDA DE TAMANHO, VER COM O MARTINS QTOS BITS SÃO MESMO NECESSÁRIOS USAR AQUI
+=======
+        if (vm_config_ptr->vmlist[i].cpu_affinity & (1UL << cpu.id)) {
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
             spin_lock(&vm_assign[i].lock);
             if (!vm_assign[i].master) {
                 vm_assign[i].master = true;
@@ -121,17 +129,18 @@ void vmm_init()
     if (assigned) {
         vm_config = &vm_config_ptr->vmlist[vm_id];
         if (master) {
-            size_t vm_npages = NUM_PAGES(sizeof(vm_t));
-            void* va = mem_alloc_vpage(&cpu.as, SEC_HYP_VM, (void*)BAO_VM_BASE,
-                                       vm_npages);
+            size_t vm_npages = NUM_PAGES(sizeof(struct vm));
+            vaddr_t va = mem_alloc_vpage(&cpu.as, SEC_HYP_VM,
+                                            (vaddr_t)BAO_VM_BASE,
+                                            vm_npages);
             mem_map(&cpu.as, va, NULL, vm_npages, PTE_HYP_FLAGS);
-            memset(va, 0, vm_npages * PAGE_SIZE);
+            memset((void*)va, 0, vm_npages * PAGE_SIZE);
             fence_ord_write();
             vm_assign[vm_id].vm_shared_table =
-                *pt_get_pte(&cpu.as.pt, 0, (void*)BAO_VM_BASE);
+                *pt_get_pte(&cpu.as.pt, 0, (vaddr_t)BAO_VM_BASE);
         } else {
             while (vm_assign[vm_id].vm_shared_table == 0);
-            pte_t* pte = pt_get_pte(&cpu.as.pt, 0, (void*)BAO_VM_BASE);
+            pte_t* pte = pt_get_pte(&cpu.as.pt, 0, (vaddr_t)BAO_VM_BASE);
             *pte = vm_assign[vm_id].vm_shared_table;
             fence_sync_write();
         }
@@ -140,13 +149,13 @@ void vmm_init()
     cpu_sync_barrier(&cpu_glb_sync);
 
     if (cpu.id == CPU_MASTER) {
-        mem_free_vpage(&cpu.as, (void*)vm_assign, vmass_npages, true);
+        mem_free_vpage(&cpu.as, (vaddr_t)vm_assign, vmass_npages, true);
     }
 
     ipc_init(vm_config, master);
 
     if (assigned) {
-        vm_init((void*)BAO_VM_BASE, vm_config, master, vm_id);
+        vm_init((struct vm*)BAO_VM_BASE, vm_config, master, vm_id);
         vcpu_run(cpu.vcpu);
     } else {
         cpu_idle();

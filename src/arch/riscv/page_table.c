@@ -17,44 +17,44 @@
 #include <page_table.h>
 
 #if (SV32)
-page_table_dscr_t sv32_pt_dscr = {.lvls = PT_LVLS,
+struct page_table_dscr sv32_pt_dscr = {.lvls = PT_LVLS,
                                   .lvl_wdt = (size_t[]){32, 22},
                                   .lvl_off = (size_t[]){22, 12},
                                   .lvl_term = (bool[]){true, true}};
-page_table_dscr_t sv32x4_pt_dscr = {.lvls = PT_LVLS,
+struct page_table_dscr sv32x4_pt_dscr = {.lvls = PT_LVLS,
                                     .lvl_wdt = (size_t[]){34, 22},
                                     .lvl_off = (size_t[]){22, 12},
                                     .lvl_term = (bool[]){true, true}};
-page_table_dscr_t* hyp_pt_dscr = &sv32_pt_dscr;
-page_table_dscr_t* vm_pt_dscr = &sv32x2_pt_dscr;
+struct page_table_dscr* hyp_pt_dscr = &sv32_pt_dscr;
+struct page_table_dscr* vm_pt_dscr = &sv32x2_pt_dscr;
 #elif (RV64)
-page_table_dscr_t sv39_pt_dscr = {.lvls = PT_LVLS,
+struct page_table_dscr sv39_pt_dscr = {.lvls = PT_LVLS,
                                   .lvl_wdt = (size_t[]){39, 30, 21},
                                   .lvl_off = (size_t[]){30, 21, 12},
                                   .lvl_term = (bool[]){true, true, true}};
-page_table_dscr_t sv39x4_pt_dscr = {.lvls = PT_LVLS,
+struct page_table_dscr sv39x4_pt_dscr = {.lvls = PT_LVLS,
                                     .lvl_wdt = (size_t[]){41, 30, 21},
                                     .lvl_off = (size_t[]){30, 21, 12},
                                     .lvl_term = (bool[]){true, true, true}};
-page_table_dscr_t* hyp_pt_dscr = &sv39_pt_dscr;
-page_table_dscr_t* vm_pt_dscr = &sv39x4_pt_dscr;
+struct page_table_dscr* hyp_pt_dscr = &sv39_pt_dscr;
+struct page_table_dscr* vm_pt_dscr = &sv39x4_pt_dscr;
 #endif
 
-pte_t* pt_get_pte(page_table_t* pt, uint64_t lvl, void* va)
+pte_t* pt_get_pte(struct page_table* pt, size_t lvl, vaddr_t va)
 {
-    pte_t* pte = &(pt->root[PTE_INDEX(0, (uintptr_t)va)]);
+    pte_t* pte = &(pt->root[PTE_INDEX(0, va)]);
 
-    for (int i = 0; i < lvl; i++) {
+    for (size_t i = 0; i < lvl; i++) {
         if (!pte_valid(pte)) return NULL;
         pte = (pte_t*)pte_addr(pte);
-        int index = PTE_INDEX(i + 1, (uintptr_t)va);
+        size_t index = PTE_INDEX(i + 1, va);
         pte = &pte[index];
     }
 
     return pte;
 }
 
-pte_t* pt_get(page_table_t* pt, uint64_t lvl, void* va)
+pte_t* pt_get(struct page_table* pt, size_t lvl, vaddr_t va)
 {
     uintptr_t pte = (uintptr_t)pt_get_pte(pt, lvl, va);
     return (pte_t*)(pte & ~(PAGE_SIZE - 1));

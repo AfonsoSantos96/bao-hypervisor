@@ -276,16 +276,16 @@ struct sbiret sbi_ipi_handler(unsigned long fid)
     unsigned long hart_mask = vcpu_readreg(cpu.vcpu, REG_A0);
     unsigned long hart_mask_base = vcpu_readreg(cpu.vcpu, REG_A1);
 
-    cpu_msg_t msg = {
+    struct cpu_msg msg = {
         .handler = SBI_MSG_ID,
         .event = SEND_IPI,
     };
 
     for (size_t i = 0; i < sizeof(hart_mask) * 8; i++) {
-        if (bitmap_get((bitmap_t)&hart_mask, i)) {
-            uint64_t vhart_id = hart_mask_base + i;
-            int64_t phart_id = vm_translate_to_pcpuid(cpu.vcpu->vm, vhart_id); 
-            if(phart_id >= 0) cpu_send_msg(phart_id, &msg);
+        if (bitmap_get((bitmap_t*)&hart_mask, i)) {
+            cpuid_t vhart_id = hart_mask_base + i;
+            cpuid_t phart_id = vm_translate_to_pcpuid(cpu.vcpu->vm, vhart_id);
+            if(phart_id != INVALID_CPUID) cpu_send_msg(phart_id, &msg);
         }
     }
 
@@ -331,7 +331,7 @@ struct sbiret sbi_rfence_handler(unsigned long fid)
 
     const size_t hart_mask_width = sizeof(hart_mask) * 8;
     if ((hart_mask_base != 0) && ((hart_mask_base >= hart_mask_width) ||
-        (bitmap_find_nth((bitmap_t)&hart_mask, hart_mask_width, 1,
+        (bitmap_find_nth((bitmap_t*)&hart_mask, hart_mask_width, 1,
                         hart_mask_width - hart_mask_base, true) > 0))) {
         WARNING("sbi invalid hart_mask");
         return (struct sbiret){SBI_ERR_INVALID_PARAM};
@@ -362,12 +362,12 @@ struct sbiret sbi_rfence_handler(unsigned long fid)
 struct sbiret sbi_hsm_start_handler() {
     
     struct sbiret ret;
-    uint64_t vhart_id = vcpu_readreg(cpu.vcpu, REG_A0);
+    cpuid_t vhart_id = vcpu_readreg(cpu.vcpu, REG_A0);
     
     if(vhart_id == cpu.vcpu->id){
         ret.error = SBI_ERR_ALREADY_AVAILABLE;
     } else {
-        vcpu_t *vcpu = vm_get_vcpu(cpu.vcpu->vm, vhart_id);
+        struct vcpu *vcpu = vm_get_vcpu(cpu.vcpu->vm, vhart_id);
         if(vcpu == NULL) {
             ret.error = SBI_ERR_INVALID_PARAM;
         } else { 
@@ -377,15 +377,15 @@ struct sbiret sbi_hsm_start_handler() {
             } else if (vcpu->arch.sbi_ctx.state != STOPPED) {
                 ret.error = SBI_ERR_FAILURE;
             } else {
-                uint64_t start_addr = vcpu_readreg(cpu.vcpu, REG_A1);
-                uint64_t priv = vcpu_readreg(cpu.vcpu, REG_A2);
+                vaddr_t start_addr = vcpu_readreg(cpu.vcpu, REG_A1);
+                unsigned priv = vcpu_readreg(cpu.vcpu, REG_A2);
                 vcpu->arch.sbi_ctx.state = START_PENDING;
                 vcpu->arch.sbi_ctx.start_addr = start_addr;
                 vcpu->arch.sbi_ctx.priv = priv;
 
                 fence_sync_write();
 
-                cpu_msg_t msg = {
+                struct cpu_msg msg = {
                     .handler = SBI_MSG_ID,
                     .event = HART_START,
                     .data = 0xdeadbeef
@@ -404,8 +404,8 @@ struct sbiret sbi_hsm_start_handler() {
 struct sbiret sbi_hsm_status_handler() {
 
     struct sbiret ret;
-    uint64_t vhart_id = vcpu_readreg(cpu.vcpu, REG_A0);
-    vcpu_t *vhart = vm_get_vcpu(cpu.vcpu->vm, vhart_id);
+    cpuid_t vhart_id = vcpu_readreg(cpu.vcpu, REG_A0);
+    struct vcpu *vhart = vm_get_vcpu(cpu.vcpu->vm, vhart_id);
 
     if(vhart != NULL) { 
         ret.error = SBI_SUCCESS;
@@ -440,9 +440,9 @@ struct sbiret sbi_bao_handler(unsigned long fid){
 
     struct sbiret ret;
 
-    uint64_t arg0 = vcpu_readreg(cpu.vcpu, REG_A0);
-    uint64_t arg1 = vcpu_readreg(cpu.vcpu, REG_A1);
-    uint64_t arg2 = vcpu_readreg(cpu.vcpu, REG_A2);
+    unsigned long arg0 = vcpu_readreg(cpu.vcpu, REG_A0);
+    unsigned long arg1 = vcpu_readreg(cpu.vcpu, REG_A1);
+    unsigned long arg2 = vcpu_readreg(cpu.vcpu, REG_A2);
 
     switch(fid) {
         case HC_IPC:
@@ -461,18 +461,18 @@ void sbi_lgcy_sendipi_handler()
     if (hart_mask == NULL) return;
 
     unsigned long phart_mask = 0;
-    vm_readmem(cpu.vcpu->vm, &phart_mask, (uintptr_t)hart_mask,
+    vm_readmem(cpu.vcpu->vm, &phart_mask, (vaddr_t)hart_mask,
                sizeof(unsigned long), false);
     phart_mask = vm_translate_to_pcpu_mask(cpu.vcpu->vm, phart_mask,
                                            sizeof(unsigned long));
 
-    cpu_msg_t msg = {
+    struct cpu_msg msg = {
         .handler = SBI_MSG_ID,
         .event = SEND_IPI,
     };
 
-    for (int i = 0; i < sizeof(phart_mask) * 8; i++) {
-        if (bitmap_get((bitmap_t)&phart_mask, i)) {
+    for (size_t i = 0; i < sizeof(phart_mask) * 8; i++) {
+        if (bitmap_get((bitmap_t*)&phart_mask, i)) {
             cpu_send_msg(i, &msg);
         }
     }
@@ -484,9 +484,9 @@ void sbi_lgcy_rfence_handler(unsigned long extid)
     if (hart_mask == NULL) return;
 
     unsigned long phart_mask = 0;
-    vm_readmem(cpu.vcpu->vm, &phart_mask, (uintptr_t)hart_mask,
+    vm_readmem(cpu.vcpu->vm, &phart_mask, (vaddr_t)hart_mask,
                sizeof(unsigned long), false);
-    phart_mask = vm_translate_to_pcpu_mask(cpu.vcpu->vm, (uint64_t)hart_mask,
+    phart_mask = vm_translate_to_pcpu_mask(cpu.vcpu->vm, (cpumap_t)hart_mask,
                                            sizeof(unsigned long));
 
     unsigned long start_addr = vcpu_readreg(cpu.vcpu, REG_A2);

@@ -21,19 +21,20 @@
 #include <objcache.h>
 #include <list.h>
 
-typedef struct vm_config vm_config_t;
-typedef struct vm vm_t;
+struct vm_config;
+struct vm;
 
-typedef struct iommu_dev {
-    list_t dev_list;
-    objcache_t dev_oc;
-    iommu_vm_arch_t arch;
-} iommu_vm_t;
+struct iommu_vm {
+    struct list dev_list;
+    struct objcache dev_oc;
+    struct iommu_vm_arch arch;
+};
 
 /* Mainly for HW initialization. */
 void iommu_init();
 
 /* iommu api for vms. */
+<<<<<<< HEAD
 long iommu_vm_init(vm_t *vm, const vm_config_t *config);
 long iommu_vm_add_device(vm_t *vm, int dev_id);
 
@@ -41,5 +42,14 @@ long iommu_vm_add_device(vm_t *vm, int dev_id);
 long iommu_arch_init();
 long iommu_arch_vm_init(vm_t *vm, const vm_config_t *config);
 long iommu_arch_vm_add_device(vm_t *vm, int id);
+=======
+bool iommu_vm_init(struct vm *vm, const struct vm_config *config);
+bool iommu_vm_add_device(struct vm *vm, streamid_t dev_id);
+
+/* Must be implemented by architecture. */
+bool iommu_arch_init();
+bool iommu_arch_vm_init(struct vm *vm, const struct vm_config *config);
+bool iommu_arch_vm_add_device(struct vm *vm, streamid_t id);
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
 #endif

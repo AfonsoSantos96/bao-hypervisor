@@ -111,7 +111,7 @@
 #define PT_ROOT_FLAGS_REC_IND_OFF (0)
 #define PT_ROOT_FLAGS_REC_IND_LEN (13)
 #define PT_ROOT_FLAGS_REC_IND_MSK \
-    BIT_MASK(PT_ROOT_FLAGS_REC_IND_OFF, PT_ROOT_FLAGS_REC_IND_LEN)
+    BIT64_MASK(PT_ROOT_FLAGS_REC_IND_OFF, PT_ROOT_FLAGS_REC_IND_LEN)
 
 #define PT_CPU_REC_IND (pt_nentries(&cpu.as.pt, 0) - 1)
 #define PT_VM_REC_IND (pt_nentries(&cpu.as.pt, 0) - 2)
@@ -130,19 +130,31 @@
 
 #ifndef __ASSEMBLER__
 
+<<<<<<< HEAD
     typedef uintptr_t pte_t;
 extern size_t parange;
 extern size_t parange_table[];
+=======
+typedef uint64_t pte_t;
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
-typedef struct page_table page_table_t;
+extern size_t parange;
+extern size_t parange_table[];
 
+<<<<<<< HEAD
 void pt_set_recursive(page_table_t* pt, size_t index);
 
 static inline void pte_set(pte_t* pte, size_t addr, size_t type,
                            size_t flags)
+=======
+struct page_table;
+
+void pt_set_recursive(struct page_table* pt, size_t index);
+
+static inline void pte_set(pte_t* pte, paddr_t addr, pte_t flags)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
-    *pte =
-        (addr & PTE_ADDR_MSK) | (type & PTE_TYPE_MSK) | (flags & PTE_FLAGS_MSK);
+    *pte = (addr & PTE_ADDR_MSK) | (flags & PTE_FLAGS_MSK);
 }
 
 static inline bool pte_valid(pte_t* pte)
@@ -150,19 +162,31 @@ static inline bool pte_valid(pte_t* pte)
     return (*pte & PTE_VALID);
 }
 
+<<<<<<< HEAD
 static inline void pte_set_rsw(pte_t* pte, size_t flag)
+=======
+static inline void pte_set_rsw(pte_t* pte, pte_t flag)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     *pte = (*pte & ~PTE_RSW_MSK) | (flag & PTE_RSW_MSK);
 }
 
+<<<<<<< HEAD
 static inline bool pte_check_rsw(pte_t* pte, size_t flag)
+=======
+static inline bool pte_check_rsw(pte_t* pte, pte_t flag)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
     return (*pte & PTE_RSW_MSK) == (flag & PTE_RSW_MSK);
 }
 
+<<<<<<< HEAD
 static inline uintptr_t pte_addr(pte_t* pte)
+=======
+static inline paddr_t pte_addr(pte_t* pte)
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 {
-    return *pte & PTE_ADDR_MSK;
+    return (paddr_t)(*pte & PTE_ADDR_MSK);
 }
 
 #endif /* |__ASSEMBLER__ */

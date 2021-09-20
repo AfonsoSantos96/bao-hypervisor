@@ -18,8 +18,7 @@
 
 #include <bao.h>
 #include <arch/cache.h>
-
-typedef struct cache {
+struct cache {
     size_t lvls;
     size_t min_shared_lvl;
     enum { UNIFIED, SEPARATE, DATA, INSTRUCTION } type[CACHE_MAX_LVL];
@@ -27,14 +26,18 @@ typedef struct cache {
     size_t line_size[CACHE_MAX_LVL][2];
     size_t assoc[CACHE_MAX_LVL][2];
     size_t numset[CACHE_MAX_LVL][2];
-} cache_t;
+};
 
 extern size_t COLOR_NUM;
 extern size_t COLOR_SIZE;
 
 void cache_enumerate();
+<<<<<<< HEAD
 void cache_flush_range(void* base, size_t size);
+=======
+void cache_flush_range(vaddr_t base, size_t size);
+>>>>>>> ca07723b54d7f114fbb3c0808b4d27e48badf6ff
 
-void cache_arch_enumerate(cache_t* dscrp);
+void cache_arch_enumerate(struct cache* dscrp);
 
 #endif /* __CACHE_H__ */
