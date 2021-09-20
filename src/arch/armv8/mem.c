@@ -19,7 +19,7 @@
 
 void as_arch_init(addr_space_t* as)
 {
-    uint64_t index;
+    size_t index;
 
     /*
      * If the address space is a copy of an existing hypervisor space it's not
@@ -34,9 +34,9 @@ void as_arch_init(addr_space_t* as)
     pt_set_recursive(&as->pt, index);
 }
 
-bool mem_translate(addr_space_t* as, void* va, uint64_t* pa)
+bool mem_translate(addr_space_t* as, void* va, intptr_t* pa)
 {
-    uint64_t par = 0, par_saved = 0;
+    size_t par = 0, par_saved = 0;
 
     /**
      * TODO: are barriers needed in this operation?
@@ -55,7 +55,7 @@ bool mem_translate(addr_space_t* as, void* va, uint64_t* pa)
         return false;
     } else {
         if (pa != NULL)
-            *pa = (par & PAR_PA_MSK) | (((uint64_t)va) & (PAGE_SIZE - 1));
+            *pa = (par & PAR_PA_MSK) | (((size_t)va) & (PAGE_SIZE - 1));
         return true;
     }
 }

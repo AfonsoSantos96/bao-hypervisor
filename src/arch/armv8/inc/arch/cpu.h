@@ -23,12 +23,12 @@
 
 typedef struct cpu_arch {
     psci_off_state_t psci_off_state;
-    size_t /*uint64_t*/ mpidr;
+    size_t mpidr;
 } cpu_arch_t;
 
-size_t /*uint64_t*/ cpu_id_to_mpidr(size_t /*uint64_t*/ id);
-long /*int64_t*/ cpu_mpidr_to_id(size_t /*uint64_t*/ mpdir);
+size_t cpu_id_to_mpidr(size_t id);
+long cpu_mpidr_to_id(size_t mpdir);
 
-extern size_t /*uint64_t*/ CPU_MASTER;
+extern size_t CPU_MASTER;
 
 #endif /* __ARCH_CPU_H__ */

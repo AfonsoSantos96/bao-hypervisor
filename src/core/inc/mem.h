@@ -41,48 +41,48 @@ enum AS_SEC {
 typedef struct {
     page_table_t pt;
     enum AS_TYPE type;
-    size_t /*uint64_t*/ colors;
-    size_t /*uint64_t*/ id;
+    size_t colors;
+    size_t id;
     spinlock_t lock;
 } addr_space_t;
 
 typedef struct {
-    size_t /*uint64_t*/ base;
+    size_t base;
     size_t size;
-    size_t /*uint64_t*/ colors;
+    size_t colors;
 } ppages_t;
 
 struct mem_region {
-    size_t /*uint64_t*/ base;
+    size_t base;
     size_t size;
-    size_t /*uint64_t*/ colors;
+    size_t colors;
     bool place_phys;
-    size_t /*uint64_t*/ phys;
+    size_t phys;
 };
 
 struct dev_region {
-    size_t /*uint64_t*/ pa;
-    size_t /*uint64_t*/ va;
+    size_t pa;
+    size_t va;
     size_t size;
     size_t interrupt_num;
-    uint64_t *interrupts;
-    size_t /*uint64_t*/ id; /* bus master id for iommu effects */
+    intptr_t *interrupts;
+    size_t id; /* bus master id for iommu effects */
 };
 
 typedef struct shmem {
-    size_t /*uint64_t*/ size;
-    size_t /*uint64_t*/ colors;
+    size_t size;
+    size_t colors;
     bool place_phys;
-    size_t /*uint64_t*/ phys;
-    size_t /*uint64_t*/ cpu_masters;
+    size_t phys;
+    size_t cpu_masters;
 } shmem_t;
 
-static inline ppages_t mem_ppages_get(uint64_t base, uint64_t size)
+static inline ppages_t mem_ppages_get(size_t base, size_t size)
 {
     return (ppages_t){.colors = 0, .base = base, .size = size};
 }
 
-static inline bool all_clrs(uint64_t clrs)
+static inline bool all_clrs(size_t clrs)
 {
     return (clrs == 0) ||
            ((clrs & ((1ULL << COLOR_NUM) - 1)) == ((1ULL << COLOR_NUM) - 1));
@@ -105,7 +105,7 @@ int mem_map_dev(addr_space_t* as, void* va, size_t base, size_t n);
 /* Functions implemented in architecture dependent files */
 
 void as_arch_init(addr_space_t* as);
-bool mem_translate(addr_space_t* as, void* va, uint64_t* pa);
+bool mem_translate(addr_space_t* as, void* va, intptr_t* pa);
 
 #endif /* |__ASSEMBLER__ */
 

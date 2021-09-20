@@ -16,17 +16,17 @@
 #include <platform.h>
 #include <arch/sysregs.h>
 
-uint64_t platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
-                                      uint64_t cpuid)
+size_t platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
+                                      size_t cpuid)
 {
     if (cpuid > plat->cpu_num) {
         return ~(~MPIDR_RES1 & MPIDR_RES0_MSK); //return an invlid mpidr by inverting res bits
     }
 
-    uint64_t mpidr = 0;
+    size_t mpidr = 0;
     bool found = false;
     if (plat->arch.clusters.num > 0) {
-        for (int i = 0, j = 0; i < plat->arch.clusters.num; i++) {
+        for (size_t i = 0, j = 0; i < plat->arch.clusters.num; i++) {
             if (cpuid < (j + plat->arch.clusters.core_num[i])) {
                 mpidr = (i << 8) | ((cpuid - j) & 0xff);
                 found = true;
@@ -54,10 +54,10 @@ uint64_t platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
     return mpidr;
 }
 
-int64_t platform_arch_mpidr_to_cpuid(const struct platform_desc* plat,
-                                      uint64_t mpidr){
-    int64_t cpuid = 0; 
-    int i = 0;
+long platform_arch_mpidr_to_cpuid(const struct platform_desc* plat,
+                                      size_t mpidr){
+    long cpuid = 0; 
+    long i = 0;
     for(i = 0; i < ((mpidr >> 8) & 0xff) && i < plat->arch.clusters.num; i++){
         cpuid = plat->arch.clusters.core_num[i];
     }

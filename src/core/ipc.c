@@ -24,16 +24,16 @@ enum {IPC_NOTIFY};
 
 typedef union {
     struct {
-        uint8_t shmem_id;
-        uint8_t event_id;
+        unsigned char shmem_id;
+        unsigned char event_id;
     };
-    uint64_t raw;
+    size_t raw;
 } ipc_msg_data_t;
 
 static size_t shmem_table_size;
 static shmem_t *shmem_table;
 
-shmem_t* ipc_get_shmem(uint64_t shmem_id) {
+shmem_t* ipc_get_shmem(size_t shmem_id) {
     if(shmem_id < shmem_table_size) {
         return &shmem_table[shmem_id];
     } else {
@@ -41,11 +41,11 @@ shmem_t* ipc_get_shmem(uint64_t shmem_id) {
     }
 }
 
-static ipc_t* ipc_find_by_shmemid(vm_t* vm, uint64_t shmem_id) {
+static ipc_t* ipc_find_by_shmemid(vm_t* vm, size_t shmem_id) {
 
     ipc_t* ipc_obj = NULL;
 
-    for(int i = 0; i < vm->ipc_num; i++) {
+    for(size_t i = 0; i < vm->ipc_num; i++) {
         if(vm->ipcs[i].shmem_id == shmem_id) {
             ipc_obj = &vm->ipcs[i];
             break;
@@ -55,15 +55,15 @@ static ipc_t* ipc_find_by_shmemid(vm_t* vm, uint64_t shmem_id) {
     return ipc_obj;
 }
 
-static void ipc_notify(uint64_t shmem_id, uint64_t event_id) {
+static void ipc_notify(size_t shmem_id, size_t event_id) {
     ipc_t* ipc_obj = ipc_find_by_shmemid(cpu.vcpu->vm, shmem_id);
     if(ipc_obj != NULL && event_id < ipc_obj->interrupt_num) {
-        int irq_id = ipc_obj->interrupts[event_id];
+        size_t irq_id = ipc_obj->interrupts[event_id];
         interrupts_vm_inject(cpu.vcpu->vm, irq_id);
     }
 }
 
-static void ipc_handler(uint32_t event, uint64_t data){
+static void ipc_handler(uint32_t event, size_t data){
     ipc_msg_data_t ipc_data = { .raw = data };
     switch(event){
         case IPC_NOTIFY: 
@@ -73,11 +73,11 @@ static void ipc_handler(uint32_t event, uint64_t data){
 }
 CPU_MSG_HANDLER(ipc_handler, IPC_CPUSMG_ID);
 
-int64_t ipc_hypercall(uint64_t arg0, uint64_t arg1, uint64_t arg2)
+long ipc_hypercall(size_t arg0, size_t arg1, size_t arg2)
 {
-    uint64_t ipc_id = arg0;
-    uint64_t ipc_event = arg1;
-    int64_t ret = -HC_E_SUCCESS;
+    size_t ipc_id = arg0;
+    size_t ipc_event = arg1;
+    long ret = -HC_E_SUCCESS;
 
     shmem_t *shmem = NULL; 
     bool valid_ipc_obj = ipc_id < cpu.vcpu->vm->ipc_num;
@@ -88,7 +88,7 @@ int64_t ipc_hypercall(uint64_t arg0, uint64_t arg1, uint64_t arg2)
 
     if(valid_ipc_obj && valid_shmem) {
 
-        uint64_t ipc_cpu_masters = shmem->cpu_masters & ~cpu.vcpu->vm->cpus;
+        size_t ipc_cpu_masters = shmem->cpu_masters & ~cpu.vcpu->vm->cpus;
 
         ipc_msg_data_t data = {
             .shmem_id = cpu.vcpu->vm->ipcs[ipc_id].shmem_id,
@@ -96,8 +96,8 @@ int64_t ipc_hypercall(uint64_t arg0, uint64_t arg1, uint64_t arg2)
         };
         cpu_msg_t msg = {IPC_CPUSMG_ID, IPC_NOTIFY, data.raw};
 
-        for (int i = 0; i < platform.cpu_num; i++) {
-            if (ipc_cpu_masters & (1ULL << i)) {
+        for (size_t i = 0; i < platform.cpu_num; i++) {
+            if (ipc_cpu_masters & (1UL << i)) {
                 cpu_send_msg(i, &msg);
             }
         }
@@ -110,7 +110,7 @@ int64_t ipc_hypercall(uint64_t arg0, uint64_t arg1, uint64_t arg2)
 }
 
 static void ipc_alloc_shmem() {
-    for (int i = 0; i < shmem_table_size; i++) {
+    for (size_t i = 0; i < shmem_table_size; i++) {
         shmem_t *shmem = &shmem_table[i];
         if(!shmem->place_phys) {
             size_t n_pg = NUM_PAGES(shmem->size);
@@ -127,14 +127,14 @@ static void ipc_setup_masters(const vm_config_t* vm_config, bool vm_master) {
     
     static spinlock_t lock = SPINLOCK_INITVAL;
 
-    for(int i = 0; i < vm_config_ptr->shmemlist_size; i++) {
+    for(size_t i = 0; i < vm_config_ptr->shmemlist_size; i++) {
         vm_config_ptr->shmemlist[i].cpu_masters = 0;
     }
 
     cpu_sync_barrier(&cpu_glb_sync);
 
     if(vm_master) {
-        for(int i = 0; i < vm_config->platform.ipc_num; i++) {
+        for(size_t i = 0; i < vm_config->platform.ipc_num; i++) {
             spin_lock(&lock);
             shmem_t *shmem = ipc_get_shmem(vm_config->platform.ipcs[i].shmem_id);
             if(shmem != NULL) {

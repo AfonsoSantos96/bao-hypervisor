@@ -19,32 +19,32 @@
 #include <bao.h>
 
 typedef struct {
-    uint64_t addr;
+    size_t addr;
     bool write;
     bool sign_ext;
     size_t width;
-    uint64_t reg;
-    uint64_t reg_width;
+    size_t reg;
+    size_t reg_width;
 } emul_access_t;
 
 typedef bool (*emul_handler_t)(emul_access_t*);
 
 typedef struct {
-    uint64_t va_base;
-    uint64_t pa_base;
-    uint64_t size;
-    uint64_t flags;
+    size_t va_base;
+    size_t pa_base;
+    size_t size;
+    size_t flags;
     emul_handler_t handler;
 } emul_mem_t;
 
 typedef struct {
-    uint64_t addr;
+    size_t addr;
     emul_handler_t handler;
 } emul_reg_t;
 
 bool emul_passthrough(emul_access_t*);
 
-static inline void emul_write(emul_access_t* emul, uint64_t val)
+static inline void emul_write(emul_access_t* emul, size_t val)
 {
     switch (emul->width) {
         case 1:
@@ -64,9 +64,9 @@ static inline void emul_write(emul_access_t* emul, uint64_t val)
     }
 }
 
-static inline uint64_t emul_read(emul_access_t* emul)
+static inline size_t emul_read(emul_access_t* emul)
 {
-    uint64_t val = 0;
+    size_t val = 0;
 
     switch (emul->width) {
         case 1:

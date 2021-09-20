@@ -71,7 +71,7 @@ typedef void (*cpu_msg_handler_t)(uint32_t event, size_t data);
     __attribute__((section(".ipi_cpumsg_handlers"), used))      \
         cpu_msg_handler_t __cpumsg_handler_##handler = handler; \
     __attribute__((section(".ipi_cpumsg_handlers_id"),          \
-                   used)) volatile const uint64_t handler_id;
+                   used)) volatile const size_t handler_id;
 
 typedef struct {
     spinlock_t lock;

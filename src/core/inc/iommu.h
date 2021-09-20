@@ -34,12 +34,12 @@ typedef struct iommu_dev {
 void iommu_init();
 
 /* iommu api for vms. */
-int iommu_vm_init(vm_t *vm, const vm_config_t *config);
-int iommu_vm_add_device(vm_t *vm, int dev_id);
+long iommu_vm_init(vm_t *vm, const vm_config_t *config);
+long iommu_vm_add_device(vm_t *vm, int dev_id);
 
 /* Must be implemented by architecture. */
-int iommu_arch_init();
-int iommu_arch_vm_init(vm_t *vm, const vm_config_t *config);
-int iommu_arch_vm_add_device(vm_t *vm, int id);
+long iommu_arch_init();
+long iommu_arch_vm_init(vm_t *vm, const vm_config_t *config);
+long iommu_arch_vm_add_device(vm_t *vm, int id);
 
 #endif

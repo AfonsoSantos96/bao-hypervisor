@@ -29,7 +29,7 @@ struct emul_node {
     };
 };
 
-static void vm_master_init(vm_t* vm, const vm_config_t* config, uint64_t vm_id)
+static void vm_master_init(vm_t* vm, const vm_config_t* config, size_t vm_id)
 {
     vm->master = cpu.id;
     vm->config = config;
@@ -62,7 +62,7 @@ void vm_vcpu_init(vm_t* vm, const vm_config_t* config)
     vcpu->phys_id = cpu.id;
     vcpu->vm = vm;
 
-    uint64_t count = 0, offset = 0;
+    size_t count = 0, offset = 0;
     while (count < vm->cpu_num) {
         if (offset == cpu.id) {
             vcpu->id = count;
@@ -96,8 +96,8 @@ static void vm_copy_img_to_rgn(vm_t* vm, const vm_config_t* config,
     }
 
     /* map new address */
-    uint64_t offset = config->image.base_addr - reg->base;
-    uint64_t dst_phys = reg->phys + offset;
+    size_t offset = config->image.base_addr - reg->base;
+    size_t dst_phys = reg->phys + offset;
     ppages_t dst_pp = mem_ppages_get(dst_phys, n_img);
     void* dst_va = mem_alloc_vpage(&cpu.as, SEC_HYP_GLOBAL, NULL, n_img);
     if (mem_map(&cpu.as, dst_va, &dst_pp, n_img, PTE_HYP_FLAGS)) {
@@ -175,9 +175,9 @@ static void vm_map_img_rgn(vm_t* vm, const vm_config_t* config,
 
 static void vm_init_mem_regions(vm_t* vm, const vm_config_t* config)
 {
-    for (int i = 0; i < config->platform.region_num; i++) {
+    for (size_t i = 0; i < config->platform.region_num; i++) {
         struct mem_region* reg = &config->platform.regions[i];
-        int img_is_in_rgn = range_in_range(
+        size_t img_is_in_rgn = range_in_range(
             config->image.base_addr, config->image.size, reg->base, reg->size);
         if (img_is_in_rgn) {
             vm_map_img_rgn(vm, config, reg);
@@ -191,7 +191,7 @@ static void vm_init_ipc(vm_t* vm, const vm_config_t* config)
 {
     vm->ipc_num = config->platform.ipc_num;
     vm->ipcs = config->platform.ipcs;
-    for (int i = 0; i < config->platform.ipc_num; i++) {
+    for (size_t i = 0; i < config->platform.ipc_num; i++) {
         ipc_t *ipc = &config->platform.ipcs[i];
         shmem_t *shmem = ipc_get_shmem(ipc->shmem_id);
         if(shmem == NULL) {
@@ -244,7 +244,7 @@ static void vm_init_dev(vm_t* vm, const vm_config_t* config)
       
 }
 
-void vm_init(vm_t* vm, const vm_config_t* config, bool master, uint64_t vm_id)
+void vm_init(vm_t* vm, const vm_config_t* config, bool master, size_t vm_id)
 {
     /**
      * Before anything else, initialize vm structure.
@@ -287,7 +287,7 @@ void vm_init(vm_t* vm, const vm_config_t* config, bool master, uint64_t vm_id)
     cpu_sync_barrier(&vm->sync);
 }
 
-vcpu_t* vm_get_vcpu(vm_t* vm, uint64_t vcpuid)
+vcpu_t* vm_get_vcpu(vm_t* vm, size_t vcpuid)
 {
     list_foreach(vm->vcpu_list, vcpu_t, vcpu)
     {
@@ -326,7 +326,7 @@ void vm_emul_add_reg(vm_t* vm, emul_reg_t* emu)
 
 }    
 
-static inline emul_handler_t vm_emul_get(vm_t* vm, enum emul_type type, uint64_t addr)
+static inline emul_handler_t vm_emul_get(vm_t* vm, enum emul_type type, size_t addr)
 {
     emul_handler_t handler = NULL;
     list_foreach(vm->emul_list, struct emul_node, node)
@@ -349,12 +349,12 @@ static inline emul_handler_t vm_emul_get(vm_t* vm, enum emul_type type, uint64_t
     return handler;
 }
 
-emul_handler_t vm_emul_get_mem(vm_t* vm, uint64_t addr)
+emul_handler_t vm_emul_get_mem(vm_t* vm, size_t addr)
 {
     return vm_emul_get(vm, EMUL_MEM, addr);
 }
 
-emul_handler_t vm_emul_get_reg(vm_t* vm, uint64_t addr)
+emul_handler_t vm_emul_get_reg(vm_t* vm, size_t addr)
 {
     return vm_emul_get(vm, EMUL_REG, addr);
 }
@@ -369,31 +369,31 @@ void vm_msg_broadcast(vm_t* vm, cpu_msg_t* msg)
     }
 }
 
-__attribute__((weak)) uint64_t vm_translate_to_pcpu_mask(vm_t* vm,
-                                                         uint64_t mask,
+__attribute__((weak)) size_t vm_translate_to_pcpu_mask(vm_t* vm,
+                                                         size_t mask,
                                                          size_t len)
 {
-    uint64_t pmask = 0;
-    int shift;
-    for (int i = 0; i < len; i++) {
-        if ((mask & (1ULL << i)) &&
+    size_t pmask = 0;
+    long shift;
+    for (size_t i = 0; i < len; i++) {
+        if ((mask & (1UL << i)) &&
             ((shift = vm_translate_to_pcpuid(vm, i)) >= 0)) {
-            pmask |= (1ULL << shift);
+            pmask |= (1UL << shift);
         }
     }
     return pmask;
 }
 
-__attribute__((weak)) uint64_t vm_translate_to_vcpu_mask(vm_t* vm,
-                                                         uint64_t mask,
+__attribute__((weak)) size_t vm_translate_to_vcpu_mask(vm_t* vm,
+                                                         size_t mask,
                                                          size_t len)
 {
-    uint64_t pmask = 0;
+    size_t pmask = 0;
     int shift;
-    for (int i = 0; i < len; i++) {
-        if ((mask & (1ULL << i)) &&
+    for (size_t i = 0; i < len; i++) {
+        if ((mask & (1UL << i)) &&
             ((shift = vm_translate_to_vcpuid(vm, i)) >= 0)) {
-            pmask |= (1ULL << shift);
+            pmask |= (1UL << shift);
         }
     }
     return pmask;

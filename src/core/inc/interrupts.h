@@ -23,7 +23,7 @@
 
 typedef struct vm vm_t;
 
-typedef void (*irq_handler_t)(uint64_t int_id);
+typedef void (*irq_handler_t)(size_t int_id);
 
 void interrupts_init();
 void interrupts_reserve(size_t int_id, irq_handler_t handler);

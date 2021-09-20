@@ -39,7 +39,7 @@ vcpu_t* vm_get_vcpu_by_mpidr(vm_t* vm, uint64_t mpidr)
     return NULL;
 }
 
-static uint64_t vm_cpuid_to_mpidr(vm_t* vm, uint64_t cpuid)
+static size_t vm_cpuid_to_mpidr(vm_t* vm, size_t cpuid)
 {
     return platform_arch_cpuid_to_mpdir(&vm->config->platform, cpuid);
 }
@@ -51,7 +51,7 @@ void vcpu_arch_init(vcpu_t* vcpu, vm_t* vm)
 
     vcpu->arch.psci_ctx.state = vcpu->id == 0 ? ON : OFF;
 
-    uint64_t root_pt_pa;
+    size_t root_pt_pa;
     mem_translate(&cpu.as, vm->as.pt.root, &root_pt_pa);
     MSR(VTTBR_EL2, ((vm->id << VTTBR_VMID_OFF) & VTTBR_VMID_MSK) |
                        (root_pt_pa & ~VTTBR_VMID_MSK));
@@ -62,7 +62,7 @@ void vcpu_arch_init(vcpu_t* vcpu, vm_t* vm)
     vgic_cpu_init(vcpu);
 }
 
-void vcpu_arch_reset(vcpu_t* vcpu, uint64_t entry)
+void vcpu_arch_reset(vcpu_t* vcpu, size_t entry)
 {
     memset(vcpu->regs, 0, sizeof(struct arch_regs));
 
@@ -85,24 +85,24 @@ void vcpu_arch_reset(vcpu_t* vcpu, uint64_t entry)
      */
 }
 
-uint64_t vcpu_readreg(vcpu_t* vcpu, uint64_t reg)
+size_t vcpu_readreg(vcpu_t* vcpu, size_t reg)
 {
     if (reg > 30) return 0;
     return vcpu->regs->x[reg];
 }
 
-void vcpu_writereg(vcpu_t* vcpu, uint64_t reg, uint64_t val)
+void vcpu_writereg(vcpu_t* vcpu, size_t reg, size_t val)
 {
     if (reg > 30) return;
     vcpu->regs->x[reg] = val;
 }
 
-uint64_t vcpu_readpc(vcpu_t* vcpu)
+size_t vcpu_readpc(vcpu_t* vcpu)
 {
     return vcpu->regs->elr_el2;
 }
 
-void vcpu_writepc(vcpu_t* vcpu, uint64_t pc)
+void vcpu_writepc(vcpu_t* vcpu, size_t pc)
 {
     vcpu->regs->elr_el2 = pc;
 }

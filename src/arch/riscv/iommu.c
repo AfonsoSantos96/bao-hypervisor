@@ -19,17 +19,17 @@
  * TODO: No IOMMU available in riscv
  */
 
-int iommu_arch_init()
+long iommu_arch_init()
 {   
     return 0;
 }
 
-inline int iommu_arch_vm_add_device(vm_t *vm, int id)
+inline long iommu_arch_vm_add_device(vm_t *vm, long id)
 {
     return 0;
 }
 
-int iommu_arch_vm_init(vm_t *vm, const vm_config_t *config)
+long iommu_arch_vm_init(vm_t *vm, const vm_config_t *config)
 {
     return 0;
 }

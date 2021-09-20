@@ -19,7 +19,7 @@
 #include <vm.h>
 
 struct iommu_device {
-    uint32_t id;
+    size_t id;
 };
 
 struct iommu_dev_node {
@@ -34,7 +34,7 @@ void iommu_init()
 }
 
 /* Configure architecture dependent stuff. */
-int iommu_vm_init(vm_t *vm, const vm_config_t *config)
+long iommu_vm_init(vm_t *vm, const vm_config_t *config)
 {
     objcache_init(&vm->iommu.dev_oc, sizeof(struct iommu_dev_node),
                   SEC_HYP_GLOBAL, false);
@@ -43,9 +43,9 @@ int iommu_vm_init(vm_t *vm, const vm_config_t *config)
 }
 
 /* Allows vms to add devices to their address space. */
-int iommu_vm_add_device(vm_t *vm, int dev_id)
+long iommu_vm_add_device(vm_t *vm, int dev_id)
 {
-    int res = -1;
+    long res = -1;
 
     /*
      * If dev_id == 0 assume global mask includes

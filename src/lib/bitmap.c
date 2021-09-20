@@ -15,7 +15,7 @@
 
 #include <bitmap.h>
 
-long int bitmap_find_nth(bitmap_t map, size_t size, size_t nth, size_t start,
+long bitmap_find_nth(bitmap_t map, long size, long nth, long start,
                         bool set)
 {
     if (size <= 0 || nth <= 0 || start < 0) return -1;
@@ -53,11 +53,11 @@ size_t bitmap_count_consecutive(bitmap_t map, size_t size, size_t start,
     return count;
 }
 
-long int bitmap_find_consec(bitmap_t map, size_t size, size_t start, size_t n,
+long bitmap_find_consec(bitmap_t map, size_t size, size_t start, size_t n,
                             bool set)
 {
     size_t count = 0;
-    long int i = 0;
+    long i = 0;
 
     // find first set
     if ((i = bitmap_find_nth(map, size, 1, start, set)) < 0) return -1;

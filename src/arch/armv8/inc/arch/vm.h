@@ -26,19 +26,19 @@ typedef struct {
 } vm_arch_t;
 
 typedef struct {
-    size_t /*uint64_t*/ vmpidr;
+    size_t vmpidr;
     vgic_priv_t vgic_priv;
     psci_ctx_t psci_ctx;
 } vcpu_arch_t;
 
 struct arch_regs {
-    size_t /*uint64_t*/ x[31];
-    size_t /*uint64_t*/ elr_el2;
-    size_t /*uint64_t*/ spsr_el2;
+    size_t x[31];
+    size_t elr_el2;
+    size_t spsr_el2;
 } __attribute__((aligned(16)));  // makes size always aligned to 16 to respect
                                  // stack alignment
 
-vcpu_t* vm_get_vcpu_by_mpidr(vm_t* vm, size_t /*uint64_t*/ mpidr);
+vcpu_t* vm_get_vcpu_by_mpidr(vm_t* vm, size_t mpidr);
 void vcpu_arch_entry();
 
 

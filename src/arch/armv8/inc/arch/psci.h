@@ -105,27 +105,27 @@ enum wakeup_reason {
         SMC Trapping
 --------------------------------- */
 
-long/*int64_t*/ psci_smc_handler(size_t /*uint64_t*/ smc_fid, size_t /*uint64_t*/ x1, size_t /*uint64_t*/ x2,
-                         size_t /*uint64_t*/ x3);
+long psci_smc_handler(size_t smc_fid, size_t x1, size_t x2,
+                         size_t x3);
 
-size_t /*uint64_t*/ psci_standby();
-size_t /*uint64_t*/ psci_power_down(size_t /*uint64_t*/ reason);
+size_t psci_standby();
+size_t psci_power_down(size_t reason);
 
 /* --------------------------------
         SMC PSCI interface
 --------------------------------- */
 
-size_t /*uint64_t*/ psci_version(void);
+size_t psci_version(void);
 
-size_t /*uint64_t*/ psci_cpu_suspend(size_t /*uint64_t*/ power_state, uintptr_t entrypoint,
-                          size_t /*uint64_t*/ context_id);
+size_t psci_cpu_suspend(size_t power_state, uintptr_t entrypoint,
+                          size_t context_id);
 
-size_t /*uint64_t*/ psci_cpu_off(void);
+size_t psci_cpu_off(void);
 
-size_t /*uint64_t*/ psci_cpu_on(size_t /*uint64_t*/ target_cpu, uintptr_t entrypoint,
-                     size_t /*uint64_t*/ context_id);
+size_t psci_cpu_on(size_t target_cpu, uintptr_t entrypoint,
+                     size_t context_id);
 
-size_t /*uint64_t*/ psci_affinity_info(size_t /*uint64_t*/ target_affinity,
-                            size_t /*uint64_t*/ lowest_affinity_level);
+size_t psci_affinity_info(size_t target_affinity,
+                            size_t lowest_affinity_level);
 
 #endif /* __PSCI_H__ */

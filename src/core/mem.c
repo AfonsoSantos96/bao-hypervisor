@@ -34,7 +34,7 @@ extern uint8_t _image_start, _image_end, _dmem_phys_beg, _dmem_beg,
 
 extern struct dev _dev_init_table_start, _dev_init_table_end;
 
-void switch_space(cpu_t *, uint64_t);
+void switch_space(cpu_t *, size_t);
 
 /**
  * An important note about sections its that they must have diferent entries
@@ -72,7 +72,7 @@ struct {
 
 typedef struct {
     node_t node;  // must be first element
-    uint64_t base;
+    size_t base;
     size_t size;
     size_t free;
     size_t last;
@@ -86,10 +86,10 @@ static objcache_t pagepool_cache;
 
 static bool config_found = false;
 
-static inline uint64_t pp_next_clr(uint64_t base, int from, uint64_t colors)
+static inline size_t pp_next_clr(size_t base, int from, size_t colors)
 {
-    uint64_t clr_offset = (base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
-    uint64_t index = from;
+    size_t clr_offset = (base / PAGE_SIZE) % (COLOR_NUM * COLOR_SIZE);
+    size_t index = from;
 
     while (!((colors >> ((index + clr_offset) / COLOR_SIZE % COLOR_NUM)) & 1))
         index++;
@@ -103,10 +103,10 @@ static void mem_free_ppages(ppages_t *ppages)
     {
         spin_lock(&pool->lock);
         if (in_range(ppages->base, pool->base, pool->size * PAGE_SIZE)) {
-            uint64_t index = (ppages->base - pool->base) / PAGE_SIZE;
+            size_t index = (ppages->base - pool->base) / PAGE_SIZE;
             if (!all_clrs(ppages->colors)) {
-                uint64_t index = 0;
-                for (int i = 0; i < ppages->size; i++) {
+                size_t index = 0;
+                for (size_t i = 0; i < ppages->size; i++) {
                     index = pp_next_clr(pool->base, index, ppages->colors);
                     bitmap_set(pool->bitmap, index++);
                 }
@@ -118,12 +118,12 @@ static void mem_free_ppages(ppages_t *ppages)
     }
 }
 
-static bool pp_alloc_clr(page_pool_t *pool, size_t n, uint64_t colors,
+static bool pp_alloc_clr(page_pool_t *pool, size_t n, size_t colors,
                          ppages_t *ppages)
 {
-    uint64_t allocated = 0;
+    size_t allocated = 0;
 
-    uint64_t first_index = 0;
+    size_t first_index = 0;
     bool ok = false;
 
     ppages->colors = colors;
@@ -135,15 +135,15 @@ static bool pp_alloc_clr(page_pool_t *pool, size_t n, uint64_t colors,
      * Lets start the search at the first available color after the last
      * known free position to the top of the pool.
      */
-    uint64_t index = pp_next_clr(pool->base, pool->last, colors);
-    uint64_t top = pool->size;
+    size_t index = pp_next_clr(pool->base, pool->last, colors);
+    size_t top = pool->size;
 
     /**
      * Two iterations. One starting from the last known free page,
      * other starting from the beggining of page pool to the start of the
      * previous iteration.
      */
-    for (int i = 0; i < 2 && !ok; i++) {
+    for (size_t i = 0; i < 2 && !ok; i++) {
         while ((allocated < n) && (index < top)) {
             allocated = 0;
 
@@ -175,7 +175,7 @@ static bool pp_alloc_clr(page_pool_t *pool, size_t n, uint64_t colors,
              */
             ppages->size = n;
             ppages->base = pool->base + (first_index * PAGE_SIZE);
-            for (int i = 0; i < n; i++) {
+            for (size_t i = 0; i < n; i++) {
                 first_index = pp_next_clr(pool->base, first_index, colors);
                 bitmap_set(pool->bitmap, first_index++);
             }
@@ -206,7 +206,7 @@ static bool pp_alloc(page_pool_t *pool, size_t n, bool aligned,
     ppages->size = 0;
 
     bool ok = false;
-    uint64_t base = -1;
+    long base = -1;
 
     if (n == 0) return base;
 
@@ -224,9 +224,9 @@ static bool pp_alloc(page_pool_t *pool, size_t n, bool aligned,
      *  - one starting from the last known free index.
      *  - in case this does not work, start from index 0.
      */
-    for (int i = 0; i < 2 && !ok; i++) {
+    for (size_t i = 0; i < 2 && !ok; i++) {
         while (pool->free != 0) {
-            int64_t bit =
+            long bit =
                 bitmap_find_consec(pool->bitmap, pool->size, curr, n, false);
 
             if (bit < 0) {
@@ -263,7 +263,7 @@ static bool pp_alloc(page_pool_t *pool, size_t n, bool aligned,
     return ok;
 }
 
-ppages_t mem_alloc_ppages(uint64_t colors, size_t n, bool aligned)
+ppages_t mem_alloc_ppages(size_t colors, size_t n, bool aligned)
 {
     ppages_t pages = {.size = 0};
 
@@ -280,7 +280,7 @@ ppages_t mem_alloc_ppages(uint64_t colors, size_t n, bool aligned)
 
 static section_t *mem_find_sec(addr_space_t *as, void *va)
 {
-    for (int i = 0; i < sections[as->type].sec_size; i++) {
+    for (size_t i = 0; i < sections[as->type].sec_size; i++) {
         if ((va >= sections[as->type].sec[i].beg) &&
             (va <= sections[as->type].sec[i].end)) {
             return &sections[as->type].sec[i];
@@ -319,7 +319,7 @@ static inline bool pt_pte_mappable(addr_space_t *as, pte_t *pte, uint64_t lvl,
 {
     return !pte_valid(pte) &&
            (pt_lvlsize(&as->pt, lvl) <= (left * PAGE_SIZE)) &&
-           (((uint64_t)vaddr % pt_lvlsize(&as->pt, lvl)) == 0) &&
+           (((size_t)vaddr % pt_lvlsize(&as->pt, lvl)) == 0) &&
            ((paddr % pt_lvlsize(&as->pt, lvl)) == 0);
 }
 
