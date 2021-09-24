@@ -9,6 +9,7 @@
         "bit.h": "c",
         "cache.h": "c",
         "vmm.h": "c",
-        "iommu.h": "c"
+        "iommu.h": "c",
+        "config.h": "c"
     }
 }
