@@ -154,7 +154,8 @@ _set_master_cpu:
 // Cache invalidation. However Cortex-R52 provides CFG signals to 
 // invalidate cache automatically out of reset (CFGL1CACHEINVDISx)
 //----------------------------------------------------------------
-
+.func cache_invalidate
+cache_invalidate:
         DSB             // Complete all outstanding explicit memory operations
 
         MOV r0, #0
@@ -228,9 +229,9 @@ setup_cpu:
 
 	mov r8, #(CPU_SIZE + (PT_SIZE*(PT_LVLS-1)))
 	adrp r3, _dmem_phys_beg
-	madd x3, x0, x8, x3								// REVIEW THIS
+	madd r3, r0, r8, r3								// REVIEW THIS
 	add r3, r3, #CPU_ROOT_PT_OFF
-	msr HTTBR, x3
+	msr HTTBR, r3
 
 	/* set up cpu stack */
 	mov r3, #(SPSel_SP)								
@@ -304,7 +305,7 @@ clear:
 2:
 	cmp	r10, r11			
 	b.ge 1f				
-	str	xzr, [r10], #8			// REVIEW XZR register on this instruction
+//	str	xzr, [r10], #8			// REVIEW XZR register on this situation
 	b	2b				
 1:
 	ret
@@ -312,25 +313,24 @@ clear:
 
 
 
-/******		Still have to work from this on	 ******/
 
 .global psci_boot_entry
 .func psci_boot_entry
 psci_boot_entry:
 warm_boot:
 
-	adr	x3, _hyp_vector_table
-	msr	VBAR_EL2, x3
+	adr	r3, _hyp_vector_table
+	msr	HVBAR, r3
 
 	/* save x0 which contains pointer to saved state psci context */
-	mov x19, x0
+//	mov x19, x0
     	/* invalidate l1$ */
 	mov x0, #0
 	bl	cache_invalidate
 
 	/* restore all needed register state */
-	ldp x5, x6, [x19, #0]
-	msr TCR_EL2, x5
+/* 	ldp x5, x6, [x19, #0]
+	msr HTCR, r5
 	msr TTBR0_EL2, x6
 	ldp x5, x6, [x19, #16]
 	msr MAIR_EL2, x5
@@ -344,46 +344,46 @@ warm_boot:
     ldp x0, x5, [x19, #64]   /* wake up reason is the arg of the later psci_wake call */
 
 	/* map original bootstrap flat mappings */
-	mrs x3, TTBR0_EL2
-	adrp x1, _image_start
-	PTE_INDEX_ASM x1, x1, 0 
-	add x3, x3, x1
-	dc civac, x3  //we invalidated l1$, but make sure the pte is not in l2$
-	add x5, x5, #(PTE_HYP_FLAGS | PTE_TABLE)
-	str x5, [x3]
+	mrs r3, HTTBR
+	adrp r1, _image_start
+	PTE_INDEX_ASM r1, r1, 0 
+	add r3, r3, r1
+	//dc civac, r3  //we invalidated l1$, but make sure the pte is not in l2$
+	add r5, r5, #(PTE_HYP_FLAGS | PTE_TABLE)
+	str r5, [r3]
 
 	/* Install vector table virtual address*/
-	ldr	x3, =_hyp_vector_table
-	msr	VBAR_EL2, x3
+	ldr	r3, =_hyp_vector_table
+	msr	HVBAR, r3
 
-    tlbi	alle2 
+    tlbiall
 	dsb	nsh
 	isb
 
 	/* Enable MMU and caches */
-	ldr x4, =(SCTLR_RES1 | SCTLR_M | SCTLR_C | SCTLR_I)
-	msr	SCTLR_EL2, x4
+//	ldr x4, =(SCTLR_RES1 | SCTLR_M | SCTLR_C | SCTLR_I)
+//	msr	SCTLR_EL2, x4
 
-	dsb	nsh
-	isb
+//	dsb	nsh
+//	isb
 	
-	ldr x5, =_enter_vas_warm
-	br  x5		
+	ldr r5, =_enter_vas_warm
+	br  r5		
 
 _enter_vas_warm:
 	/* Unmap bootstrat flat mappings */
-	ldr x4, =cpu
-	add x3, x4, #(CPU_STACK_OFF+CPU_STACK_SIZE)
+	ldr r4, =cpu
+	add r3, r4, #(CPU_STACK_OFF+CPU_STACK_SIZE)
 
-	add x4, x4, #CPU_ROOT_PT_OFF
-	PTE_INDEX_ASM x5, x1, 0 
-	str xzr, [x4, x5]
-    tlbi	alle2
+	add r4, r4, #CPU_ROOT_PT_OFF
+	PTE_INDEX_ASM r5, r1, 0 
+	str r0, [r4, r5]
+    tlbiall
 	dsb	nsh
 	isb
 
     /* Initialize stack pointer */
-    mov sp, x3
+    mov sp, r3
 
 	bl	psci_wake
 	b 	.
