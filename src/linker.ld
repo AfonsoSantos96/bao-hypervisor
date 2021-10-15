@@ -98,9 +98,8 @@ SECTIONS
 		*(.devices)
 	}
 
-	. = ALIGN(PAGE_SIZE);
-	_dmem_beg = ABSOLUTE(.);
-	_cpu_if_base = ABSOLUTE(.);
+
+
 	
 	/* Global dynamic memory virtual address space here */
 

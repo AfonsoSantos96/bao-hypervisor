@@ -108,9 +108,10 @@ static inline void cpu_sync_barrier(struct cpu_synctoken* token)
 
 static inline struct cpuif* cpu_if(cpuid_t cpu_id)
 {
-    return (struct cpuif*)(((vaddr_t)&_cpu_if_base) +
+    return (((vaddr_t)&_cpu_if_base) +
            (cpu_id * ALIGN(sizeof(struct cpuif), PAGE_SIZE)));
 }
+
 
 void cpu_init(cpuid_t cpu_id, paddr_t load_addr);
 void cpu_send_msg(cpuid_t cpu, struct cpu_msg* msg);

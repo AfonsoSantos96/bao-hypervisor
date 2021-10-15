@@ -50,18 +50,15 @@ _reset_handler:
 	 * Not following any ABI for registers in this boot code.
 	 * The following registers are however reserved to be passed to main
 	 * as arguments:
-	 * 		x0  -> contains cpu id
-	 *		x1  -> contains image base load address
-	 *		x2  -> contains config binary load address (passed in x0) 
-	 *		x10 -> contains the size of the image
+	 * 		x0 -> contains cpu id
+	 *		x1 -> contains image base load address
+	 *		x2 -> contains config binary load address (passed in x0) 
 	 * Register x9 is reserved to indicate if the current cpu is master (negated)
 	 */
 
 	mov x2, x0
 	mrs  x0, MPIDR_EL1
 	adrp x1, _image_start
-	adrp x3, _image_end
-	sub x10, x3, x1
 
 	/* 
 	 * Install vector table physical address early, in case exception occurs
@@ -82,7 +79,6 @@ _reset_handler:
 	adr x4, platform
 	ldr x4, [x4, PLAT_ARCH_OFF+PLAT_ARCH_CLUSTERS_OFF+PLAT_CLUSTERS_CORES_NUM_OFF]
 	ldr x5, =BAO_VAS_BASE
-	madd x5, x10, x0, x5		// addr_base = addr_base + offset * cpu_id   	x10 -> code ofsset
 	sub x4, x4, x5
 	add x4, x4, x1
 	mov x5, xzr
@@ -153,21 +149,12 @@ _set_master_cpu:
 
 	ic iallu
 
-	/* Skip initialy global page tables setup if not bsp (boot cpu) */
+//	/* Skip initialy global page tables setup if not bsp (boot cpu) */
 	cbnz	x9, wait_for_bsp
 
 	adr	x16, _page_tables_start	
 	adr	x17, _page_tables_end	
 	bl	clear				
-
-	/*
-	 *
-	 * x0  -> cpu_id
-	 * x10 -> code offset	
-	 * x11 -> aux
-	 *
-	 */
-
 
 	/* Set temporary flat mapping to switch to VAS. */
 
@@ -179,17 +166,13 @@ _set_master_cpu:
 	/* Set global root mappings for hypervisor image */
 
 	adr x4, root_l1_pt
-	ldr x11, =BAO_VAS_BASE
-	madd x11, x10, x0, x11
-	ldr x5, =(PTE_INDEX(1, x11)*8)
+	ldr x5, =(PTE_INDEX(1, BAO_VAS_BASE)*8)
 	adr x6, root_l2_pt
 	add x6, x6, #(PTE_HYP_FLAGS | PTE_TABLE)
 	str x6, [x4, x5]
 
 	adr x4, root_l2_pt
-	ldr x11, =BAO_VAS_BASE
-	madd x11, x10, x0, x11
-	ldr x5, =(PTE_INDEX(2, x11)*8)
+	ldr x5, =(PTE_INDEX(2, BAO_VAS_BASE)*8)
 	adr x6, root_l3_pt
 	add x6, x6, #(PTE_HYP_FLAGS | PTE_TABLE)
 	str x6, [x4, x5]
@@ -223,20 +206,22 @@ wait_for_bsp:
 	cmp x4, #1
 	b.lt wait_for_bsp
 
-map_cpu:			// Mapeia as regioes internas de cada cpu
+map_cpu:
 	/**
-	 *    x3 -> cpu base phys
-	 *    x4 -> current pt base phys
-	 *    x5 -> pte index
-	 *    x6 -> phys addr
-	 *    x7 -> virt addr
-	 *    x8 -> aux 
+	 *    x3  -> cpu base phys
+	 *    x4  -> current pt base phys
+	 *    x5  -> pte index
+	 *    x6  -> phys addr
+	 *    x7  -> virt addr
+	 *    x8  -> aux 
+	 *	  x10 -> stores the size of the cpu structure  	 
 	 */
 
 	/* get cpu root pt */
 	mov x8, #(CPU_SIZE + (PT_SIZE*(PT_LVLS-1)))
 	adrp x3, _dmem_phys_beg
 	madd x3, x0, x8, x3
+	mov x10, #CPU_SIZE
 	
 	mov	x16, x3	
 	add	x17, x3, x8
@@ -251,16 +236,13 @@ map_cpu:			// Mapeia as regioes internas de cada cpu
 	add x6, x6, #(PTE_HYP_FLAGS | PTE_TABLE)
 	str x6, [x4, x5]
 	
-	ldr x11, =BAO_VAS_BASE
-	madd x11, x10, x0, x11
-	ldr x5, =(PTE_INDEX(0, x11)*8)
+	ldr x5, =(PTE_INDEX(0, BAO_VAS_BASE)*8)
 	adr x6, root_l1_pt
 	add x6, x6, #(PTE_HYP_FLAGS | PTE_TABLE)
 	str x6, [x4, x5]
 
-	ldr x11, =BAO_CPU_BASE
-	madd x11, x10, x0, x11
-	ldr x5, =(PTE_INDEX(0, x11)*8)
+	ldr x5, =(PTE_INDEX(0, BAO_CPU_BASE)*8)
+	madd x5, x0, x10, x5
 	//add x6, x4, #PT_SIZE
     add x6, x3, #CPU_SIZE
 	add x6, x6, #(PTE_HYP_FLAGS | PTE_TABLE)
@@ -268,25 +250,23 @@ map_cpu:			// Mapeia as regioes internas de cada cpu
 
 	//add x4, x4, #PT_SIZE
     add x4, x3, #CPU_SIZE
-	ldr x11, =BAO_CPU_BASE
-	madd x11, x10, x0, x11
-	ldr x5, =(PTE_INDEX(1, x11)*8)
+	ldr x5, =(PTE_INDEX(1, BAO_CPU_BASE)*8)
+	madd x5, x0, x10, x5
 	add x6, x4, #PT_SIZE
 	add x6, x6, #(PTE_HYP_FLAGS | PTE_TABLE)
 	str x6, [x4, x5]
 
 	add x4, x4, #PT_SIZE
-	ldr x11, =BAO_CPU_BASE
-	madd x11, x10, x0, x11
-	ldr x5, =(PTE_INDEX(2, x11)*8)
+	ldr x5, =(PTE_INDEX(2, BAO_CPU_BASE)*8)
+	madd x5, x0, x10, x5
 	add x6, x4, #PT_SIZE
 	add x6, x6, #(PTE_HYP_FLAGS | PTE_TABLE)
 	str x6, [x4, x5]
 
 	add x4, x4, #PT_SIZE
-	ldr x11, =BAO_CPU_BASE
-	madd x11, x10, x0, x11
-	add x8, x11, #CPU_SIZE
+	ldr x7, =BAO_CPU_BASE
+	madd x7, x0, x10, x7
+	add x8, x7, #CPU_SIZE
 	mov x6, x3
 	add x6, x6, #(PTE_HYP_FLAGS | PTE_TABLE)
 1:
