@@ -52,4 +52,11 @@ void platform_defines()
     DEFINE_OFFSET(PLAT_ARCH_OFF, struct platform_desc, arch);
     DEFINE_OFFSET(PLAT_ARCH_CLUSTERS_OFF, struct arch_platform, clusters);
     DEFINE_OFFSET(PLAT_CLUSTERS_CORES_NUM_OFF, struct clusters, core_num);
+    DEFINE_SYMBOL(PLAT_GICD_BASE_ADDR, (platform.arch.gic.gicd_addr));
+    DEFINE_SYMBOL(PLAT_GICC_BASE_ADDR, (platform.arch.gic.gicc_addr));
+    DEFINE_SYMBOL(PLAT_GICH_BASE_ADDR, (platform.arch.gic.gich_addr));
+    DEFINE_SYMBOL(PLAT_GICV_BASE_ADDR, (platform.arch.gic.gicv_addr));
+    DEFINE_SYMBOL(PLAT_GICR_BASE_ADDR, (platform.arch.gic.gicr_addr));
+    DEFINE_SYMBOL(PLAT_CPU_NUM, (platform.cpu_num));
+    DEFINE_SYMBOL(PLAT_CONSOLE_BASE,(platform.console.base)); 
 }

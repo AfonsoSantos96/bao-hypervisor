@@ -1,6 +1,6 @@
 #include <platform.h>
 
-struct platform_desc platform = {
+const struct platform_desc platform = {
 
     .cpu_num = 4,
 

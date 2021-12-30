@@ -13,4 +13,4 @@
  #
 ##
 
-boards-objs-y+=hikey960_desc.o
+boards-objs-y+=platform_desc.o

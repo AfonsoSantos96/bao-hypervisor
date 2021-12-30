@@ -117,10 +117,11 @@ ld_script:= $(src_dir)/linker.ld
 ld_script_temp:= $(build_dir)/linker_temp.ld
 deps+=$(ld_script_temp).d
 
+asm_defs:=$(cur_dir)/build/$(PLATFORM)/arch/$(ARCH)
 asm_defs_src:=$(cpu_arch_dir)/asm_defs.c
 asm_defs_hdr:=$(patsubst $(src_dir)%, $(build_dir)%, \
 	$(cpu_arch_dir))/inc/asm_defs.h
-inc_dirs+=$(patsubst $(src_dir)%, $(build_dir)%, $(cpu_arch_dir))/inc
+inc_dirs+=$(patsubst $(src_dir)%, $(build_dir)%, $(cpu_arch_dir)% $(asm_defs))/inc
 deps+=$(asm_defs_hdr).d
 
 gens:=
@@ -164,10 +165,11 @@ ifeq (, $(findstring $(MAKECMDGOALS), clean $(submakes)))
 -include $(deps)
 endif
 
-$(ld_script_temp).d: $(ld_script) 
+$(ld_script_temp).d: $(ld_script) $(asm_defs_hdr)
 	@echo "Creating dependency	$(patsubst $(cur_dir)/%, %, $<)"
 	@$(cc) -x assembler-with-cpp  -MM -MT "$(ld_script_temp) $@" \
-		$(addprefix -I, $(inc_dirs))  $< > $@
+		$(addprefix -I, $(inc_dirs)) $< > $@
+	$(shell rm temp.c)
 
 $(build_dir)/%.d : $(src_dir)/%.[c,S] | $(gens)
 	@echo "Creating dependency	$(patsubst $(cur_dir)/%, %, $<)"
@@ -187,7 +189,10 @@ $(objs-y):
 ifneq ($(wildcard $(asm_defs_src)),)
 $(asm_defs_hdr): $(asm_defs_src)
 	@echo "Generating header	$(patsubst $(cur_dir)/%, %, $@)"
-	@$(cc) -S $(CFLAGS) $< -o - \
+	$(shell cat $(platform_dir)/platform_desc.c > temp.c)
+	$(shell cat $(asm_defs_src) >> temp.c)
+
+	@$(cc) -S -c $(CFLAGS) temp.c -o - \
 		| awk '($$1 == "->") { print "#define " $$2 " " $$3 }' > $@
 
 $(asm_defs_hdr).d: $(asm_defs_src)

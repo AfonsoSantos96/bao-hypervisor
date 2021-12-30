@@ -44,6 +44,6 @@ struct platform_desc {
     struct arch_platform arch;
 };
 
-extern struct platform_desc platform;
+extern const struct platform_desc platform;
 
 #endif /* __PLATFORM_H__ */

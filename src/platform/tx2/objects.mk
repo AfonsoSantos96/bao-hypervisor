@@ -14,4 +14,4 @@
  #
 ##
 
-boards-objs-y+=tx2_desc.o
+boards-objs-y+=platform_desc.o

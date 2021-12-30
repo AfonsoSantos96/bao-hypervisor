@@ -5,7 +5,6 @@
  *
  * Authors:
  *      Jose Martins <jose.martins@bao-project.org>
- *      Angelo Ruocco <angeloruocco90@gmail.com>
  *
  * Bao is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License version 2 as published by the Free
@@ -16,36 +15,30 @@
 
 #include <platform.h>
 
-struct platform_desc platform = {
+const struct platform_desc platform = {
+
     .cpu_num = 4,
-    .region_num = (RPI4_MEM_GB > 1) ? 2: 1,
+    .region_num = 1,
     .regions =  (struct mem_region[]) {
-        {   
-            /* 
-             * - 0x8000 at the bottom reserved for atf
-             * - 0x4c00000 (76 MiB) at the top reserved for gpu (depends on 
-             * gpu_mem in config.txt. this is the default)
-             */
-            .base = 0x80000,
-            .size = 0x40000000 - 0x80000 - 0x4c00000
-        },
         {
             .base = 0x40000000,
-            .size = ((RPI4_MEM_GB-1) * 0x40000000ULL) - 0x4000000
+            .size = 0x100000000 
         }
     },
 
     .console = {
-        .base = 0xfe215000
+        .base = 0x9000000
     },
 
     .arch = {
         .gic = {
-            .gicd_addr = 0xff841000,
-            .gicc_addr = 0xff842000,
-            .gich_addr = 0xff844000,
-            .gicv_addr = 0xff846000,
+            .gicd_addr = 0x08000000,
+            .gicc_addr = 0x08010000,
+            .gich_addr = 0x08030000,
+            .gicv_addr = 0x08040000,
+            .gicr_addr = 0x080A0000,
             .maintenance_id = 25
         },
     }
+
 };

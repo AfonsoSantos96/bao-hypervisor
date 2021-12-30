@@ -13,4 +13,4 @@
  #
 ##
 
-boards-objs-y+=rpi4_desc.o
+boards-objs-y+=platform_desc.o

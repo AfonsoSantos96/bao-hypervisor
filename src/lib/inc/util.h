@@ -47,6 +47,9 @@
 
 #define DEFINE_SIZE(SYMBOL, TYPE) \
     asm volatile("\n-> " XSTR(SYMBOL) " %0 \n" : : "i"(sizeof(TYPE)))
+    
+#define DEFINE_SYMBOL(SYMBOL, TYPE) \
+    asm volatile("\n-> " XSTR(SYMBOL) " %0 \n" : : "i"(TYPE))
 
 #define max(n1, n2) (((n1) > (n2)) ? (n1) : (n2))
 #define min(n1, n2) (((n1) < (n2)) ? (n1) : (n2))

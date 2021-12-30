@@ -13,4 +13,4 @@
  #
 ##
 
-boards-objs-y+=imx8qm_desc.o
+boards-objs-y+=platform_desc.o
