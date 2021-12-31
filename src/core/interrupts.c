@@ -50,7 +50,7 @@ inline void interrupts_init()
 {
     interrupts_arch_init();
 
-    if (cpu.id == CPU_MASTER) {
+    if (cpu()->id == CPU_MASTER) {
         interrupts_reserve(IPI_CPU_MSG, cpu_msg_handler);
     }
 
@@ -69,8 +69,8 @@ inline void interrupts_vm_inject(struct vm *vm, irqid_t id)
 
 enum irq_res interrupts_handle(irqid_t int_id)
 {
-    if (vm_has_interrupt(cpu.vcpu->vm, int_id)) {
-        interrupts_vm_inject(cpu.vcpu->vm, int_id);
+    if (vm_has_interrupt(cpu()->vcpu->vm, int_id)) {
+        interrupts_vm_inject(cpu()->vcpu->vm, int_id);
 
         return FORWARD_TO_VM;
 

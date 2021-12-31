@@ -56,10 +56,10 @@ static struct ipc* ipc_find_by_shmemid(struct vm* vm, size_t shmem_id) {
 }
 
 static void ipc_notify(size_t shmem_id, size_t event_id) {
-    struct ipc* ipc_obj = ipc_find_by_shmemid(cpu.vcpu->vm, shmem_id);
+    struct ipc* ipc_obj = ipc_find_by_shmemid(cpu()->vcpu->vm, shmem_id);
     if(ipc_obj != NULL && event_id < ipc_obj->interrupt_num) {
         irqid_t irq_id = ipc_obj->interrupts[event_id];
-        interrupts_vm_inject(cpu.vcpu->vm, irq_id);
+        interrupts_vm_inject(cpu()->vcpu->vm, irq_id);
     }
 }
 
@@ -79,18 +79,18 @@ unsigned long ipc_hypercall(unsigned long ipc_id, unsigned long ipc_event,
     unsigned long ret = -HC_E_SUCCESS;
 
     struct shmem *shmem = NULL; 
-    bool valid_ipc_obj = ipc_id < cpu.vcpu->vm->ipc_num;
+    bool valid_ipc_obj = ipc_id < cpu()->vcpu->vm->ipc_num;
     if(valid_ipc_obj) {
-        shmem = ipc_get_shmem(cpu.vcpu->vm->ipcs[ipc_id].shmem_id);
+        shmem = ipc_get_shmem(cpu()->vcpu->vm->ipcs[ipc_id].shmem_id);
     }
     bool valid_shmem = shmem != NULL;
 
     if(valid_ipc_obj && valid_shmem) {
 
-        cpumap_t ipc_cpu_masters = shmem->cpu_masters & ~cpu.vcpu->vm->cpus;
+        cpumap_t ipc_cpu_masters = shmem->cpu_masters & ~cpu()->vcpu->vm->cpus;
 
         union ipc_msg_data data = {
-            .shmem_id = cpu.vcpu->vm->ipcs[ipc_id].shmem_id,
+            .shmem_id = cpu()->vcpu->vm->ipcs[ipc_id].shmem_id,
             .event_id = ipc_event,
         };
         struct cpu_msg msg = {IPC_CPUSMG_ID, IPC_NOTIFY, data.raw};
@@ -137,7 +137,7 @@ static void ipc_setup_masters(const struct vm_config* vm_config, bool vm_master)
             spin_lock(&lock);
             struct shmem *shmem = ipc_get_shmem(vm_config->platform.ipcs[i].shmem_id);
             if(shmem != NULL) {
-                shmem->cpu_masters |= (1ULL << cpu.id);
+                shmem->cpu_masters |= (1ULL << cpu()->id);
             }
             spin_unlock(&lock);
         }
@@ -149,7 +149,7 @@ void ipc_init(const struct vm_config* vm_config, bool vm_master) {
     shmem_table_size = vm_config_ptr->shmemlist_size;
     shmem_table = vm_config_ptr->shmemlist;
     
-    if(cpu.id == CPU_MASTER) {
+    if(cpu()->id == CPU_MASTER) {
         ipc_alloc_shmem();
     }
 

@@ -260,6 +260,7 @@ map_cpu:
 
 	add x4, x4, #PT_SIZE
 	ldr x7, =BAO_CPU_BASE
+	msr TPIDR_EL2, x7
 	add x8, x7, #CPU_SIZE
 	mov x6, x3
 	add x6, x6, #(PTE_HYP_FLAGS | PTE_TABLE)
@@ -276,10 +277,14 @@ map_cpu_interface:
 
 	adr x4, root_l3_pt
 
-	add x6, x3, #CPU_IF_OFF
+	ldr x6, =_cpu_if_base
+	ldr x8, =BAO_VAS_BASE
+	sub x6, x6, x8
+	/* x6 stores the  physical cpu_if address */
+	add x6, x6, x1
 	add x6, x6, #(PTE_HYP_FLAGS | PTE_TABLE)
 
-	mov x8, #CPU_IF_SIZE
+	mov x8, #CPU_IF_SIZE_SECTION
 	ldr x7, =_dmem_beg
 	madd x7, x0, x8, x7
 	add x8, x8, x7
@@ -326,7 +331,7 @@ setup_cpu:
 	/* set up cpu stack */
 	mov x3, #(SPSel_SP)								
 	msr SPSEL, x3	
-	ldr x3, =cpu
+	ldr x3, =BAO_CPU_BASE
 	add x3, x3, #(CPU_STACK_OFF + CPU_STACK_SIZE)
 	mov SP, x3
 
@@ -360,7 +365,7 @@ _enter_vas:
 	msr	VBAR_EL2, x3
 
 	/* Remove temporary mapping - the L1 page holding it leaks */
-	ldr x4, =cpu
+	ldr x4, =BAO_CPU_BASE
 	add x4, x4, #CPU_ROOT_PT_OFF
 	PTE_INDEX_ASM x5, x1, 0 
 	str xzr, [x4, x5]
@@ -499,7 +504,8 @@ warm_boot:
 
 _enter_vas_warm:
 	/* Unmap bootstrat flat mappings */
-	ldr x4, =cpu
+	ldr x4, =BAO_CPU_BASE
+	// TODO: Calculate offset when not using virtualization
 	add x3, x4, #(CPU_STACK_OFF+CPU_STACK_SIZE)
 
 	add x4, x4, #CPU_ROOT_PT_OFF

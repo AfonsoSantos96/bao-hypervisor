@@ -75,7 +75,7 @@ switch_space:
      */
 
     /* Get current CPU space stack start */
-    ldr x7, =cpu
+    mrs x7, TPIDR_EL2 
     add x7, x7, #(CPU_STACK_OFF + CPU_STACK_SIZE)
 
     /* Calculate stack size */

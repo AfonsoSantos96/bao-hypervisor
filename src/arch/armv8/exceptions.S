@@ -70,7 +70,7 @@
     mrs x1, SPSR_EL2
     stp x0, x1,   [sp, #(8*31)]
 
-    ldr x0, =cpu
+    mrs x0, TPIDR_EL2
     ldr x0, [x0, #CPU_VCPU_OFF]
     mov x1, sp
     str x1, [x0, #VCPU_REGS_OFF]
@@ -79,7 +79,7 @@
 
 .global vcpu_arch_entry
 vcpu_arch_entry:
-    ldr x0, =cpu
+    mrs x0, TPIDR_EL2
     ldr x0, [x0, #CPU_VCPU_OFF]
     ldr x0, [x0, #VCPU_REGS_OFF]
     mov sp, x0

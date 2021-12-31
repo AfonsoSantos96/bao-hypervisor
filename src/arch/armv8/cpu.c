@@ -25,7 +25,7 @@ cpuid_t CPU_MASTER __attribute__((section(".data")));
 /* Perform architecture dependent cpu cores initializations */
 void cpu_arch_init(cpuid_t cpuid, paddr_t load_addr)
 {   
-    cpu.arch.mpidr = MRS(MPIDR_EL1);
+    cpu()->arch.mpidr = MRS(MPIDR_EL1);
     if (cpuid == CPU_MASTER) {
         /* power on necessary, but still sleeping, secondary cpu cores
          * Assumes CPU zero is doing this */
@@ -59,7 +59,7 @@ void cpu_arch_idle()
                 asm volatile("wfi");
                 break;
             default:
-                ERROR("PSCI cpu%d power down failed with error %ld", cpu.id, err);
+                ERROR("PSCI cpu%d power down failed with error %ld", cpu()->id, err);
         }
     }
 
@@ -67,6 +67,6 @@ void cpu_arch_idle()
      * Power down was sucessful but did not jump to requested entry
      * point. Manually rewind stack and jump to idle wake up.
      */
-    asm volatile("mov sp, %0\n\r" ::"r"(&cpu.stack[STACK_SIZE]));
+    asm volatile("mov sp, %0\n\r" ::"r"(&cpu()->stack[STACK_SIZE]));
     cpu_idle_wakeup();
 }

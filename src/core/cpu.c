@@ -26,8 +26,6 @@ struct cpu_msg_node {
     struct cpu_msg msg;
 };
 
-struct cpu cpu __attribute__((section(".cpu_private")));
-
 struct cpu_synctoken cpu_glb_sync = {.ready = false};
 
 struct objcache msg_cache;
@@ -39,12 +37,14 @@ size_t ipi_cpumsg_handler_num;
 
 void cpu_init(cpuid_t cpu_id, paddr_t load_addr)
 {
+    struct list *event_list = (struct list *) (_cpu_if_base*( PAGE_SIZE * (cpu()->id)));
+
     cpu_arch_init(cpu_id, load_addr);
 
-    cpu.id = cpu_id;
-    list_init(&cpu.interface.event_list);
+    cpu()->id = cpu_id;
+    list_init(event_list);
 
-    if (cpu.id == CPU_MASTER) {
+    if (cpu()->id == CPU_MASTER) {
         cpu_sync_init(&cpu_glb_sync, platform.cpu_num);
         objcache_init(&msg_cache, sizeof(struct cpu_msg_node), SEC_HYP_GLOBAL,
                       false);
@@ -72,8 +72,9 @@ void cpu_send_msg(cpuid_t trgtcpu, struct cpu_msg *msg)
 
 bool cpu_get_msg(struct cpu_msg *msg)
 {
+    struct list *event_list = (struct list *) (_cpu_if_base*( PAGE_SIZE * (cpu()->id)));
     struct cpu_msg_node *node = NULL;
-    if ((node = (struct cpu_msg_node *)list_pop(&cpu.interface.event_list)) !=
+    if ((node = (struct cpu_msg_node *)list_pop(event_list)) !=
         NULL) {
         *msg = node->msg;
         objcache_free(&msg_cache, node);
@@ -112,8 +113,8 @@ void cpu_idle_wakeup()
         cpu_msg_handler();
     }
 
-    if (cpu.vcpu != NULL) {
-        vcpu_run(cpu.vcpu);
+    if (cpu()->vcpu != NULL) {
+        vcpu_run(cpu()->vcpu);
     } else {
         cpu_idle();
     }

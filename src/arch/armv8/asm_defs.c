@@ -18,6 +18,8 @@
 #include <vm.h>
 #include <platform.h>
 
+const unsigned long IF_size = ( (PAGE_SIZE) * (platform.cpu_num) );
+
 void cpu_defines() __attribute__((used));
 void cpu_defines()
 {
@@ -27,9 +29,6 @@ void cpu_defines()
 
     DEFINE_OFFSET(CPU_STACK_OFF, struct cpu, stack);
     DEFINE_SIZE(CPU_STACK_SIZE, ((struct cpu*)NULL)->stack);
-
-    DEFINE_OFFSET(CPU_IF_OFF, struct cpu, interface);
-    DEFINE_SIZE(CPU_IF_SIZE, ((struct cpu*)NULL)->interface);
 
     DEFINE_OFFSET(CPU_VCPU_OFF, struct cpu, vcpu);
 
@@ -59,4 +58,5 @@ void platform_defines()
     DEFINE_SYMBOL(PLAT_GICR_BASE_ADDR, (platform.arch.gic.gicr_addr));
     DEFINE_SYMBOL(PLAT_CPU_NUM, (platform.cpu_num));
     DEFINE_SYMBOL(PLAT_CONSOLE_BASE,(platform.console.base)); 
+    DEFINE_SYMBOL(CPU_IF_SIZE_SECTION, IF_size);
 }

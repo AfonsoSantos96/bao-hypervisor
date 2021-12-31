@@ -49,13 +49,8 @@ struct cpu {
 
     uint8_t stack[STACK_SIZE] __attribute__((aligned(PAGE_SIZE)));
 
-    /******************* PUBLIC INTERFACE  **************************/
-
-    struct cpuif interface __attribute__((aligned(PAGE_SIZE)));
-
 } __attribute__((aligned(PAGE_SIZE)));
 
-extern struct cpu cpu;
 
 struct cpu_msg {
     uint32_t handler;
@@ -111,6 +106,12 @@ static inline struct cpuif* cpu_if(cpuid_t cpu_id)
     return (struct cpuif*)(((vaddr_t)&_cpu_if_base) +
            (cpu_id * ALIGN(sizeof(struct cpuif), PAGE_SIZE)));
 }
+
+static inline struct cpu* cpu()
+{
+    return (struct cpu*)(MRS(TPIDR_EL2));
+}
+
 
 void cpu_init(cpuid_t cpu_id, paddr_t load_addr);
 void cpu_send_msg(cpuid_t cpu, struct cpu_msg* msg);
