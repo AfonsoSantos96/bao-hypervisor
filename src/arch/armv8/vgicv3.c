@@ -37,7 +37,7 @@ bool vgic_int_vcpu_is_target(struct vcpu *vcpu, struct vgic_int *interrupt)
     bool priv = gic_is_priv(interrupt->id);
     bool local = priv && (interrupt->phys.redist == vcpu->phys_id);
     bool routed_here =
-        !priv && !(interrupt->phys.route ^ (MRS(MPIDR_EL1) & MPIDR_AFF_MSK));
+        !priv && !(interrupt->phys.route ^ (1/*MRS(MPIDR_EL1)*/ & MPIDR_AFF_MSK));
     bool any = !priv && vgic_broadcast(vcpu, interrupt);
     return local || routed_here || any;
 }
@@ -46,7 +46,7 @@ bool vgic_int_has_other_target(struct vcpu *vcpu, struct vgic_int *interrupt)
 {
     bool priv = gic_is_priv(interrupt->id);
     bool routed_here =
-        !priv && !(interrupt->phys.route ^ (MRS(MPIDR_EL1) & MPIDR_AFF_MSK));
+        !priv && !(interrupt->phys.route ^ (1/*MRS(MPIDR_EL1)*/ & MPIDR_AFF_MSK));
     bool route_valid = interrupt->phys.route != GICD_IROUTER_INV;
     bool any = !priv && vgic_broadcast(vcpu, interrupt);
     return any || (!routed_here && route_valid);
@@ -145,10 +145,10 @@ struct vgic_reg_handler_info irouter_info = {
     0b1000,
     VGIC_IROUTER_ID,
     offsetof(struct gicd_hw, IROUTER),
-    64,
-    vgic_int_get_route,
-    vgic_int_set_route,
-    vgic_int_set_route_hw,
+    32,//64,
+   // vgic_int_get_route,
+   // vgic_int_set_route,
+   // vgic_int_set_route_hw,
 };
 
 struct vgic_reg_handler_info vgicr_ctrl_info = {
@@ -260,7 +260,7 @@ bool vgic_icc_sre_handler(struct emul_access *acc)
 
 void vgic_init(struct vm *vm, const struct gic_dscrp *gic_dscrp)
 {
-    vm->arch.vgicr_addr = gic_dscrp->gicr_addr;
+  /*  vm->arch.vgicr_addr = gic_dscrp->gicr_addr;
     vm->arch.vgicd.CTLR = 0;
     size_t vtyper_itln = vgic_get_itln(gic_dscrp);
     vm->arch.vgicd.int_num = 32 * (vtyper_itln + 1);
@@ -320,7 +320,7 @@ void vgic_init(struct vm *vm, const struct gic_dscrp *gic_dscrp)
 
     struct emul_reg icc_sre_emu = {.addr = SYSREG_ENC_ADDR(3, 0, 12, 12, 5),
                               .handler = vgic_icc_sre_handler};
-    vm_emul_add_reg(vm, &icc_sre_emu);
+    vm_emul_add_reg(vm, &icc_sre_emu);*/
 }
 
 void vgic_cpu_init(struct vcpu *vcpu)

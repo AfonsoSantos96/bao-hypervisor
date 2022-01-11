@@ -109,7 +109,7 @@ static inline struct cpuif* cpu_if(cpuid_t cpu_id)
 
 static inline struct cpu* cpu()
 {
-    return (struct cpu*)(MRS(TPIDR_EL2));
+    return (struct cpu*) 0x34000; //(MRS(HTPIDR));
 }
 
 

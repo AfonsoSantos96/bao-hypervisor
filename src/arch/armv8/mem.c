@@ -36,21 +36,21 @@ void as_arch_init(struct addr_space* as)
 
 bool mem_translate(struct addr_space* as, vaddr_t va, paddr_t* pa)
 {
-    uint64_t par = 0, par_saved = 0;
+    uint64_t par = 0;//, par_saved = 0;
 
     /**
      * TODO: are barriers needed in this operation?
      */
 
-    par_saved = MRS(PAR_EL1);
+    //par_saved = 0;//MRS(PAR_EL1);
 
-    if (as->type == AS_HYP || as->type == AS_HYP_CPY)
+ /*  if (as->type == AS_HYP || as->type == AS_HYP_CPY)
         asm volatile("AT S1E2W, %0" ::"r"(va));
     else
         asm volatile("AT S12E1W, %0" ::"r"(va));
-
-    par = MRS(PAR_EL1);
-    MSR(PAR_EL1, par_saved);
+ */
+    par = 0;//MRS(PAR_EL1);
+    //MSR(PAR_EL1, par_saved);
     if (par & PAR_F) {
         return false;
     } else {

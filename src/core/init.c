@@ -31,19 +31,19 @@ void init(cpuid_t cpu_id, paddr_t load_addr, paddr_t config_addr)
      */
 
     cpu_init(cpu_id, load_addr);
-    mem_init(load_addr, config_addr);
+    //mem_init(load_addr, config_addr);
 
     /* -------------------------------------------------------------- */
 
-    if (cpu()->id == CPU_MASTER) {
+    //if (cpu()->id == CPU_MASTER) {
         console_init();
         printk("Bao Hypervisor\n\r");
-    }
+    //}
 
     interrupts_init();
-
+/*
     vmm_init();
-
+*/
     /* Should never reach here */
     while (1);
 }

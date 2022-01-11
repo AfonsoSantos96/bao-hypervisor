@@ -47,15 +47,15 @@ static unsigned long vm_cpuid_to_mpidr(struct vm* vm, vcpuid_t cpuid)
 void vcpu_arch_init(struct vcpu* vcpu, struct vm* vm)
 {
     vcpu->arch.vmpidr = vm_cpuid_to_mpidr(vm, vcpu->id);
-    MSR(VMPIDR_EL2, vcpu->arch.vmpidr);
+    //MSR(VMPIDR_EL2, vcpu->arch.vmpidr);
 
     vcpu->arch.psci_ctx.state = vcpu->id == 0 ? ON : OFF;
 
     paddr_t root_pt_pa;
     mem_translate(&cpu()->as, (vaddr_t)vm->as.pt.root, &root_pt_pa);
-    MSR(VTTBR_EL2, ((vm->id << VTTBR_VMID_OFF) & VTTBR_VMID_MSK) |
+ /*   MSR(VTTBR_EL2, ((vm->id << VTTBR_VMID_OFF) & VTTBR_VMID_MSK) |
                        (root_pt_pa & ~VTTBR_VMID_MSK));
-
+*/
     ISB();  // make sure vmid is commited befor tlbi
     tlb_vm_inv_all(vm->id);
 
@@ -69,15 +69,15 @@ void vcpu_arch_reset(struct vcpu* vcpu, vaddr_t entry)
     vcpu->regs->elr_el2 = entry;
     vcpu->regs->spsr_el2 = SPSR_EL1h | SPSR_F | SPSR_I | SPSR_A | SPSR_D;
 
-    MSR(CNTVOFF_EL2, 0);
+    //MSR(CNTVOFF_EL2, 0);
 
     /**
      *  See ARMv8-A ARM section D1.9.1 for registers that must be in a known
      * state at reset.
      */
-    MSR(SCTLR_EL1, SCTLR_RES1);
-    MSR(CNTKCTL_EL1, 0);
-    MSR(PMCR_EL0, 0);
+    //MSR(SCTLR_EL1, SCTLR_RES1);
+    //MSR(CNTKCTL_EL1, 0);
+    //MSR(PMCR_EL0, 0);
 
     /**
      *  TODO: ARMv8-A ARM mentions another implementation optional registers

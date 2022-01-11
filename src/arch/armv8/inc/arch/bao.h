@@ -22,6 +22,14 @@
 #define BAO_VAS_TOP     (0xff0000000000)
 #define PAGE_SIZE       (0x1000)
 
+/* For Cortex-R52 */
+#define BAO_AS_BASE    (0x80000000)
+
+#define RW_Access 0b01            // AP[2:1]
+#define Non_Shareable 0b00        // SH[1:0]
+#define ENable 0b1                // Bit 0
+#define AttrIndx0 0b000           // AttrIndx[2:0]
+
 #ifndef __ASSEMBLER__
 
 

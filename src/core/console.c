@@ -23,20 +23,24 @@
 #include <fences.h>
 #include <spinlock.h>
 
-volatile bao_uart_t uart
-    __attribute__((section(".devices"), aligned(PAGE_SIZE)));
+extern volatile bao_uart_t uart;
 bool ready = false;
 static spinlock_t print_lock = SPINLOCK_INITVAL;
 
 void console_init()
 {
-    if((platform.console.base & PAGE_OFFSET_MASK) != 0) {
+    if((platform.console.base & PAGE_OFFSET_MASK) != 0) {                   // TODO: review alignement
         WARNING("console base must be page aligned");
     }
 
-    mem_map_dev(&cpu()->as, (vaddr_t)&uart, platform.console.base,
-                NUM_PAGES(sizeof(uart)));
+    //mem_map_dev(&cpu()->as, (vaddr_t)&uart, platform.console.base,        // Replace with MPU region 
+    //            NUM_PAGES(sizeof(uart)));
+    
 
+        /* Config MPU region from "uart" to "uart + uart_size" */
+    //uint32_t uart_size = sizeof(struct Pl011_Uart_hw);
+        
+    
     fence_sync_write();
 
     uart_init(&uart);

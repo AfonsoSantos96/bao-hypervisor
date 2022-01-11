@@ -120,7 +120,7 @@ static void smmu_check_features()
     size_t ipasize = bit32_extract(smmu.hw.glbl_rs0->IDR2, SMMUV2_IDR2_IAS_OFF,
                               SMMUV2_IDR2_IAS_LEN);
     size_t parange = 0;
-    parange = MRS(ID_AA64MMFR0_EL1);
+    parange = 0;//MRS(ID_AA64MMFR0_EL1);
     parange &= ID_AA64MMFR0_PAR_MSK;
 
     if (pasize < parange) {
@@ -215,24 +215,24 @@ ssize_t smmu_alloc_ctxbnk()
     return nth;
 }
 
-static size_t smmu_cb_ttba_offset(size_t t0sz)
-{
-    size_t offset = 12;
+//static size_t smmu_cb_ttba_offset(size_t t0sz)
+//{
+//    size_t offset = 12;
 
-    if (parange_table[parange] < 44) {
-        /* SMMUV2_TCR_SL0_1 */
-        if (t0sz >= 21 && t0sz <= 33) {
-            offset = 37 - t0sz;
-        }
-    } else {
-        /* SMMUV2_TCR_SL0_0 */
-        if (t0sz >= 16 && t0sz <= 24) {
-            offset = 28 - t0sz;
-        }
-    }
+//    if (parange_table[parange] < 44) {
+//        /* SMMUV2_TCR_SL0_1 */
+//        if (t0sz >= 21 && t0sz <= 33) {
+//            offset = 37 - t0sz;
+//        }
+//    } else {
+//        /* SMMUV2_TCR_SL0_0 */
+//        if (t0sz >= 16 && t0sz <= 24) {
+//            offset = 28 - t0sz;
+//        }
+//    }
 
-    return offset;
-}
+ //   return offset;
+//}
 
 void smmu_write_ctxbnk(size_t ctx_id, paddr_t root_pt, asid_t vm_id)
 {

@@ -37,7 +37,7 @@ size_t ipi_cpumsg_handler_num;
 
 void cpu_init(cpuid_t cpu_id, paddr_t load_addr)
 {
-    struct list *event_list = (struct list *) (_cpu_if_base*( PAGE_SIZE * (cpu()->id)));
+    struct list *event_list = (struct list *) (cpu_if(cpu()->id));
 
     cpu_arch_init(cpu_id, load_addr);
 

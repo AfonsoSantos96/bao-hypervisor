@@ -30,26 +30,26 @@
  *      x7: source address
  */
 memcpy:
-        mov x4, #0
-1:
+/*        mov x4, #0
+1:*/
         /* Copy two words */
-        ldp x2, x3, [x7]
+/*        ldp x2, x3, [x7]
         stp x2, x3, [x0]
-
+*/
         /* Increment addressess and count accordingly */
-        add x7, x7, 8
+  /*      add x7, x7, 8
         add x0, x0, 8
         add x4, x4, 8
-
+*/
         /* If count is less then size, repeat */
-        cmp x4, x5
-        b.le 1b
+ //       cmp x4, x5
+  //      b.le 1b
 
         /* Restore original addresses */
-        sub x7, x7, x4
+  /*      sub x7, x7, x4
         sub x0, x0, x4
-
-        ret
+*/
+        eret
 
 /**
  * Switch to a new address:
@@ -64,55 +64,55 @@ switch_space:
     * update flat maping page table entry  to feature new physical address space 
     * entry page
     */
-    adr x3, _image_start
+/*    adr x3, _image_start
     PTE_INDEX_ASM x4, x3, 1
     adr x5, root_l1_flat_pt
     add x3, x3, #(PTE_HYP_FLAGS | PTE_TABLE)
     str x3, [x5, x4]
-
+*/
     /**
      * Copy the stack
      */
 
     /* Get current CPU space stack start */
-    mrs x7, TPIDR_EL2 
-    add x7, x7, #(CPU_STACK_OFF + CPU_STACK_SIZE)
+//    mrs x7, TPIDR_EL2 
+//    add x7, x7, #(CPU_STACK_OFF + CPU_STACK_SIZE)
 
     /* Calculate stack size */
-    mov x8, sp
-    sub x5, x7, x8
+//    mov x8, sp
+//    sub x5, x7, x8
 
     /* Get current CPU space current sp */
-    mov x7, sp
+//    mov x7, sp
 
     /* Get new CPU space current sp */
-    add x0, x0, #(CPU_STACK_OFF + CPU_STACK_SIZE)
-    sub x0, x0, x5
+//    add x0, x0, #(CPU_STACK_OFF + CPU_STACK_SIZE)
+ //   sub x0, x0, x5
 
     /* Copy */
-    mov x8, x30
-    bl      memcpy
-    mov x30, x8
+//    mov x8, x30
+//    bl      memcpy
+//    mov x30, x8
 
     /**
      * Invalidate TLB
      */
-    dsb ishst
+/*    dsb ishst
     tlbi alle2
     dsb ish
     isb
-
+*/
     /**
      * Update TTBR
      */
 
     /* Update value of TTBR0_EL2 */
-	msr TTBR0_EL2, x1
+/* 	msr TTBR0_EL2, x1
     dsb ish
     isb
 
     tlbi alle2
     dsb ish
     isb
-
-    ret
+*/
+    eret

@@ -22,91 +22,91 @@
 .text 
 
 .macro SAVE_HYP_GPRS
-
+ /* 
     sub sp, sp, 32*8
 
-    stp x0, x1,   [sp, #(8*0)]
-    stp x2, x3,   [sp, #(8*2)]
-    stp x4, x5,   [sp, #(8*4)]
-    stp x6, x7,   [sp, #(8*6)]
-    stp x8, x9,   [sp, #(8*8)]
-    stp x10, x11, [sp, #(8*10)]
-    stp x12, x13, [sp, #(8*12)]
-    stp x14, x15, [sp, #(8*14)]
-    stp x16, x17, [sp, #(8*16)]
-    stp x18, x19, [sp, #(8*18)]
-    stp x20, x21, [sp, #(8*20)]
-    stp x22, x23, [sp, #(8*22)]
-    stp x24, x25, [sp, #(8*24)]
-    stp x26, x27, [sp, #(8*26)]
-    stp x28, x29, [sp, #(8*28)]
-    mov x29, sp 
-    add x29, x29, 32*8
-    stp x30, x29, [sp, #(8*30)]
-
+    stp r0, r1,   [sp, #(8*0)]
+    stp r2, r3,   [sp, #(8*2)]
+    stp r4, r5,   [sp, #(8*4)]
+    stp r6, r7,   [sp, #(8*6)]
+    stp r8, r9,   [sp, #(8*8)]
+    stp r10, r11, [sp, #(8*10)]
+    stp r12, r13, [sp, #(8*12)]
+    stp r14, r15, [sp, #(8*14)]
+    stp r16, r17, [sp, #(8*16)]
+    stp r18, r19, [sp, #(8*18)]
+    stp r20, r21, [sp, #(8*20)]
+    stp r22, r23, [sp, #(8*22)]
+    stp r24, r25, [sp, #(8*24)]
+    stp r26, r27, [sp, #(8*26)]
+    stp r28, r29, [sp, #(8*28)]
+    mov r29, sp 
+    add r29, r29, 32*8
+    stp r30, r29, [sp, #(8*30)]
+*/
 .endm
 
 .macro VM_EXIT
-    sub sp, sp, #(VCPU_REGS_SIZE)
+ /*   sub sp, sp, #(VCPU_REGS_SIZE)
 
-    stp x0, x1,   [sp, #(8*0)]
-    stp x2, x3,   [sp, #(8*2)]
-    stp x4, x5,   [sp, #(8*4)]
-    stp x6, x7,   [sp, #(8*6)]
-    stp x8, x9,   [sp, #(8*8)]
-    stp x10, x11, [sp, #(8*10)]
-    stp x12, x13, [sp, #(8*12)]
-    stp x14, x15, [sp, #(8*14)]
-    stp x16, x17, [sp, #(8*16)]
-    stp x18, x19, [sp, #(8*18)]
-    stp x20, x21, [sp, #(8*20)]
-    stp x22, x23, [sp, #(8*22)]
-    stp x24, x25, [sp, #(8*24)]
-    stp x26, x27, [sp, #(8*26)]
-    stp x28, x29, [sp, #(8*28)]
-    str x30,      [sp, #(8*30)]
+    stp r0, r1,   [sp, #(8*0)]
+    stp r2, r3,   [sp, #(8*2)]
+    stp r4, r5,   [sp, #(8*4)]
+    stp r6, r7,   [sp, #(8*6)]
+    stp r8, r9,   [sp, #(8*8)]
+    stp r10, r11, [sp, #(8*10)]
+    stp r12, r13, [sp, #(8*12)]
+    stp r14, r15, [sp, #(8*14)]
+    stp r16, r17, [sp, #(8*16)]
+    stp r18, r19, [sp, #(8*18)]
+    stp r20, r21, [sp, #(8*20)]
+    stp r22, r23, [sp, #(8*22)]
+    stp r24, r25, [sp, #(8*24)]
+    stp r26, r27, [sp, #(8*26)]
+    stp r28, r29, [sp, #(8*28)]
+    str r30,      [sp, #(8*30)]
 
-    mrs x0, ELR_EL2
-    mrs x1, SPSR_EL2
-    stp x0, x1,   [sp, #(8*31)]
+    mrs r0, ELR_EL2
+    mrs r1, SPSR_EL2
+    stp r0, r1,   [sp, #(8*31)]
 
-    mrs x0, TPIDR_EL2
-    ldr x0, [x0, #CPU_VCPU_OFF]
-    mov x1, sp
-    str x1, [x0, #VCPU_REGS_OFF]
-
+    mrs r0, TPIDR_EL2
+    ldr r0, [r0, #CPU_VCPU_OFF]
+    mov r1, sp
+    str r1, [r0, #VCPU_REGS_OFF]
+*/
 .endm
 
 .global vcpu_arch_entry
 vcpu_arch_entry:
-    mrs x0, TPIDR_EL2
-    ldr x0, [x0, #CPU_VCPU_OFF]
-    ldr x0, [x0, #VCPU_REGS_OFF]
-    mov sp, x0
+ /*   mrs r0, TPIDR_EL2
+    ldr r0, [r0, #CPU_VCPU_OFF]
+    ldr r0, [r0, #VCPU_REGS_OFF]
+    mov sp, r0
 
-    ldp x0, x1, [sp, #(8*31)]
-    msr ELR_EL2, x0
-    msr SPSR_EL2, x1
+    ldp r0, r1, [sp, #(8*31)]
+    msr ELR_EL2, r0
+    msr SPSR_EL2, r1
 
-    ldp x0, x1,   [sp, #(8*0)]
-    ldp x2, x3,   [sp, #(8*2)]
-    ldp x4, x5,   [sp, #(8*4)]
-    ldp x6, x7,   [sp, #(8*6)]
-    ldp x8, x9,   [sp, #(8*8)]
-    ldp x10, x11, [sp, #(8*10)]
-    ldp x12, x13, [sp, #(8*12)]
-    ldp x14, x15, [sp, #(8*14)]
-    ldp x16, x17, [sp, #(8*16)]
-    ldp x18, x19, [sp, #(8*18)]
-    ldp x20, x21, [sp, #(8*20)]
-    ldp x22, x23, [sp, #(8*22)]
-    ldp x24, x25, [sp, #(8*24)]
-    ldp x26, x27, [sp, #(8*26)]
-    ldp x28, x29, [sp, #(8*28)]
-    ldr x30,      [sp, #(8*30)]
+    ldp r0, r1,   [sp, #(8*0)]
+    ldp r2, r3,   [sp, #(8*2)]
+    ldp r4, r5,   [sp, #(8*4)]
+    ldp r6, r7,   [sp, #(8*6)]
+    ldp r8, r9,   [sp, #(8*8)]
+    ldp r10, r11, [sp, #(8*10)]
+    ldp r12, r13, [sp, #(8*12)]
+    ldp r14, r15, [sp, #(8*14)]
+    ldp r16, r17, [sp, #(8*16)]
+    ldp r18, r19, [sp, #(8*18)]
+    ldp r20, r21, [sp, #(8*20)]
+    ldp r22, r23, [sp, #(8*22)]
+    ldp r24, r25, [sp, #(8*24)]
+    ldp r26, r27, [sp, #(8*26)]
+    ldp r28, r29, [sp, #(8*28)]
+    ldr r30,      [sp, #(8*30)]
 
     add sp, sp, #(VCPU_REGS_SIZE)
-    
+*/    
     eret
     b   .
 
@@ -137,7 +137,7 @@ curr_el_sp0_serror:
 .balign ENTRY_SIZE  
 curr_el_spx_sync:
     SAVE_HYP_GPRS
-    mov x0, sp
+    mov r0, sp
     bl	internal_abort_handler        
     b	.
 .balign ENTRY_SIZE
@@ -149,7 +149,7 @@ curr_el_spx_fiq:
 .balign ENTRY_SIZE
 curr_el_spx_serror:
     SAVE_HYP_GPRS
-    mov x0, sp
+    mov r0, sp
     bl	internal_abort_handler       
     b	.         
 

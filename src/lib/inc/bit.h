@@ -24,9 +24,9 @@
  * the corner case of runtime full machine word length masks with the cost of
  * an extra shift instruction. For static masks, there should be no extra costs.
  */
-#define BIT32_MASK(OFF, LEN) ((((UINT32_C(1)<<((LEN)-1))<<1)-1)<<(OFF))
-#define BIT64_MASK(OFF, LEN) ((((UINT64_C(1)<<((LEN)-1))<<1)-1)<<(OFF))
-#define BIT_MASK(OFF, LEN) (((((1UL)<<((LEN)-1))<<1)-1)<<(OFF))
+#define BIT32_MASK(OFF, LEN) (0)
+#define BIT64_MASK(OFF, LEN) (0)
+#define BIT_MASK(OFF, LEN) (0)
 
 #ifndef __ASSEMBLER__
 

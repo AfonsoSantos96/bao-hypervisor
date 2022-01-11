@@ -70,7 +70,7 @@ pte_t* pt_get_pte(struct page_table* pt, size_t lvl, vaddr_t va)
     addr |= ((rec_ind << rec_ind_off) & rec_ind_mask);
     addr |= (((va >> pt->dscr->lvl_off[lvl]) * sizeof(pte_t)) & (mask));
 
-    return (pte_t*)addr;
+    return 0;//(pte_t*)addr;
 }
 
 pte_t* pt_get(struct page_table* pt, size_t lvl, vaddr_t va)

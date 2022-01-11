@@ -101,7 +101,7 @@ void vgicd_emul_sgiregs_access(struct emul_access *acc,
     }
 }
 
-struct vgic_reg_handler_info itargetr_info = {
+/*struct vgic_reg_handler_info itargetr_info = {
     vgic_emul_generic_access,
     0b0101,
     VGIC_ITARGETSR_ID,
@@ -115,7 +115,7 @@ struct vgic_reg_handler_info itargetr_info = {
 struct vgic_reg_handler_info sgir_info = {
     vgicd_emul_sgiregs_access,
     0b0100,
-};
+};*/
 
 void vgic_inject_sgi(struct vcpu *vcpu, struct vgic_int *interrupt, vcpuid_t source)
 {

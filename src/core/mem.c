@@ -262,7 +262,7 @@ static bool pp_alloc(struct page_pool *pool, size_t n, bool aligned,
 
 struct ppages mem_alloc_ppages(colormap_t colors, size_t n, bool aligned)
 {
-    struct ppages pages = {.size = 0};
+    /*struct ppages pages = {.size = 0};
 
     list_foreach(page_pool_list, struct page_pool, pool)
     {
@@ -272,7 +272,7 @@ struct ppages mem_alloc_ppages(colormap_t colors, size_t n, bool aligned)
         if (ok) break;
     }
 
-    return pages;
+    return pages;*/
 }
 
 static struct section *mem_find_sec(struct addr_space *as, vaddr_t va)

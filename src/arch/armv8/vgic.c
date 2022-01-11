@@ -41,7 +41,7 @@ extern volatile const uint64_t VGIC_IPI_ID;
 #define VGIC_MSG_VAL(DATA) ((DATA)&0xff)
 
 void vgic_ipi_handler(uint32_t event, uint64_t data);
-CPU_MSG_HANDLER(vgic_ipi_handler, VGIC_IPI_ID);
+CPU_MSG_HANDLER(vgic_ipi_handler, VGIC_IPI_ID2);
 
 static inline struct vgic_int *vgic_get_int(struct vcpu *vcpu, irqid_t int_id,
                                        vcpuid_t vgicr_id)
@@ -130,7 +130,7 @@ void vgic_yield_ownership(struct vcpu *vcpu, struct vgic_int *interrupt)
 
 void vgic_send_sgi_msg(struct vcpu *vcpu, cpumap_t pcpu_mask, irqid_t int_id)
 {
-    struct cpu_msg msg = {
+    /*struct cpu_msg msg = {
         VGIC_IPI_ID, VGIC_INJECT,
         VGIC_MSG_DATA(cpu()->vcpu->vm->id, 0, int_id, 0, cpu()->vcpu->id)};
 
@@ -138,7 +138,7 @@ void vgic_send_sgi_msg(struct vcpu *vcpu, cpumap_t pcpu_mask, irqid_t int_id)
         if (pcpu_mask & (1ull << i)) {
             cpu_send_msg(i, &msg);
         }
-    }
+    }*/
 }
 
 void vgic_route(struct vcpu *vcpu, struct vgic_int *interrupt)
@@ -152,15 +152,15 @@ void vgic_route(struct vcpu *vcpu, struct vgic_int *interrupt)
     }
 
     if (!interrupt->in_lr && vgic_int_has_other_target(vcpu, interrupt)) {
-        struct cpu_msg msg = {
+       /* struct cpu_msg msg = {
             VGIC_IPI_ID, VGIC_ROUTE,
-            VGIC_MSG_DATA(vcpu->vm->id, vcpu->id, interrupt->id, 0, 0)};
+            VGIC_MSG_DATA(vcpu->vm->id, vcpu->id, interrupt->id, 0, 0)};*/
         vgic_yield_ownership(vcpu, interrupt);
         cpumap_t trgtlist =
             vgic_int_ptarget_mask(vcpu, interrupt) & ~(1ull << vcpu->phys_id);
         for (size_t i = 0; i < platform.cpu_num; i++) {
             if (trgtlist & (1ull << i)) {
-                cpu_send_msg(i, &msg);
+                //cpu_send_msg(i, &msg);
             }
         }
     }
@@ -382,10 +382,10 @@ void vgicd_emul_misc_access(struct emul_access *acc,
                     vcpu_readreg(cpu()->vcpu, acc->reg) & VGIC_ENABLE_MASK;
                 if (prev_ctrl ^ vgicd->CTLR) {
                     vgic_update_enable(cpu()->vcpu);
-                    struct cpu_msg msg = {
+                    /*struct cpu_msg msg = {
                         VGIC_IPI_ID, VGIC_UPDATE_ENABLE,
                         VGIC_MSG_DATA(cpu()->vcpu->vm->id, 0, 0, 0, 0)};
-                    vm_msg_broadcast(cpu()->vcpu->vm, &msg);
+                    vm_msg_broadcast(cpu()->vcpu->vm, &msg);*/
                 }
             } else {
                 vcpu_writereg(cpu()->vcpu, acc->reg,
@@ -624,10 +624,10 @@ void vgic_int_set_field(struct vgic_reg_handler_info *handlers, struct vcpu *vcp
         vgic_route(vcpu, interrupt);
         vgic_yield_ownership(vcpu, interrupt);
     } else {
-        struct cpu_msg msg = {VGIC_IPI_ID, VGIC_SET_REG,
+        /*struct cpu_msg msg = {VGIC_IPI_ID, VGIC_SET_REG,
                          VGIC_MSG_DATA(vcpu->vm->id, 0, interrupt->id,
                                        handlers->regid, data)};
-        cpu_send_msg(interrupt->owner->phys_id, &msg);
+        cpu_send_msg(interrupt->owner->phys_id, &msg);*/
     }
     spin_unlock(&interrupt->lock);
 }
@@ -636,7 +636,7 @@ void vgic_emul_generic_access(struct emul_access *acc,
                               struct vgic_reg_handler_info *handlers,
                               bool gicr_access, cpuid_t vgicr_id)
 {
-    size_t field_width = handlers->field_width;
+    /*size_t field_width = handlers->field_width;
     size_t first_int =
         (GICD_REG_MASK(acc->addr) - handlers->regroup_base) * 8 / field_width;
     uint64_t val = acc->write ? vcpu_readreg(cpu()->vcpu, acc->reg) : 0;
@@ -661,7 +661,7 @@ void vgic_emul_generic_access(struct emul_access *acc,
 
     if (!acc->write) {
         vcpu_writereg(cpu()->vcpu, acc->reg, val);
-    }
+    }*/
 }
 
 struct vgic_reg_handler_info isenabler_info = {
@@ -767,12 +767,12 @@ struct vgic_reg_handler_info razwi_info = {
     0b0100,
 };
 
-__attribute__((weak)) struct vgic_reg_handler_info itargetr_info = {
+/*__attribute__((weak)) struct vgic_reg_handler_info itargetr_info = {
     vgic_emul_razwi,
     0b0101,
-};
+};*/
 
-__attribute__((weak)) struct vgic_reg_handler_info sgir_info = {
+/*__attribute__((weak)) struct vgic_reg_handler_info sgir_info = {
     vgic_emul_razwi,
     0b0100,
 };
@@ -780,7 +780,7 @@ __attribute__((weak)) struct vgic_reg_handler_info sgir_info = {
 __attribute__((weak)) struct vgic_reg_handler_info irouter_info = {
     vgic_emul_razwi,
     0b0100,
-};
+};*/
 
 struct vgic_reg_handler_info *reg_handler_info_table[VGIC_REG_HANDLER_ID_NUM] =
     {[VGIC_ISENABLER_ID] = &isenabler_info,
@@ -790,9 +790,9 @@ struct vgic_reg_handler_info *reg_handler_info_table[VGIC_REG_HANDLER_ID_NUM] =
      [VGIC_ICPENDR_ID] = &icpendr_info,
      [VGIC_ICACTIVER_ID] = &iactiver_info,
      [VGIC_ICFGR_ID] = &icfgr_info,
-     [VGIC_IROUTER_ID] = &irouter_info,
+     [VGIC_IROUTER_ID] = 0,//&irouter_info,
      [VGIC_IPRIORITYR_ID] = &ipriorityr_info,
-     [VGIC_ITARGETSR_ID] = &itargetr_info};
+     [VGIC_ITARGETSR_ID] = 0};//&itargetr_info};
 
 struct vgic_reg_handler_info 
     *vgic_get_reg_handler_info(enum vgic_reg_handler_info_id id)
@@ -817,7 +817,7 @@ bool vgic_check_reg_alignment(struct emul_access *acc,
 
 bool vgicd_emul_handler(struct emul_access *acc)
 {
-    struct vgic_reg_handler_info *handler_info = NULL;
+    /*struct vgic_reg_handler_info *handler_info = NULL;
     switch (GICD_REG_MASK(acc->addr) >> 7) {
         case GICD_REG_GROUP(CTLR):
             handler_info = &vgicd_misc_info;
@@ -860,16 +860,16 @@ bool vgicd_emul_handler(struct emul_access *acc)
                 handler_info = &razwi_info;
             }
         }
-    }
+    }*/
 
-    if (vgic_check_reg_alignment(acc, handler_info)) {
+    /*if (vgic_check_reg_alignment(acc, handler_info)) {
         spin_lock(&cpu()->vcpu->vm->arch.vgicd.lock);
         handler_info->reg_access(acc, handler_info, false, cpu()->vcpu->id);
         spin_unlock(&cpu()->vcpu->vm->arch.vgicd.lock);
         return true;
     } else {
         return false;
-    }
+    }*/
 }
 
 void vgic_inject(struct vgicd *vgicd, irqid_t id, vcpuid_t source)

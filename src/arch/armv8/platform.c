@@ -20,7 +20,7 @@ unsigned long platform_arch_cpuid_to_mpdir(const struct platform_desc* plat,
                                       cpuid_t cpuid)
 {
     if (cpuid > plat->cpu_num) {
-        return ~(~MPIDR_RES1 & MPIDR_RES0_MSK); //return an invlid mpidr by inverting res bits
+        return 0;//~(~MPIDR_RES1 & MPIDR_RES0_MSK); //return an invlid mpidr by inverting res bits
     }
 
     unsigned long mpidr = 0;

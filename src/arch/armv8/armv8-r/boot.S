@@ -58,13 +58,13 @@ _reset_handler:
 
 	mov r2, r0
 	mrc p15, 0, r0, c0, c0, 5       // Read MPIDR
-	ldr r1, =_image_start
+	adr r1, _image_start
 
 	/* 
 	 * Install vector table physical address early, in case exception occurs
 	 * during this initialization.
 	 */
-	ldr	r3, =_hyp_vector_table
+	adr	r3, _hyp_vector_table
 	mcr p15, 4, r3, c12, c0, 0       // Write HVBAR
 
 
@@ -76,11 +76,11 @@ _reset_handler:
 	 */
 
 	mov r3, r0, lsr #8 
-	and r3, r3, #0xff
-	ldr r4, =platform
-	ldr r4, [r4, #(PLAT_ARCH_OFF+PLAT_ARCH_CLUSTERS_OFF+PLAT_CLUSTERS_CORES_NUM_OFF)]
-	ldr r5, =BAO_AS_BASE
-	sub r4, r4, r5													//////////////////////// REVIEW THIS PART!!!!!!!!!!!!!!
+	and r3, r3, 0xff
+	adr r4, platform
+	ldr r4, [r4, PLAT_ARCH_OFF+PLAT_ARCH_CLUSTERS_OFF+PLAT_CLUSTERS_CORES_NUM_OFF]
+	ldr r5, =BAO_VAS_BASE
+	sub r4, r4, r5
 	add r4, r4, r1
 	mov r5, #0
 	mov r7, #0
@@ -107,14 +107,14 @@ _master_set:
  * As a result r9 should be set to !is_cpu_master
  */
 _set_master_cpu:
-	ldr	r3, =_master_set
+	adr	r3, _master_set
 	ldr r9, [r3]
 	cmp r9, #0
 	bne 7f
 	mov	r9, #1
 	str r9, [r3]
 	mov r9, #0
-	ldr r3, =CPU_MASTER
+	adr r3, CPU_MASTER
 	str r0, [r3]
 7: 
 
@@ -129,14 +129,11 @@ _set_master_cpu:
 	mov sp, r3
 
 	/* Disable caches and MPU */
-	mrc p15, 0, r8, c1, c0, 0       // Read SCTLR
-//	mcr p15, 4, r8, c1, c0, 0		// HSCTRL ->  EL2-MPU
-
-    bic r8, r8, #0x05               // Disable MPU (M bit) and data cache (C bit)
-    bic r8, r8, #0x1000             // Disable instruction cache (I bit)
+	mrc p15, 0, r0, c1, c0, 0       // Read SCTLR
+    bic r0, r0, #0x05               // Disable MPU (M bit) and data cache (C bit)
+    bic r0, r0, #0x1000             // Disable instruction cache (I bit)
     dsb                             // Ensure all previous loads/stores have completed
- //   mcr p15, 4, r8, c1, c0, 0		///// HSCTRL ->  EL2-MPU
-    mcr p15, 0, r8, c1, c0, 0       // Write SCTLR
+    mcr p15, 0, r0, c1, c0, 0       // Write SCTLR
     isb                             // Ensure subsequent insts execute wrt new MPU settings
 
 
@@ -157,95 +154,87 @@ _set_master_cpu:
 	mov r1,	r11
 	mov r2,	r12
 
-	/* this instruction ignores the r10 value */
-	mcr p15, 0, r10, c7, c5, 0		// iciallu
+	iciallu
+
 
 map_cpu:
 	/**
-	 *    r3 -> cpu_X base phys
-	 *    r4 -> cpu if base
-	 *	  r7 -> aux
+	 *    r3 -> cpu base phys
+	 *    r4 -> current pt base phys
+	 *    r5 -> pte index
+	 *    r6 -> phys addr
 	 *    r8 -> aux 
 	 */
 
 	/* get CPUs base address */
 	mov r8, #CPU_IF_SIZE_SECTION
-	ldr r3, =_cpu_if_base
+	adr r3, _cpu_if_base
 	add r3, r3, r8
-
-	/* get self CPU_X base address */
-	mov r7, #CPU_SIZE
-	mla r3, r0, r7, r3
-
-
-	mcr p15, 4, r3, c13, c0, 2                  // write HTPIDR
+	/* get self cpu base address */
+	mov r8, #CPU_SIZE
+	
+	madd r3, r0, r8, r3
+	msr HTPIDR, r3
 	mov	r11, r3	
-	add	r12, r3, r7
+	add	r12, r3, r8
 	bl	clear	
 
-	mov	r11, r3									// r11 stores the cpuX struct base address
-
+	mov	r11, r3									// r11 stores the cpu struct address
 	/* Region 0 - CPU Struct */
-    ldr r8, =((Non_Shareable<<3) | (RW_Access<<1))							/////////////// ROTATE R11 << 6
-    orr r11, r11, r8
-    mcr p15, 0, r11, c6, c8, 0                  // write PRBAR0
-	
-	mov r11, r3
-	add r11, r11, r7
-//    add r11, r11, #63
-//    bfc r11, #0, #6                           // align Limit to 64bytes
-    ldr r8, =((AttrIndx0<<1) | (ENable))
-    orr r11, r11, r8
-    mcr p15, 0, r11, c6, c8, 1                   // write PRLAR0
+//    LDR     r3, =Image$$DATA$$Base
+    ldr r2, =((Non_Shareable<<3) | (RW_Access<<1))
+    orr r11, r11, r2
+    mcr p15, 0, r11, c6, c8, 0                   // write PRBAR0
+	add r11, r11, r8
+//	LDR r3, =Image$$DATA$$ZI$$Limit
+    add r11, r11, #63
+    bfc r11, #0, #6                              // align Limit to 64bytes
+    ldr r11, =((AttrIndx0<<1) | (ENable))
+    orr r11, r11, r2
+    mcr p15, 0, r3, c6, c8, 1                   // write PRLAR0
 	
 	
 map_cpu_interface:
 
 	/* Region 1 - CPU Interfaces */
-    ldr r4, =_cpu_if_base						// Initial region address
-    mov r8, #CPU_IF_SIZE_SECTION
-	ldr r7, =((Non_Shareable<<3) | (RW_Access<<1))
-    orr r7, r7, r4
-    mcr p15, 0, r7, c6, c8, 4                   // write PRBAR1
-
-	add r4, r4, r8								// Limit region adress
-    //add r4, r4, #63
-    //bfc r1, #0, #6                            // align Limit to 64bytes
+//    LDR     r1, =Image$$DATA$$Base
+    adr r3, _cpu_if_base
+	ldr r8, =((Non_Shareable<<3) | (RW_Access<<1))
+    orr r3, r3, r8
+    mcr p15, 0, r3, c6, c8, 4                   // write PRBAR1
+	mov r8, #CPU_IF_SIZE_SECTION
+	add r3, r3, r8								//    ldr r1, =Image$$DATA$$ZI$$Limit
+    //add r3, r3, #63
+    //bfc r1, #0, #6                              // align Limit to 64bytes
     ldr r8, =((AttrIndx0<<1) | (ENable))
-    orr r4, r4, r8
-    mcr p15, 0, r4, c6, c8, 5                   // write PRLAR1
-	
-	
-	
-	// Region 3 - Peripherals
-	LDR     r1, =0x9A000000
-    LDR     r2, =((Non_Shareable<<3) | (RW_Access<<1))
-	ORR     r1, r1, r2
-	MCR     p15, 0, r1, c6, c9, 4                   // write PRBAR3
-	LDR     r1, =0xAFFFFFC0
-	SUB     r1, r1, #1
-	BFC     r1, #0, #6
-	LDR     r2, =((AttrIndx0<<1) | (ENable))
-	ORR     r1, r1, r2
-	MCR     p15, 0, r1, c6, c9, 5                   // write PRLAR3
+    orr r3, r3, r8
+    mcr p15, 0, r3, c6, c8, 5                   // write PRLAR1
 	
 	
 setup_cpu:
-	/**
-	 *    r3 -> cpu_X base phys
-	 *    r4 -> cpu if base
-	 *	  r7 -> aux
-	 *    r8 -> aux 
-	 */
 
-	mov r7, #0
-	mcr p15, 4, r7, c1, c1, 2					// Write on HCPTR
+	mov r3, #0
+	mcr p15, 4, r3, c1, c1, 2		// Write on HCPTR
+
+	/* setup translation configurations */
+	//ldr r3, =TCR_EL2_DFLT
+	//msr	TCR_EL2, r3
+
+	/* set hypervisor default memory attributes */
+	//ldr r3, =MAIR_EL2_DFLT
+	//msr	MAIR_EL2, r3
+
+/*	mov r8, #(CPU_SIZE + (PT_SIZE*(PT_LVLS-1)))
+	adrp r3, _dmem_phys_beg
+	madd r3, r0, r8, r3
+	add r3, r3, #CPU_ROOT_PT_OFF
+	msr TTBR0_EL2, r3
+*/
 
 	/* set up cpu stack */
 //	mov r3, #(SPSel_SP)								
 //	msr SPSEL, r3	
-
-//	ldr r3, =BAO_CPU_BASE
+	ldr r3, =BAO_CPU_BASE
 	add r3, r3, #(CPU_STACK_OFF + CPU_STACK_SIZE)
 	mov SP, r3
 
@@ -260,16 +249,18 @@ setup_cpu:
 	 * Need for barriers?
 	 */
 
+	ldr r5, =_enter_vas
+
 	/* Enable MPU and caches */
-	ldr r7, =(SCTLR_RES1 | SCTLR_M | SCTLR_C | SCTLR_I)
-//	mcr p15, 4, r7, c1, c0, 0		///// HSCTRL ->  EL2-MPU
-	mcr p15, 0, r7, c1, c0, 0		///// SCTLR  ->  EL1-MPU
+	ldr r4, =(SCTLR_RES1 | SCTLR_M | SCTLR_C | SCTLR_I)
+	mcr p15, 4, r4, c1, c0, 0
 	
 	dsb	nsh
 	isb
+	
+	b  r5
 
-
-_enter_vas:		/// change label name to something like _clear_bss
+_enter_vas:		/// change label name to _clear_bss
 
 	/* If this is bsp (cpu 0) clear bss */
 	cmp r9, #0
@@ -278,17 +269,15 @@ _enter_vas:		/// change label name to something like _clear_bss
 	ldr	r12, =_bss_end	
 	bl	clear	
 
-	ldr r5, =_barrier
-	mov r7, #2
-	str r7, [r5]	
+	adr r5, _barrier
+	mov r4, #2
+	str r4, [r5]	
 
 1:
 	/* wait for bsp to finish clearing bss */
-	ldr r7, =_barrier
-	ldr r8, [r7]
-	cmp r8, #2
+	ldr r4, _barrier
+	cmp r4, #2
 	blt 1b
-
 
 	isb
 
@@ -309,7 +298,7 @@ clear:
 	add r11, r11, #8 	
 	b	2b				
 1:
-	bx lr
+	ret
 .endfunc
 
 /*
@@ -320,35 +309,34 @@ clear:
  */
 .func cache_invalidate
 cache_invalidate:
-	MCR p15, 2, r0, c0, c0, 0 // msr csselr_el1, r0 
-//	mrs r4, ccsidr_el1 				
-	MRC p15, 1, r4, c0, c0, 0 		// read cache size id.
+//	msr csselr_el1, r0 
+	MCR p15, 2, r0, c0, c0, 0 
+//	mrs r4, ccsidr_el1 // read cache size id.
+	MRC p15, 1, r4, c0, c0, 0 
 	and r1, r4, #0x7
-	add r1, r1, #0x4 				// r1 = cache line size.
+	add r1, r1, #0x4 // r1 = cache line size.
 	ldr r3, =0x7fff
-	and r2, r3, r4, lsr #13 		// r2 = cache set number – 1.
+	and r2, r3, r4, lsr #13 // r2 = cache set number – 1.
 	ldr r3, =0x3ff
-	and r3, r3, r4, lsr #3 			// r3 = cache associativity number – 1.
-	clz r4, r3 						// r4 = way position in the cisw instruction.
-	mov r5, #0 						// r5 = way counter way_loop.
+	and r3, r3, r4, lsr #3 // r3 = cache associativity number – 1.
+	clz w4, w3 // r4 = way position in the cisw instruction.
+	mov r5, #0 // r5 = way counter way_loop.
 way_loop:
-	mov r6, #0 						// r6 = set counter set_loop.
+	mov r6, #0 // r6 = set counter set_loop.
 set_loop:
 	lsl r7, r5, r4
-	orr r7, r0, r7 					// set way.
+	orr r7, r0, r7 // set way.
 	lsl r8, r6, r1
-	orr r7, r7, r8 					// set set.
-	mcr p15, 0, r7, c7, c14, 2 		// clean and invalidate cache line.
-	add r6, r6, #1 					// increment set counter.
-	cmp r6, r2 						// last set reached yet?
-	ble set_loop 					// if not, iterate set_loop,
-	add r5, r5, #1 					// else, next way.
-	cmp r5, r3 						// last way reached yet?
-	ble way_loop 					// if not, iterate way_loop
-	bx lr
+	orr r7, r7, r8 // set set.
+	dc cisw, r7 // clean and invalidate cache line.
+	add r6, r6, #1 // increment set counter.
+	cmp r6, r2 // last set reached yet?
+	ble set_loop // if not, iterate set_loop,
+	add r5, r5, #1 // else, next way.
+	cmp r5, r3 // last way reached yet?
+	ble way_loop // if not, iterate way_loop
+	ret
 .endfunc
-
-
 
 
 .global psci_boot_entry
@@ -356,8 +344,8 @@ set_loop:
 psci_boot_entry:
 warm_boot:
 
-	/*adr	r3, _hyp_vector_table
-	msr	VBAR_EL2, r3*/
+	adr	r3, _hyp_vector_table
+	msr	VBAR_EL2, r3
 
 	/* save r0 which contains pointer to saved state psci context */
 	mov r10, r0
@@ -366,45 +354,59 @@ warm_boot:
 	bl	cache_invalidate
 
 	/* restore all needed register state */
-
-	ldr r5, [r10, #8]			//	ldp r5, r6, [r10, #16]
-	ldr r6, [r10, #8]			// Ver com o Martins a necessidade de restaurar MAIR_EL1 e MAIR_EL2
-	mcr p15, 4, r5, c10, c2, 0	//msr MAIR_EL2, r5
-	mcr p15, 4, r6, c1, c1, 2 	//msr HCPTR, r6
-
-	ldr r5, [r10, #16]			//ldp r5, r6, [r10, #32]
-	ldr r6, [r10, #16]
-	mcr p15, 4, r5, c1, c1, 0	//msr HCR_EL2, r5
-	mcr p15, 4, r6, c0, c0, 5	//msr VMPIDR_EL2, r6
-
-//	ldr r5, [r10, #24]			//	ldp r5, r6, [r10, #48]
-//	ldr r6, [r10, #24]	
+	ldp r5, r6, [r10, #0]
+//	msr TCR_EL2, r5
+//	msr TTBR0_EL2, r6
+	ldp r5, r6, [r10, #16]
+	msr MAIR_EL2, r5
+	msr HCPTR, r6
+	ldp r5, r6, [r10, #32]
+	msr HCR_EL2, r5
+	msr VMPIDR_EL2, r6
+	ldp r5, r6, [r10, #48]
 //	msr VTCR_EL2, r5
-//	msr VTTBR_EL2, r6
-//    ldp r0, r5, [r10, #64]   /* wake up reason is the arg of the later psci_wake call */
+	msr VTTBR_EL2, r6
+    ldp r0, r5, [r10, #64]   /* wake up reason is the arg of the later psci_wake call */
 
-	/* Install vector table virtual address */
+	/* map original bootstrap flat mappings */
+//	mrs r3, TTBR0_EL2
+	adrp r1, _image_start
+	PTE_INDEX_ASM r1, r1, 0 
+	add r3, r3, r1
+	dc civac, r3  //we invalidated l1$, but make sure the pte is not in l2$
+	add r5, r5, #(PTE_HYP_FLAGS | PTE_TABLE)
+	str r5, [r3]
+
+	/* Install vector table virtual address*/
 	ldr	r3, =_hyp_vector_table
-	mcr p15, 4, r3, c12, c0, 0	// msr	VBAR_EL2, r3
+	msr	VBAR_EL2, r3
 
- //   tlbi	alle2 
+    tlbi	alle2 
 	dsb	nsh
 	isb
 
-	/* Enable MPU and caches */
+	/* Enable MMU and caches */
 	ldr r4, =(SCTLR_RES1 | SCTLR_M | SCTLR_C | SCTLR_I)
-	mcr p15, 4, r4, c1, c0, 0		// msr	HSCTLR, r4
+	msr	HSCTLR, r4
 
 	dsb	nsh
 	isb
 	
-
+	ldr r5, =_enter_vas_warm
+	br  r5		
 
 _enter_vas_warm:
 	/* Unmap bootstrat flat mappings */
 	ldr r4, =BAO_CPU_BASE
 	// TODO: Calculate offset when not using virtualization
 	add r3, r4, #(CPU_STACK_OFF+CPU_STACK_SIZE)
+
+	add r4, r4, #CPU_ROOT_PT_OFF
+	PTE_INDEX_ASM r5, r1, 0 
+	str xzr, [r4, r5]
+    tlbi	alle2
+	dsb	nsh
+	isb
 
     /* Initialize stack pointer */
     mov sp, r3

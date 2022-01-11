@@ -14,13 +14,16 @@
  */
 
 #include <bao.h>
+#include <asm_defs.h>
 
 ENTRY(_image_start)
 
 SECTIONS
 {
 
-	. = BAO_VAS_BASE;
+	/*. = BAO_AS_BASE;*/
+
+	. = 0x00;
 
 	_image_start = ABSOLUTE(.);
 
@@ -94,6 +97,8 @@ SECTIONS
 	.devices _image_end (NOLOAD) : ALIGN(PAGE_SIZE) {
 		*(.devices)
 	}
+
+	uart = PLAT_CONSOLE_BASE;
 
 	. = ALIGN(PAGE_SIZE);
 	_dmem_beg = ABSOLUTE(.);

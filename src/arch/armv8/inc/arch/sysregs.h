@@ -457,11 +457,11 @@
 
 #define MRS(reg) ({\
     unsigned long _temp;\
-    asm volatile("mrs %0, " XSTR(reg) "\n\r" : "=r"(_temp));\
+    asm volatile("mov %0, " XSTR(reg) "\n\r" : "=r"(_temp));\
     _temp;\
 })
 
-#define MSR(reg, var) asm volatile("msr " XSTR(reg)  ", %0\n\r" ::"r"(var))
+#define MSR(reg, var) asm volatile("mov " XSTR(reg)  ", %0\n\r" ::"r"(var))
 
 #define SYSREG_ENC_ADDR(Op0, Op1, CRn, CRm, Op2) \
     ((((Op0) & 0x3) << 20) | \

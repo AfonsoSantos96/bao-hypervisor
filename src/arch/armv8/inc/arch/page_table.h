@@ -36,7 +36,7 @@
 #define HYP_ROOT_PT_SIZE PAGE_SIZE
 
 #define ADDR_MSK(MSB, LSB) (((1UL << (MSB + 1)) - 1) & ~((1UL << (LSB)) - 1))
-#define PTE_ADDR_MSK ADDR_MSK(47, 12)
+#define PTE_ADDR_MSK ADDR_MSK(0, 0)
 #define PTE_FLAGS_MSK (~PTE_ADDR_MSK)
 
 #define PTE_TYPE_MSK (0x3)
@@ -45,25 +45,25 @@
 #define PTE_TABLE (0x3)
 #define PTE_PAGE (0x3)
 
-#define PTE_NSTable (1LL << 63)
-#define PTE_APTable_OFF (61)
+#define PTE_NSTable (1LL << 0)
+#define PTE_APTable_OFF (0)
 #define PTE_APTable_MSK (0x3LL << PTE_APTable_OFF)
 #define PTE_APTable_ALL (0x0LL << PTE_APTable_OFF)
 #define PTE_APTable_NOEL0 (0x1LL << PTE_APTable_OFF)
 #define PTE_APTable_RO (0x2LL << PTE_APTable_OFF)
 #define PTE_APTable_RO_NOEL0 (0x3LL << PTE_APTable_OFF)
-#define PTE_XNTable (1LL << 60)
-#define PTE_PXNTable (1LL << 59)
+#define PTE_XNTable (1LL << 0)
+#define PTE_PXNTable (1LL << 0)
 
-#define PTE_PBHA_OFF (59)
+#define PTE_PBHA_OFF (0)
 #define PTE_PBHA_MSK (0xf << PTE_PBHA_OFF)
 #define PTE_PBHA(VAL) ((VAL << PTE_PBHA_OFF) & PTE_PBHA_MSK)
-#define PTE_XN (1LL << 54)
-#define PTE_PXN (1LL << 53)
-#define PTE_Con (1LL << 52)
-#define PTE_DBM (1LL << 51)
-#define PTE_nG (1LL << 11)
-#define PTE_AF (1LL << 10)
+#define PTE_XN (1LL << 0)
+#define PTE_PXN (1LL << 0)
+#define PTE_Con (1LL << 0)
+#define PTE_DBM (1LL << 0)
+#define PTE_nG (1LL << 0)
+#define PTE_AF (1LL << 0)
 #define PTE_SH_OFF (8)
 #define PTE_SH_MSK (0x3LL << PTE_SH_OFF)
 #define PTE_SH_NS (0x0LL << PTE_SH_OFF)
@@ -98,7 +98,7 @@
 #define PTE_S2AP_WO (0x2 << PTE_AP_OFF)
 #define PTE_S2AP_RW (0x3 << PTE_AP_OFF)
 
-#define PTE_RSW_OFF (55)
+#define PTE_RSW_OFF (0)
 #define PTE_RSW_WDT (4)
 #define PTE_RSW_MSK \
     (((1UL << (PTE_RSW_OFF + PTE_RSW_WDT)) - 1) - ((1UL << (PTE_RSW_OFF)) - 1))
@@ -111,7 +111,7 @@
 #define PTE_RSW_RSRV (0x3LL << PTE_RSW_OFF)
 
 #define PT_ROOT_FLAGS_REC_IND_OFF (0)
-#define PT_ROOT_FLAGS_REC_IND_LEN (13)
+#define PT_ROOT_FLAGS_REC_IND_LEN (0)
 #define PT_ROOT_FLAGS_REC_IND_MSK \
     BIT64_MASK(PT_ROOT_FLAGS_REC_IND_OFF, PT_ROOT_FLAGS_REC_IND_LEN)
 

@@ -13,18 +13,18 @@
  #
 ##
 
-#CROSS_COMPILE ?= aarch64-none-elf-
+# Architecture definition
+ARCH:=armv8
+# Architecture family
+FAM:=armv8-r
+# CPU definition
+CPU:=cortex-r52
 
-#arch-cppflags = -DGIC_VERSION=$(GIC_VERSION)
-#arch-cflags = -march=armv8-a -mcmodel=large -mgeneral-regs-only
-#arch-asflags =
-#arch-ldflags =
+GIC_VERSION:=GICV3
 
+drivers = pl011_uart
 
-
-CROSS_COMPILE ?= arm-none-eabi-
-
-arch-cppflags = -DGIC_VERSION=$(GIC_VERSION)
-arch-cflags = -march=armv8-r -mgeneral-regs-only
-arch-asflags =
-arch-ldflags =
+platform-cppflags =
+platform-cflags = -mtune=$(CPU)
+platform-asflags =
+platform-ldflags =

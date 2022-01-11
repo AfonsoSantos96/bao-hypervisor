@@ -242,14 +242,14 @@ extern uint8_t root_l1_flat_pt;
 
 static void psci_save_state(enum wakeup_reason wakeup_reason){
 
-    cpu()->arch.psci_off_state.tcr_el2 = MRS(TCR_EL2);
-    cpu()->arch.psci_off_state.ttbr0_el2 = MRS(TTBR0_EL2);
-    cpu()->arch.psci_off_state.mair_el2 = MRS(MAIR_EL2);
-    cpu()->arch.psci_off_state.cptr_el2 = MRS(CPTR_EL2);
-    cpu()->arch.psci_off_state.hcr_el2 = MRS(HCR_EL2);
-    cpu()->arch.psci_off_state.vmpidr_el2 = MRS(VMPIDR_EL2);
-    cpu()->arch.psci_off_state.vtcr_el2 = MRS(VTCR_EL2);
-    cpu()->arch.psci_off_state.vttbr_el2 = MRS(VTTBR_EL2);
+    cpu()->arch.psci_off_state.tcr_el2 = 0;//MRS(TCR_EL2);
+    cpu()->arch.psci_off_state.ttbr0_el2 = 0;//MRS(TTBR0_EL2);
+    cpu()->arch.psci_off_state.mair_el2 = 0;//MRS(MAIR_EL2);
+    cpu()->arch.psci_off_state.cptr_el2 = 0;//MRS(CPTR_EL2);
+    cpu()->arch.psci_off_state.hcr_el2 = 0;//MRS(HCR_EL2);
+    cpu()->arch.psci_off_state.vmpidr_el2 = 0;//MRS(VMPIDR_EL2);
+    cpu()->arch.psci_off_state.vtcr_el2 = 0;//MRS(VTCR_EL2);
+    cpu()->arch.psci_off_state.vttbr_el2 = 0;//MRS(VTTBR_EL2);
     mem_translate(&cpu()->as, (vaddr_t)&root_l1_flat_pt,
                     &cpu()->arch.psci_off_state.flat_map);
     cpu()->arch.psci_off_state.wakeup_reason = wakeup_reason;
