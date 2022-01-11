@@ -40,8 +40,8 @@ void init(cpuid_t cpu_id, paddr_t load_addr, paddr_t config_addr)
         printk("Bao Hypervisor\n\r");
     //}
 
-    interrupts_init();
-/*
+/*    interrupts_init();
+
     vmm_init();
 */
     /* Should never reach here */
