@@ -18,6 +18,7 @@
 
 #include <bao.h>
 #include <platform.h>
+#include <vm.h>
 
 #define VM_IMAGE(img_name, img_path)                                         \
     extern uint8_t _##img_name##_vm_size;                                    \
@@ -93,7 +94,7 @@ struct vm_config {
      * the virtual machine itself.
      */
 
-    struct platform platform;
+    struct vm_platform platform;
 
 };
 
