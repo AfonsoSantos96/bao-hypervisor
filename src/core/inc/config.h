@@ -93,7 +93,7 @@ struct vm_config {
      * the virtual machine itself.
      */
 
-    struct platform_desc platform;
+    struct platform platform;
 
 };
 
