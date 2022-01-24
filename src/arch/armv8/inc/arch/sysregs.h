@@ -453,6 +453,7 @@
 #define ICH_LR14_EL2        S3_4_C12_C13_6
 #define ICH_LR15_EL2        S3_4_C12_C13_7
 
+
 #ifndef __ASSEMBLER__
 
 #define MRS(reg) ({\
@@ -469,6 +470,148 @@
     (((Op1) & 0x7) << 14) | \
     (((CRn) & 0xf) << 10) | \
     (((CRm) & 0xf) << 1))
+
+
+
+/************************************************* Cortex-R52 *************************************************/
+
+
+#define MRC(Op1, CRn, CRm, Op2)({\
+    unsigned long _temp;\
+    asm volatile("mrc p15, "#Op1", %0, "#CRn", "#CRm", "#Op2"\n\r": "=r"(_temp));\
+    _temp;\
+})
+
+#define MRRC(Op1, CRm)({\
+    unsigned long long _temp;\
+    unsigned long long _templow;\
+    asm volatile("mrrc p15, "#Op1", %0, %1, "#CRm"\n\r": "=r"(_temp), "=r"(_templow));\
+    ( (_temp<<32)|_templow );\
+})
+
+
+#define MCR(Op1, CRn, CRm, Op2, val) asm volatile("mcr p15, "#Op1", %0, "#CRn", "#CRm", "#Op2"\n\r": :"r"(val))
+
+#define MCRR(Op1, Rt, Rt2, CRm) asm volatile("mcrr p15, "#Op1", %0, %1, "#CRm"\n\r": :"r"(Rt), "r"(Rt2))
+
+
+static inline void sysreg_write_hsr(unsigned long val)          {MCR(4, c5, c2, 0, val);}
+static inline unsigned long sysreg_read_hsr()                   {return MRC(4, c5, c2, 0);}
+
+static inline void sysreg_write_htpidr(unsigned long val)       {MCR(4, c13, c0, 2, val);}
+static inline unsigned long sysreg_read_htpidr()                {return MRC(4, c13, c0, 2);}
+
+static inline void sysreg_write_hdfar(unsigned long val)        {MCR(4, c6, c0, 0, val);}
+static inline unsigned long sysreg_read_hdfar()                 {return MRC(4, c6, c0, 0);}
+
+static inline void sysreg_write_hpfar(unsigned long val)        {MCR(4, c6, c0, 4, val);}
+static inline unsigned long sysreg_read_hpfar()                 {return MRC(4, c6, c0, 4);}
+
+static inline unsigned long sysreg_read_clidr()                 {return MRC(1, c0, c0, 1);}
+
+static inline unsigned long sysreg_read_ccsidr()                {return MRC(1, c0, c0, 0);}
+
+static inline unsigned long sysreg_read_ctr()                   {return MRC(0, c0, c0, 1);}
+
+static inline unsigned long sysreg_read_mpidr()                 {return MRC(0, c0, c0, 5);}
+
+static inline void DCCIMVAC(unsigned long val)                  {MCR(0, c7, c14, 1, val);}
+
+static inline void sysreg_write_ich_vtr(unsigned long val)      {MCR(4, c12, c11, 1, val);}
+static inline unsigned long sysreg_read_ich_vtr()               {return MRC(4, c12, c11, 1);}
+
+static inline void sysreg_write_vmpidr(unsigned long val)       {MCR(4, c0, c0, 5, val);}
+static inline unsigned long sysreg_read_vmpidr()                {return MRC(4, c0, c0, 5);}
+
+static inline void sysreg_write_ich_hcr(unsigned long val)      {MCR(4, c12, c11, 0, val);}
+static inline unsigned long sysreg_read_ich_hcr()               {return MRC(4, c12, c11, 0);}
+
+static inline void sysreg_write_hcr(unsigned long val)          {MCR(4, c1, c1, 0, val);}
+static inline unsigned long sysreg_read_hcr()                   {return MRC(4, c1, c1, 0);}
+static inline void sysreg_write_hcr2(unsigned long val)         {MCR(4, c6, c0, 0, val);}
+static inline unsigned long sysreg_read_hcr2()                  {return MRC(4, c6, c0, 0);}
+
+static inline void sysreg_write_ich_misr(unsigned long val)     {MCR(4, c12, c11, 2, val);}
+static inline unsigned long sysreg_read_ich_misr()              {return MRC(4, c12, c11, 2);}
+
+static inline void sysreg_write_hcptr(unsigned long val)        {MCR(4, c1, c1, 2, val);}
+static inline unsigned long sysreg_read_hcptr()                 {return MRC(4, c1, c1, 2);}
+
+static inline void sysreg_write_hmair0(unsigned long val)       {MCR(4, c10, c2, 0, val);}
+static inline unsigned long sysreg_read_hmair0()                {return MRC(4, c10, c2, 0);}
+static inline void sysreg_write_hmair1(unsigned long val)       {MCR(4, c10, c2, 1, val);}
+static inline unsigned long sysreg_read_hmair1()                {return MRC(4, c10, c2, 1);}
+
+static inline void sysreg_write_icc_pmr(unsigned long val)      {MCR(0, c4, c6, 0, val);}
+static inline unsigned long sysreg_read_icc_pmr()               {return MRC(0, c4, c6, 0);}
+
+static inline void sysreg_write_icc_bpr1(unsigned long val)     {MCR(0, c12, c12, 3, val);}
+static inline unsigned long sysreg_read_icc_bpr1()              {return MRC(0, c12, c12, 3);}
+
+static inline void sysreg_write_icc_iar1(unsigned long val)     {MCR(0, c12, c12, 0, val);}
+static inline unsigned long sysreg_read_icc_iar1()              {return MRC(0, c12, c12, 0);}
+
+static inline void sysreg_write_icc_hsre(unsigned long val)     {MCR(4, c12, c9, 5, val);}
+static inline unsigned long sysreg_read_icc_hsre()              {return MRC(4, c12, c9, 5);}
+
+static inline void sysreg_write_icc_ctlr(unsigned long val)     {MCR(0, c12, c12, 4, val);}
+static inline unsigned long sysreg_read_icc_ctlr()              {return MRC(0, c12, c12, 4);}
+
+static inline void sysreg_write_icc_igrpen1(unsigned long val)  {MCR(0, c12, c12, 7, val);}
+static inline unsigned long sysreg_read_icc_igrpen1()           {return MRC(0, c12, c12, 7);}
+
+static inline void sysreg_write_icc_eoir1(unsigned long val)    {MCR(0, c12, c12, 1, val);}
+static inline unsigned long sysreg_read_icc_eoir1()             {return MRC(0, c12, c12, 1);}
+
+static inline void sysreg_write_icc_dir(unsigned long val)      {MCR(0, c12, c11, 1, val);}
+static inline unsigned long sysreg_read_icc_dir()               {return MRC(0, c12, c11, 1);}
+
+static inline void sysreg_write_ich_eisr(unsigned long val)     {MCR(4, c12, c11, 3, val);}
+static inline unsigned long sysreg_read_ich_eisr()              {return MRC(4, c12, c11, 3);}
+
+static inline void sysreg_write_ich_elrsr(unsigned long val)    {MCR(4, c12, c11, 5, val);}
+static inline unsigned long sysreg_read_ich_elrsr()             {return MRC(4, c12, c11, 5);}
+
+static inline void sysreg_write_csselr(unsigned long val)       {MCR(2, c0, c0, 0, val);}
+static inline unsigned long sysreg_read_csselr()                {return MRC(2, c0, c0, 0);}
+
+static inline void sysreg_write_ich_lr0(unsigned long val)      {MCR(4, c12, c12, 0, val);}
+static inline unsigned long sysreg_read_ich_lr0()               {return MRC(4, c12, c12, 0);}
+
+static inline void sysreg_write_ich_lr1(unsigned long val)      {MCR(4, c12, c12, 1, val);}
+static inline unsigned long sysreg_read_ich_lr1()               {return MRC(4, c12, c12, 1);}
+
+static inline void sysreg_write_ich_lr2(unsigned long val)      {MCR(4, c12, c12, 2, val);}
+static inline unsigned long sysreg_read_ich_lr2()               {return MRC(4, c12, c12, 2);}
+
+static inline void sysreg_write_ich_lr3(unsigned long val)      {MCR(4, c12, c12, 3, val);}
+static inline unsigned long sysreg_read_ich_lr3()               {return MRC(4, c12, c12, 3);}
+
+static inline unsigned long sysreg_read_par32()                 {return MRC(0, c7, c4, 0);}
+static inline void sysreg_write_par32(unsigned long val)        {MCR(0, c7, c4, 0, val);}
+
+static inline unsigned long sysreg_read_pmcr()                  {return MRC(0, c9, c12, 0);}
+static inline void sysreg_write_pmcr(unsigned long val)         {MCR(0, c9, c12, 0, val);}
+
+static inline unsigned long sysreg_read_cntkctl()               {return MRC(0, c14, c1, 0);}
+static inline void sysreg_write_cntkctl(unsigned long val)      {MCR(0, c14, c1, 0, val);}
+
+static inline unsigned long sysreg_read_sctlr()                 {return MRC(0, c1, c0, 0);}
+static inline void sysreg_write_sctlr(unsigned long val)        {MCR(0, c1, c0, 0, val);}
+
+
+static inline unsigned long long sysreg_read_par64()            {return MRRC(0, c7);}
+static inline void sysreg_write_par64(unsigned long lower, unsigned long upper)       {MCRR(0, lower, upper, c7);}
+
+static inline void sysreg_write_icc_sgi1r(unsigned long lower, unsigned long upper)   {MCRR(0, lower, upper, c12);}
+
+static inline void sysreg_write_cntvoff(unsigned long lower, unsigned long upper)     {MCRR(4, lower, upper, c14);}
+
+
+
+/************************************************* Cortex-R52 *************************************************/
+
+
 
 #endif /* |__ASSEMBLER__ */
 
