@@ -238,7 +238,7 @@
 #define CLIDR_CTYPE_SP 3
 #define CLIDR_CTYPE_UN 4
 
-/* CTR_EL0 - Cache Type Register */
+/* CTR - Cache Type Register */
 
 #define CTR_IMINLINE_OFF 0
 #define CTR_IMINLINE_LEN 4
@@ -276,18 +276,18 @@
  */
 
 /* CPUECTLR_EL1 - CPU Extended Control Register  */
-
+/*
 #define CPUECTLR_EL1 S3_1_c15_c2_1
 #define CPUECTLR_SPEN_BIT (1UL << 6)
-
+*/
 /* ACTLR - Auxiliary Control Register */
-
+/*
 #define ACTLR_CPUACTLR_BIT (1UL << 0)
 #define ACTLR_CPUECTLR_BIT (1UL << 1)
 #define ACTLR_L2CTLR_BIT (1UL << 4)
 #define ACTLR_L2ECTLR_BIT (1UL << 5)
 #define ACTLR_L2ACTLR_BIT (1UL << 6)
-
+*/
 /* HCR_EL2 - Hypervisor Configuration Register */
 
 #define HCR_VM_BIT (1UL << 0)
@@ -393,76 +393,8 @@
 #define ESR_ISS_SYSREG_REG_OFF (5)
 #define ESR_ISS_SYSREG_REG_LEN (5)
 
-/* VTTBR_EL2, Virtualization Translation Table Base Register */
-
-#define VTTBR_VMID_OFF 48
-#define VTTBR_VMID_LEN 8
-#define VTTBR_VMID_MSK BIT64_MASK(VTTBR_VMID_OFF, VTTBR_VMID_LEN)
-
-#define CPUACTLR_EL1 S3_1_C15_C2_0
-
-/* GICC System Register Interface Definitions */
-
-#define ICC_PMR_EL1         S3_0_C4_C6_0           
-#define ICC_IAR0_EL1        S3_0_C12_C8_0        
-#define ICC_EOIR0_EL1       S3_0_C12_C8_1        
-#define ICC_HPPIR0_EL1      S3_0_C12_C8_2        
-#define ICC_BPR0_EL1        S3_0_C12_C8_3        
-// #define ICC_AP0R<n>_EL1     S3_0_C12_C8_        
-#define ICC_AP1R_EL1(N)     S3_0_C12_C9_ ## N        
-#define ICC_DIR_EL1         S3_0_C12_C11_1    
-#define ICC_RPR_EL1         S3_0_C12_C11_3    
-#define ICC_SGI1R_EL1       S3_0_C12_C11_5        
-#define ICC_ASGI1R_EL1      S3_0_C12_C11_6        
-#define ICC_SGI0R_EL1       S3_0_C12_C11_7        
-#define ICC_IAR1_EL1        S3_0_C12_C12_0        
-#define ICC_EOIR1_EL1       S3_0_C12_C12_1        
-#define ICC_HPPIR1_EL1      S3_0_C12_C12_2        
-#define ICC_BPR1_EL1        S3_0_C12_C12_3        
-#define ICC_CTLR_EL1        S3_0_C12_C12_4        
-#define ICC_SRE_EL1         S3_0_C12_C12_5    
-#define ICC_IGRPEN0_EL1     S3_0_C12_C12_6        
-#define ICC_IGRPEN1_EL1     S3_0_C12_C12_7        
-#define ICC_SRE_EL2         S3_4_C12_C9_5    
-#define ICC_CTLR_EL3        S3_6_C12_C12_4 
-#define ICC_SRE_EL3         S3_6_C12_C12_5
-#define ICC_IGRPEN1_EL3     S3_6_C12_C12_7
-
-// #define ICH_AP0R<n>_EL2     S3_4_C12_C8 _0-3
-// #define ICH_AP1R<n>_EL2     S3_4_C12_C9 _0-3
-#define ICH_HCR_EL2         S3_4_C12_C11_0
-#define ICH_VTR_EL2         S3_4_C12_C11_1
-#define ICH_MISR_EL2        S3_4_C12_C11_2
-#define ICH_EISR_EL2        S3_4_C12_C11_3
-#define ICH_ELRSR_EL2       S3_4_C12_C11_5
-#define ICH_VMCR_EL2        S3_4_C12_C11_7
-#define ICH_LR0_EL2         S3_4_C12_C12_0
-#define ICH_LR1_EL2         S3_4_C12_C12_1
-#define ICH_LR2_EL2         S3_4_C12_C12_2
-#define ICH_LR3_EL2         S3_4_C12_C12_3
-#define ICH_LR4_EL2         S3_4_C12_C12_4
-#define ICH_LR5_EL2         S3_4_C12_C12_5
-#define ICH_LR6_EL2         S3_4_C12_C12_6
-#define ICH_LR7_EL2         S3_4_C12_C12_7
-#define ICH_LR8_EL2         S3_4_C12_C13_0
-#define ICH_LR9_EL2         S3_4_C12_C13_1
-#define ICH_LR10_EL2        S3_4_C12_C13_2
-#define ICH_LR11_EL2        S3_4_C12_C13_3
-#define ICH_LR12_EL2        S3_4_C12_C13_4
-#define ICH_LR13_EL2        S3_4_C12_C13_5
-#define ICH_LR14_EL2        S3_4_C12_C13_6
-#define ICH_LR15_EL2        S3_4_C12_C13_7
-
 
 #ifndef __ASSEMBLER__
-
-#define MRS(reg) ({\
-    unsigned long _temp;\
-    asm volatile("mov %0, " XSTR(reg) "\n\r" : "=r"(_temp));\
-    _temp;\
-})
-
-#define MSR(reg, var) asm volatile("mov " XSTR(reg)  ", %0\n\r" ::"r"(var))
 
 #define SYSREG_ENC_ADDR(Op0, Op1, CRn, CRm, Op2) \
     ((((Op0) & 0x3) << 20) | \
@@ -473,143 +405,93 @@
 
 
 
-/************************************************* Cortex-R52 *************************************************/
+#define SYSREG_GEN_ACCESSORS(...) TEMP_DISAMBIGUATE(PP_HAS_ARGS(__VA_ARGS__), __VA_ARGS__)
+#define TEMP_DISAMBIGUATE(has_args, ...) TEMP_DISAMBIGUATE2(has_args, __VA_ARGS__)
+#define TEMP_DISAMBIGUATE2(has_args, ...) SYSREG_GEN_ACCESSORS_ ## has_args (__VA_ARGS__)
+
+#define PP_HAS_ARGS_IMPL(...) PP_HAS_ARGS_IMPL2(__VA_ARGS__)
+#define PP_HAS_ARGS(...)      PP_HAS_ARGS_IMPL(__VA_ARGS__, PP_HAS_ARGS_SOURCE())
+
+#define PP_HAS_ARGS_IMPL2(_1, _2, _3, _4, _5, _6, N, ...) N
+#define PP_HAS_ARGS_SOURCE() AARCH32, EMPTY, AARCH32_64, EMPTY, EMPTY, AARCH64, ERROR
 
 
-#define MRC(Op1, CRn, CRm, Op2)({\
-    unsigned long _temp;\
-    asm volatile("mrc p15, "#Op1", %0, "#CRn", "#CRm", "#Op2"\n\r": "=r"(_temp));\
-    _temp;\
-})
-
-#define MRRC(Op1, CRm)({\
-    unsigned long long _temp;\
-    unsigned long long _templow;\
-    asm volatile("mrrc p15, "#Op1", %0, %1, "#CRm"\n\r": "=r"(_temp), "=r"(_templow));\
-    ( (_temp<<32)|_templow );\
-})
+#define SYSREG_GEN_ACCESSORS_AARCH64(reg) \
+    static inline sysreg_##reg##_read() {\
+        unsigned long _temp;\
+        asm volatile("mrs %0, " XSTR(reg) "\n\r" : "=r"(_temp));\
+        return _temp;\
+    } \
+    static inline void sysreg_##reg##_write(unsigned long val) {\
+        asm volatile("msr " XSTR(reg)  ", %0\n\r" ::"r"(val));\
+    }
 
 
-#define MCR(Op1, CRn, CRm, Op2, val) asm volatile("mcr p15, "#Op1", %0, "#CRn", "#CRm", "#Op2"\n\r": :"r"(val))
-
-#define MCRR(Op1, Rt, Rt2, CRm) asm volatile("mcrr p15, "#Op1", %0, %1, "#CRm"\n\r": :"r"(Rt), "r"(Rt2))
-
-
-static inline void sysreg_write_hsr(unsigned long val)          {MCR(4, c5, c2, 0, val);}
-static inline unsigned long sysreg_read_hsr()                   {return MRC(4, c5, c2, 0);}
-
-static inline void sysreg_write_htpidr(unsigned long val)       {MCR(4, c13, c0, 2, val);}
-static inline unsigned long sysreg_read_htpidr()                {return MRC(4, c13, c0, 2);}
-
-static inline void sysreg_write_hdfar(unsigned long val)        {MCR(4, c6, c0, 0, val);}
-static inline unsigned long sysreg_read_hdfar()                 {return MRC(4, c6, c0, 0);}
-
-static inline void sysreg_write_hpfar(unsigned long val)        {MCR(4, c6, c0, 4, val);}
-static inline unsigned long sysreg_read_hpfar()                 {return MRC(4, c6, c0, 4);}
-
-static inline unsigned long sysreg_read_clidr()                 {return MRC(1, c0, c0, 1);}
-
-static inline unsigned long sysreg_read_ccsidr()                {return MRC(1, c0, c0, 0);}
-
-static inline unsigned long sysreg_read_ctr()                   {return MRC(0, c0, c0, 1);}
-
-static inline unsigned long sysreg_read_mpidr()                 {return MRC(0, c0, c0, 5);}
-
-static inline void DCCIMVAC(unsigned long val)                  {MCR(0, c7, c14, 1, val);}
-
-static inline void sysreg_write_ich_vtr(unsigned long val)      {MCR(4, c12, c11, 1, val);}
-static inline unsigned long sysreg_read_ich_vtr()               {return MRC(4, c12, c11, 1);}
-
-static inline void sysreg_write_vmpidr(unsigned long val)       {MCR(4, c0, c0, 5, val);}
-static inline unsigned long sysreg_read_vmpidr()                {return MRC(4, c0, c0, 5);}
-
-static inline void sysreg_write_ich_hcr(unsigned long val)      {MCR(4, c12, c11, 0, val);}
-static inline unsigned long sysreg_read_ich_hcr()               {return MRC(4, c12, c11, 0);}
-
-static inline void sysreg_write_hcr(unsigned long val)          {MCR(4, c1, c1, 0, val);}
-static inline unsigned long sysreg_read_hcr()                   {return MRC(4, c1, c1, 0);}
-static inline void sysreg_write_hcr2(unsigned long val)         {MCR(4, c6, c0, 0, val);}
-static inline unsigned long sysreg_read_hcr2()                  {return MRC(4, c6, c0, 0);}
-
-static inline void sysreg_write_ich_misr(unsigned long val)     {MCR(4, c12, c11, 2, val);}
-static inline unsigned long sysreg_read_ich_misr()              {return MRC(4, c12, c11, 2);}
-
-static inline void sysreg_write_hcptr(unsigned long val)        {MCR(4, c1, c1, 2, val);}
-static inline unsigned long sysreg_read_hcptr()                 {return MRC(4, c1, c1, 2);}
-
-static inline void sysreg_write_hmair0(unsigned long val)       {MCR(4, c10, c2, 0, val);}
-static inline unsigned long sysreg_read_hmair0()                {return MRC(4, c10, c2, 0);}
-static inline void sysreg_write_hmair1(unsigned long val)       {MCR(4, c10, c2, 1, val);}
-static inline unsigned long sysreg_read_hmair1()                {return MRC(4, c10, c2, 1);}
-
-static inline void sysreg_write_icc_pmr(unsigned long val)      {MCR(0, c4, c6, 0, val);}
-static inline unsigned long sysreg_read_icc_pmr()               {return MRC(0, c4, c6, 0);}
-
-static inline void sysreg_write_icc_bpr1(unsigned long val)     {MCR(0, c12, c12, 3, val);}
-static inline unsigned long sysreg_read_icc_bpr1()              {return MRC(0, c12, c12, 3);}
-
-static inline void sysreg_write_icc_iar1(unsigned long val)     {MCR(0, c12, c12, 0, val);}
-static inline unsigned long sysreg_read_icc_iar1()              {return MRC(0, c12, c12, 0);}
-
-static inline void sysreg_write_icc_hsre(unsigned long val)     {MCR(4, c12, c9, 5, val);}
-static inline unsigned long sysreg_read_icc_hsre()              {return MRC(4, c12, c9, 5);}
-
-static inline void sysreg_write_icc_ctlr(unsigned long val)     {MCR(0, c12, c12, 4, val);}
-static inline unsigned long sysreg_read_icc_ctlr()              {return MRC(0, c12, c12, 4);}
-
-static inline void sysreg_write_icc_igrpen1(unsigned long val)  {MCR(0, c12, c12, 7, val);}
-static inline unsigned long sysreg_read_icc_igrpen1()           {return MRC(0, c12, c12, 7);}
-
-static inline void sysreg_write_icc_eoir1(unsigned long val)    {MCR(0, c12, c12, 1, val);}
-static inline unsigned long sysreg_read_icc_eoir1()             {return MRC(0, c12, c12, 1);}
-
-static inline void sysreg_write_icc_dir(unsigned long val)      {MCR(0, c12, c11, 1, val);}
-static inline unsigned long sysreg_read_icc_dir()               {return MRC(0, c12, c11, 1);}
-
-static inline void sysreg_write_ich_eisr(unsigned long val)     {MCR(4, c12, c11, 3, val);}
-static inline unsigned long sysreg_read_ich_eisr()              {return MRC(4, c12, c11, 3);}
-
-static inline void sysreg_write_ich_elrsr(unsigned long val)    {MCR(4, c12, c11, 5, val);}
-static inline unsigned long sysreg_read_ich_elrsr()             {return MRC(4, c12, c11, 5);}
-
-static inline void sysreg_write_csselr(unsigned long val)       {MCR(2, c0, c0, 0, val);}
-static inline unsigned long sysreg_read_csselr()                {return MRC(2, c0, c0, 0);}
-
-static inline void sysreg_write_ich_lr0(unsigned long val)      {MCR(4, c12, c12, 0, val);}
-static inline unsigned long sysreg_read_ich_lr0()               {return MRC(4, c12, c12, 0);}
-
-static inline void sysreg_write_ich_lr1(unsigned long val)      {MCR(4, c12, c12, 1, val);}
-static inline unsigned long sysreg_read_ich_lr1()               {return MRC(4, c12, c12, 1);}
-
-static inline void sysreg_write_ich_lr2(unsigned long val)      {MCR(4, c12, c12, 2, val);}
-static inline unsigned long sysreg_read_ich_lr2()               {return MRC(4, c12, c12, 2);}
-
-static inline void sysreg_write_ich_lr3(unsigned long val)      {MCR(4, c12, c12, 3, val);}
-static inline unsigned long sysreg_read_ich_lr3()               {return MRC(4, c12, c12, 3);}
-
-static inline unsigned long sysreg_read_par32()                 {return MRC(0, c7, c4, 0);}
-static inline void sysreg_write_par32(unsigned long val)        {MCR(0, c7, c4, 0, val);}
-
-static inline unsigned long sysreg_read_pmcr()                  {return MRC(0, c9, c12, 0);}
-static inline void sysreg_write_pmcr(unsigned long val)         {MCR(0, c9, c12, 0, val);}
-
-static inline unsigned long sysreg_read_cntkctl()               {return MRC(0, c14, c1, 0);}
-static inline void sysreg_write_cntkctl(unsigned long val)      {MCR(0, c14, c1, 0, val);}
-
-static inline unsigned long sysreg_read_sctlr()                 {return MRC(0, c1, c0, 0);}
-static inline void sysreg_write_sctlr(unsigned long val)        {MCR(0, c1, c0, 0, val);}
+#define SYSREG_GEN_ACCESSORS_AARCH32(reg, type, Op1, CRn, CRm, Op2) \
+    static inline type sysreg_##reg##_read() {\
+        type _temp;\
+        asm volatile("mrc p15, "#Op1", %0, "#CRn", "#CRm", "#Op2"\n\r": "=r"(_temp));\
+        return _temp;\
+    } \
+    static inline void sysreg_##reg##_write(unsigned long val) {\
+        asm volatile("mcr p15, "#Op1", %0, "#CRn", "#CRm", "#Op2"\n\r": :"r"((val)));\
+    }
 
 
-static inline unsigned long long sysreg_read_par64()            {return MRRC(0, c7);}
-static inline void sysreg_write_par64(unsigned long lower, unsigned long upper)       {MCRR(0, lower, upper, c7);}
-
-static inline void sysreg_write_icc_sgi1r(unsigned long lower, unsigned long upper)   {MCRR(0, lower, upper, c12);}
-
-static inline void sysreg_write_cntvoff(unsigned long lower, unsigned long upper)     {MCRR(4, lower, upper, c14);}
+#define SYSREG_GEN_ACCESSORS_AARCH32_64(reg, type, Op1, CRm) \
+    static inline type sysreg_##reg##_read() {\
+        type _temp, _tempH;\
+        asm volatile("mrrc p15, "#Op1", %0, %1, "#CRm"\n\r": "=r"(_temp), "=r"(_tempH));\
+        return ((_tempH<<32)|| _temp);\
+    } \
+    static inline void sysreg_##reg##_write(type val) {\
+        type _tempH = (val>>32);\
+        asm volatile("mcrr p15, "#Op1", %0, %1, "#CRm"\n\r": :"r"(val), "r"(_tempH));\
+    }
 
 
 
-/************************************************* Cortex-R52 *************************************************/
+SYSREG_GEN_ACCESSORS(hsr     , unsigned long, 4, c5 , c2 , 0);
+SYSREG_GEN_ACCESSORS(htpidr  , unsigned long, 4, c13, c0 , 2);
+SYSREG_GEN_ACCESSORS(hdfar   , unsigned long, 4, c6 , c0 , 0);
+SYSREG_GEN_ACCESSORS(hpfar   , unsigned long, 4, c6 , c0 , 4);
+SYSREG_GEN_ACCESSORS(clidr   , unsigned long, 1, c0 , c0 , 1);
+SYSREG_GEN_ACCESSORS(ccsidr  , unsigned long, 1, c0 , c0 , 0);
+SYSREG_GEN_ACCESSORS(ctr     , unsigned long, 0, c0 , c0 , 1);
+SYSREG_GEN_ACCESSORS(mpidr   , unsigned long, 0, c0 , c0 , 5);
+SYSREG_GEN_ACCESSORS(DCCIMVAC, unsigned long, 0, c7 , c14, 1);
+SYSREG_GEN_ACCESSORS(ich_vtr , unsigned long, 4, c12, c11, 1);
+SYSREG_GEN_ACCESSORS(vmpidr  , unsigned long, 4, c0 , c0 , 5);
+SYSREG_GEN_ACCESSORS(hcr     , unsigned long, 4, c1 , c1 , 0);
+SYSREG_GEN_ACCESSORS(hcr2    , unsigned long, 4, c6 , c0 , 0);
+SYSREG_GEN_ACCESSORS(ich_hcr , unsigned long, 4, c12, c11, 0);
+SYSREG_GEN_ACCESSORS(ich_misr, unsigned long, 4, c12, c11, 2);
+SYSREG_GEN_ACCESSORS(hcptr   , unsigned long, 4, c1 , c1 , 2);
+SYSREG_GEN_ACCESSORS(hmair0  , unsigned long, 4, c10, c2 , 0);
+SYSREG_GEN_ACCESSORS(hmair1  , unsigned long, 4, c10, c2 , 1);
+SYSREG_GEN_ACCESSORS(icc_pmr , unsigned long, 0, c4 , c6 , 0);
+SYSREG_GEN_ACCESSORS(icc_bpr1, unsigned long, 0, c12, c12, 3);
+SYSREG_GEN_ACCESSORS(icc_iar1, unsigned long, 0, c12, c12, 0);
+SYSREG_GEN_ACCESSORS(icc_hsre, unsigned long, 4, c12, c9 , 5);
+SYSREG_GEN_ACCESSORS(icc_ctlr, unsigned long, 0, c12, c12, 4);
+SYSREG_GEN_ACCESSORS(icc_dir , unsigned long, 0, c12, c11, 1);
+SYSREG_GEN_ACCESSORS(ich_eisr, unsigned long, 4, c12, c11, 3);
+SYSREG_GEN_ACCESSORS(csselr  , unsigned long, 2, c0 , c0 , 0);
+SYSREG_GEN_ACCESSORS(ich_lr0 , unsigned long, 4, c12, c12, 0);
+SYSREG_GEN_ACCESSORS(ich_lr1 , unsigned long, 4, c12, c12, 1);
+SYSREG_GEN_ACCESSORS(ich_lr2 , unsigned long, 4, c12, c12, 2);
+SYSREG_GEN_ACCESSORS(ich_lr3 , unsigned long, 4, c12, c12, 3);
+SYSREG_GEN_ACCESSORS(pmcr    , unsigned long, 0, c9 , c12, 0);
+SYSREG_GEN_ACCESSORS(cntkctl , unsigned long, 0, c14, c1 , 0);
+SYSREG_GEN_ACCESSORS(sctlr   , unsigned long, 0, c1 , c0 , 0);
+SYSREG_GEN_ACCESSORS(par32   , unsigned long, 0, c7 , c4 , 0);
+SYSREG_GEN_ACCESSORS(ich_elrsr  , unsigned long, 4, c12, c11, 5);
+SYSREG_GEN_ACCESSORS(icc_igrpen1, unsigned long, 0, c12, c12, 7);
+SYSREG_GEN_ACCESSORS(icc_eoir1  , unsigned long, 0, c12, c12, 1);
+SYSREG_GEN_ACCESSORS(icc_sgi1r , unsigned long long, 0, c12);
+SYSREG_GEN_ACCESSORS(cntvoff   , unsigned long long, 4, c14);
+SYSREG_GEN_ACCESSORS(par       , unsigned long long, 0, c7 );
+SYSREG_GEN_ACCESSORS(cnthp_cval, unsigned long long, 6, c14);
 
 
 
