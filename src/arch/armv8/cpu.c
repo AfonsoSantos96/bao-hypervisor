@@ -25,7 +25,7 @@ cpuid_t CPU_MASTER __attribute__((section(".data")));
 /* Perform architecture dependent cpu cores initializations */
 void cpu_arch_init(cpuid_t cpuid, paddr_t load_addr)
 {   
-    cpu()->arch.mpidr = 0;//MRS(MPIDR_EL1);
+    cpu()->arch.mpidr = sysreg_mpidr_read();
     if (cpuid == CPU_MASTER) {
         /* power on necessary, but still sleeping, secondary cpu cores
          * Assumes CPU zero is doing this */

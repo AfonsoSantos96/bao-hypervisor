@@ -37,7 +37,7 @@ bool vgic_int_vcpu_is_target(struct vcpu *vcpu, struct vgic_int *interrupt)
     bool priv = gic_is_priv(interrupt->id);
     bool local = priv && (interrupt->phys.redist == vcpu->phys_id);
     bool routed_here =
-        !priv && !(interrupt->phys.route ^ (1/*MRS(MPIDR_EL1)*/ & MPIDR_AFF_MSK));
+        !priv && !(interrupt->phys.route ^ (sysreg_mpidr_read() & MPIDR_AFF_MSK));
     bool any = !priv && vgic_broadcast(vcpu, interrupt);
     return local || routed_here || any;
 }
@@ -46,7 +46,7 @@ bool vgic_int_has_other_target(struct vcpu *vcpu, struct vgic_int *interrupt)
 {
     bool priv = gic_is_priv(interrupt->id);
     bool routed_here =
-        !priv && !(interrupt->phys.route ^ (1/*MRS(MPIDR_EL1)*/ & MPIDR_AFF_MSK));
+        !priv && !(interrupt->phys.route ^ (sysreg_mpidr_read() & MPIDR_AFF_MSK));
     bool route_valid = interrupt->phys.route != GICD_IROUTER_INV;
     bool any = !priv && vgic_broadcast(vcpu, interrupt);
     return any || (!routed_here && route_valid);

@@ -29,9 +29,9 @@ void internal_abort_handler(uint64_t gprs[]) {
         printk("x%d:\t\t0x%0lx\n", i, gprs[i]);
     }
     printk("SP_EL2:\t\t0x%0lx\n", gprs[32]);
-   /* printk("ESR_EL2:\t0x%0lx\n", MRS(ESR_EL2));
-    printk("ELR_EL2:\t0x%0lx\n", MRS(ELR_EL2));
-    printk("FAR_EL2:\t0x%0lx\n", MRS(FAR_EL2));*/
+    printk("HSR:\t0x%0lx\n", sysreg_hsr_read());
+   /* printk("ELR_EL2:\t0x%0lx\n", MRS(ELR_EL2));*/
+    printk("HDFAR:\t0x%0lx\n", sysreg_hdfar_read());
     ERROR("cpu%d internal hypervisor abort - PANIC\n", cpu()->id);
 }
 
@@ -146,12 +146,12 @@ abort_handler_t abort_handlers[64] = {[ESR_EC_DALEL] = aborts_data_lower,
 
 void aborts_sync_handler()
 {
-    uint64_t esr = 0;//MRS(ESR_EL2);
-    uint64_t far = 0;//MRS(FAR_EL2);
-    uint64_t hpfar = 0;//MRS(HPFAR_EL2);
+    uint64_t esr = sysreg_hsr_read();
+    uint32_t hdfar = sysreg_hdfar_read();
+    uint64_t hpfar = sysreg_hpfar_read();
     uint64_t ipa_fault_addr = 0;
 
-    ipa_fault_addr = (far & 0xFFF) | (hpfar << 8);
+    ipa_fault_addr = (hdfar & 0xFFF) | (hpfar << 8);
 
     uint64_t ec = bit64_extract(esr, ESR_EC_OFF, ESR_EC_LEN);
     uint64_t il = bit64_extract(esr, ESR_IL_OFF, ESR_IL_LEN);

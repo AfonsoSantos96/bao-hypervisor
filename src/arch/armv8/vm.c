@@ -47,7 +47,8 @@ static unsigned long vm_cpuid_to_mpidr(struct vm* vm, vcpuid_t cpuid)
 void vcpu_arch_init(struct vcpu* vcpu, struct vm* vm)
 {
     vcpu->arch.vmpidr = vm_cpuid_to_mpidr(vm, vcpu->id);
-    //MSR(VMPIDR_EL2, vcpu->arch.vmpidr);
+    sysreg_vmpidr_write(vcpu->arch.vmpidr);
+
 
     vcpu->arch.psci_ctx.state = vcpu->id == 0 ? ON : OFF;
 
@@ -69,15 +70,15 @@ void vcpu_arch_reset(struct vcpu* vcpu, vaddr_t entry)
     vcpu->regs->elr_el2 = entry;
     vcpu->regs->spsr_el2 = SPSR_EL1h | SPSR_F | SPSR_I | SPSR_A | SPSR_D;
 
-    //MSR(CNTVOFF_EL2, 0);
+    sysreg_cntvoff_write(0);
 
     /**
      *  See ARMv8-A ARM section D1.9.1 for registers that must be in a known
      * state at reset.
      */
-    //MSR(SCTLR_EL1, SCTLR_RES1);
-    //MSR(CNTKCTL_EL1, 0);
-    //MSR(PMCR_EL0, 0);
+    sysreg_sctlr_write(SCTLR_RES1);
+    sysreg_cntkctl_write(0);
+    sysreg_pmcr_write(0);
 
     /**
      *  TODO: ARMv8-A ARM mentions another implementation optional registers
