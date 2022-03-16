@@ -61,6 +61,12 @@
         sysreg_##reg2##_write(val >> 32);\
     }
 
+#define SYSREG_GEN_RO_ACCESSORS(name, op1, crn, crm, op2) \
+    static inline unsigned long sysreg_##name##_read() {\
+        unsigned long _temp;\
+        asm volatile("mrc p15, "#op1", %0, "#crn", "#crm", %1\n\r": "=r"(_temp): "i"(op2));\
+        return _temp;\
+    }
 
 /**
  * We give aarch32 registers the same name as aarch64's to which they are 
@@ -137,6 +143,79 @@ SYSREG_GEN_ACCESSORS(dccivac, 0, c7, c14, 1);
 static inline void arm_dc_civac(vaddr_t cache_addr) {
     sysreg_dccivac_write(cache_addr);
 }
+
+
+/*
+ * MPU Registers
+ */
+
+SYSREG_GEN_ACCESSORS(prselr,  0, c6, c2, 1);
+SYSREG_GEN_ACCESSORS(hprselr, 4, c6, c2, 1);
+SYSREG_GEN_ACCESSORS(hprenr,  4, c6, c1, 1);
+SYSREG_GEN_RO_ACCESSORS(hmpuir, 4, c0, c0, 4);
+SYSREG_GEN_RO_ACCESSORS(mpuir,  0, c0, c0, 4);
+
+
+#define SYSREG_GEN_PRBAR_PRLAR(n, op1, crm, op2) \
+    SYSREG_GEN_ACCESSORS(prbar##n, op1, c6, crm, op2); \
+    SYSREG_GEN_ACCESSORS(prlar##n, op1, c6, crm, op2); \
+
+SYSREG_GEN_PRBAR_PRLAR(0,  0, c8,  0);
+SYSREG_GEN_PRBAR_PRLAR(1,  0, c8,  4);
+SYSREG_GEN_PRBAR_PRLAR(2,  0, c9,  0);
+SYSREG_GEN_PRBAR_PRLAR(3,  0, c9,  4);
+SYSREG_GEN_PRBAR_PRLAR(4,  0, c10, 0);
+SYSREG_GEN_PRBAR_PRLAR(5,  0, c10, 4);
+SYSREG_GEN_PRBAR_PRLAR(6,  0, c11, 0);
+SYSREG_GEN_PRBAR_PRLAR(7,  0, c11, 4);
+SYSREG_GEN_PRBAR_PRLAR(8,  0, c12, 0);
+SYSREG_GEN_PRBAR_PRLAR(9,  0, c12, 4);
+SYSREG_GEN_PRBAR_PRLAR(10, 0, c13, 0);
+SYSREG_GEN_PRBAR_PRLAR(11, 0, c13, 4);
+SYSREG_GEN_PRBAR_PRLAR(12, 0, c14, 0);
+SYSREG_GEN_PRBAR_PRLAR(13, 0, c14, 4);
+SYSREG_GEN_PRBAR_PRLAR(14, 0, c15, 0);
+SYSREG_GEN_PRBAR_PRLAR(15, 0, c15, 4);
+SYSREG_GEN_PRBAR_PRLAR(16, 1, c8,  0);
+SYSREG_GEN_PRBAR_PRLAR(17, 1, c8,  4);
+SYSREG_GEN_PRBAR_PRLAR(18, 1, c9,  0);
+SYSREG_GEN_PRBAR_PRLAR(19, 1, c9,  4);
+SYSREG_GEN_PRBAR_PRLAR(20, 1, c10, 0);
+SYSREG_GEN_PRBAR_PRLAR(21, 1, c10, 4);
+SYSREG_GEN_PRBAR_PRLAR(22, 1, c11, 0);
+SYSREG_GEN_PRBAR_PRLAR(23, 1, c11, 4);
+SYSREG_GEN_PRBAR_PRLAR(24, 1, c12, 0);
+
+
+#define SYSREG_GEN_HPRBAR_HPRLAR(n, op1, crm, op2) \
+    SYSREG_GEN_ACCESSORS(hprbar##n, op1, c6, crm, op2); \
+    SYSREG_GEN_ACCESSORS(hprlar##n, op1, c6, crm, op2); \
+
+SYSREG_GEN_HPRBAR_HPRLAR(0,  4, c8,  0);
+SYSREG_GEN_HPRBAR_HPRLAR(1,  4, c8,  4);
+SYSREG_GEN_HPRBAR_HPRLAR(2,  4, c9,  0);
+SYSREG_GEN_HPRBAR_HPRLAR(3,  4, c9,  4);
+SYSREG_GEN_HPRBAR_HPRLAR(4,  4, c10, 0);
+SYSREG_GEN_HPRBAR_HPRLAR(5,  4, c10, 4);
+SYSREG_GEN_HPRBAR_HPRLAR(6,  4, c11, 0);
+SYSREG_GEN_HPRBAR_HPRLAR(7,  4, c11, 4);
+SYSREG_GEN_HPRBAR_HPRLAR(8,  4, c12, 0);
+SYSREG_GEN_HPRBAR_HPRLAR(9,  4, c12, 4);
+SYSREG_GEN_HPRBAR_HPRLAR(10, 4, c13, 0);
+SYSREG_GEN_HPRBAR_HPRLAR(11, 4, c13, 4);
+SYSREG_GEN_HPRBAR_HPRLAR(12, 4, c14, 0);
+SYSREG_GEN_HPRBAR_HPRLAR(13, 4, c14, 4);
+SYSREG_GEN_HPRBAR_HPRLAR(14, 4, c15, 0);
+SYSREG_GEN_HPRBAR_HPRLAR(15, 4, c15, 4);
+SYSREG_GEN_HPRBAR_HPRLAR(16, 5, c8 , 0);
+SYSREG_GEN_HPRBAR_HPRLAR(17, 5, c8,  4);
+SYSREG_GEN_HPRBAR_HPRLAR(18, 5, c9,  0);
+SYSREG_GEN_HPRBAR_HPRLAR(19, 5, c9,  4);
+SYSREG_GEN_HPRBAR_HPRLAR(20, 5, c10, 0);
+SYSREG_GEN_HPRBAR_HPRLAR(21, 5, c10, 4);
+SYSREG_GEN_HPRBAR_HPRLAR(22, 5, c11, 0);
+SYSREG_GEN_HPRBAR_HPRLAR(23, 5, c11, 4);
+SYSREG_GEN_HPRBAR_HPRLAR(24, 5, c12, 0);
 
 #endif /* |__ASSEMBLER__ */
 
