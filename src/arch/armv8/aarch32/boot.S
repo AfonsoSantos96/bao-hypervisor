@@ -109,16 +109,6 @@ _set_master_cpu:
     mov r3, #0
     mov sp, r3
 
-    /* Disable MPU and Caches */
-    mrc p15, 4, r3, c1, c0, 0 // read HSCTLR
-    bic r3, r3, #0x5 // disable MMU/MPU (M) and DCache (C)
-    bic r3, r3, #0x1000 // disable ICache (I)
-    dsb
-    mrc p15, 4, r3, c1, c0, 0 // write HSCTLR
-    isb
-
-    /* Disable BP (and others...) */
-    // TODO - ?
 
     /* Invalidate Caches */
     mov r10, r0 // save
@@ -126,7 +116,7 @@ _set_master_cpu:
     mov r12, r2
 
     mov r0, #0 // invalidate DCache
-    bl cache_invalidate
+    bl boot_cache_invalidate
 
     mov r0,	r10 // restore
     mov r1,	r11
@@ -145,7 +135,7 @@ _set_master_cpu:
     bne 1f
     ldr r11, =_bss_start	
     ldr r12, =_bss_end	
-    bl clear	
+    bl boot_clear	
 
     ldr r5, =_barrier
     mov r7, #2
@@ -167,6 +157,18 @@ _set_master_cpu:
 
 /***** 	Helper functions for boot code. ******/
 
+.global boot_clear
+.func boot_clear
+boot_clear:
+2:
+    mov r8, #0
+	cmp r11, r12			
+	bge 1f				
+	str r8, [r11], #8	
+	b 2b				
+1:
+	bx lr
+.endfunc
 
 /*
  * Code adapted from "Application Note Bare-metal Boot Code for ARMv8-A
@@ -174,8 +176,9 @@ _set_master_cpu:
  *
  * r0 - cache level to be invalidated (0 - dl1$, 1 - il1$)
  */
-.func cache_invalidate
-cache_invalidate:
+.global boot_cache_invalidate
+.func boot_cache_invalidate
+boot_cache_invalidate:
     mcr p15, 2, r0, c0, c0, 0 // write CSSELR (cache size selection) 	
     mrc p15, 1, r4, c0, c0, 0 // read CCSIDR (cache size id)
     and r1, r4, #0x7
@@ -203,5 +206,3 @@ set_loop:
     bx lr
 .endfunc
 
-clear:
-    bx lr
