@@ -111,7 +111,7 @@ _set_master_cpu:
 
     /* Disable MPU and Caches */
     mrc p15, 4, r3, c1, c0, 0 // read HSCTLR
-    bic r3, r3, #0x5 // disable MPU (M) and DCache (C)
+    bic r3, r3, #0x5 // disable MMU/MPU (M) and DCache (C)
     bic r3, r3, #0x1000 // disable ICache (I)
     dsb
     mrc p15, 4, r3, c1, c0, 0 // write HSCTLR
@@ -134,22 +134,11 @@ _set_master_cpu:
 
     mcr p15, 0, r10, c7, c5, 0 // invalidate ICache
 
-    /* Set MPU and identity mapping to switch to "VAS" (see note below) */
+    /* Call boot subarch specific */
+    bl boot_arch_profile_init
 
-    // TODO ...
-
-
-
-
-
-
-
-/* In Armv8-R there is no virtual address space (VAS). Notwithstanding,  
- * we define VAS as an identity map of the PAS with MPU rules enforced 
- * using an equivalent "page size" of (at least) 64 bytes (minimal MPU 
- * granularity). 
- */
-_enter_vas:
+    /* Set up cpu stack */
+    // TODO - ...
 
     /* If this is bsp (cpu 0) clear bss */
     cmp r9, #0
