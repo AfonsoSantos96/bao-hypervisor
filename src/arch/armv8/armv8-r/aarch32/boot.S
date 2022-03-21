@@ -21,9 +21,25 @@
 .global boot_arch_profile_init
 boot_arch_profile_init:
 
-    // push {r0-r12, lr}
+    /* Disable MPU and Caches */
+    mrc p15, 4, r3, c1, c0, 0 // read HSCTLR
+    bic r3, r3, #0x5 // disable MPU (M) and DCache (C)
+    bic r3, r3, #0x1000 // disable ICache (I)
+    dsb
+    mrc p15, 4, r3, c1, c0, 0 // write HSCTLR
+    isb
 
-    // TODO - ...
+    // TODO - Set MPU hypervisor regions
+    // ...
+
+    /* Enable MMU and caches */
+    mrc p15, 4, r3, c1, c0, 0 // read HSCTLR
+    //orr r3, r3, #0x1 // enable MPU (M)
+    orr r3, r3, #0x4 // enable DCache (C)
+    orr r3, r3, #0x1000 // disable ICache (I)
+    mrc p15, 4, r3, c1, c0, 0 // write HSCTLR
+    dsb
+    isb
 
 /* In Armv8-R there is no virtual address space (VAS). Notwithstanding,  
  * we define VAS as an identity map of the PAS with MPU rules enforced 
@@ -31,8 +47,6 @@ boot_arch_profile_init:
  * granularity). 
  */
 _enter_vas:
-
-    // pop {r0-r12, lr}
 
     bx lr
 
