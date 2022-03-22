@@ -23,8 +23,7 @@
 #include <fences.h>
 #include <spinlock.h>
 
-volatile bao_uart_t uart
-    __attribute__((section(".devices"), aligned(PAGE_SIZE)));
+extern volatile bao_uart_t uart;
 bool ready = false;
 static spinlock_t print_lock = SPINLOCK_INITVAL;
 

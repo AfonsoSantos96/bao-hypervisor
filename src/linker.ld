@@ -14,6 +14,7 @@
  */
 
 #include <bao.h>
+#include <platform_defs.h>
 
 ENTRY(_image_start)
 
@@ -97,6 +98,8 @@ SECTIONS
 	.devices _image_end (NOLOAD) : ALIGN(PAGE_SIZE) {
 		*(.devices)
 	}
+
+	uart = CONSOLE_BASE;
 
 	. = ALIGN(PAGE_SIZE);
 	_dmem_beg = ABSOLUTE(.);
