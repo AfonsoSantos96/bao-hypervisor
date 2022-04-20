@@ -58,6 +58,7 @@ _reset_handler:
     /* Read core ID (MPIDR) and set image load addr */
     mov r2, r0
     mrc p15, 0, r0, c0, c0, 5 // read MPIDR
+    and r0, #0x7FFFFFFF // clear MSB
     get_phys_addr r1, r3, _image_start
 
     /* 
@@ -72,8 +73,6 @@ _reset_handler:
      * cluster.
      * TODO: understand if needed
      */
-
-    // TODO - ...
 
 
 .pushsection .data
