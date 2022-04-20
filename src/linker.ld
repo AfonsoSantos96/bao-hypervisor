@@ -14,6 +14,7 @@
  */
 
 #include <bao.h>
+#include <plat/platform.h>
 
 ENTRY(_image_start)
 
