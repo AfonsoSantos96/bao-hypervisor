@@ -33,6 +33,9 @@ void cpu_arch_profile_init(cpuid_t cpuid, paddr_t load_addr) {
 }
 
 void cpu_arch_profile_idle() {
+<<<<<<< HEAD
     /* TBD */
+=======
+>>>>>>> 95cc7e1... add aarch32 cpu profile
     asm volatile("wfi");
 }
