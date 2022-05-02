@@ -15,11 +15,24 @@
  */
 
 #include <cpu.h>
+#include <platform.h>
 
 void cpu_arch_profile_init(cpuid_t cpuid, paddr_t load_addr) {
-
+    if (cpuid == CPU_MASTER) {
+        /* power on necessary, but still sleeping, secondary cpu cores
+         * Assumes CPU zero is doing this */
+        for (size_t cpu_core_id = 0; cpu_core_id < platform.cpu_num;
+             cpu_core_id++) {
+            if(cpu_core_id == cpuid) continue;
+            cpu_id_to_mpidr(cpu_core_id);
+            // TODO: pass config addr in contextid (x0 register)
+            // TODO: use returned value from "cpu_id_to_mpidr" function to
+            //       implement power management mechanisms to wake up cores
+        }
+    }
 }
 
 void cpu_arch_profile_idle() {
-
+    /* TBD */
+    asm volatile("wfi");
 }
