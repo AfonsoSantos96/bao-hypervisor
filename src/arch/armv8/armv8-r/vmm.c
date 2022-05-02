@@ -17,5 +17,5 @@
 
 void vmm_arch_profile_init()
 {
-
+    /* TBD */
 }

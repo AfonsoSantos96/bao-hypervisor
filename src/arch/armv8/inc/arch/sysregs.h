@@ -59,6 +59,9 @@
 #define SPSR_IL (1 << 20)
 #define SPSR_SS (1 << 21)
 
+#define SPSR_USR (0x0)
+#define SPSR_SYS (0xf)
+
 /* SCR - Secure Configuration Register */
 
 #define SCR_NS (1 << 0)
