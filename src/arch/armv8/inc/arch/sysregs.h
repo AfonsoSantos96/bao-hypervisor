@@ -20,6 +20,8 @@
 #include <bit.h>
 #include <arch/profile/sysregs.h>
 
+#define REG_NUM (sizeof(((struct arch_regs*)NULL)->x)/sizeof((struct arch_regs*)NULL)->x[0])
+
 /* ID_AA64MMFR0_EL1, AArch64 Memory Model Feature Register 0 */
 #define ID_AA64MMFR0_PAR_OFF 0
 #define ID_AA64MMFR0_PAR_LEN 4

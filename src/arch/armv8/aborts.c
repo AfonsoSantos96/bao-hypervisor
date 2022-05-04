@@ -5,6 +5,7 @@
  *
  * Authors:
  *      Jose Martins <jose.martins@bao-project.org>
+ *      Afonso Santos <afomms@gmail.com>
  *
  * Bao is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License version 2 as published by the Free
@@ -32,7 +33,7 @@ void internal_abort_handler(unsigned long gprs[]) {
     for(size_t i = 0; i < REG_NUM; i++) {
         printk("x%d:\t\t0x%0lx\n", i, gprs[i]);
     }
-    printk("SP:\t\t0x%0lx\n", gprs[REG_NUM+1]);
+    printk("SP:\t\t0x%0lx\n", gprs[REG_NUM]);
     printk("ESR:\t0x%0lx\n", sysreg_esr_el2_read());
     printk("ELR:\t0x%0lx\n", sysreg_elr_el2_read());
     printk("FAR:\t0x%0lx\n", sysreg_far_el2_read());
