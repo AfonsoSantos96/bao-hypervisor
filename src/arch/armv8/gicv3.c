@@ -33,6 +33,7 @@ size_t NUM_LRS;
 
 size_t gich_num_lrs()
 {
+    sysreg_icc_sre_el2_write(ICC_SRE_SRE_BIT);
     return ((sysreg_ich_vtr_el2_read() & ICH_VTR_MSK) >> ICH_VTR_OFF) + 1;
 }
 
