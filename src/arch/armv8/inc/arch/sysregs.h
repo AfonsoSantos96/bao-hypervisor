@@ -348,6 +348,8 @@
 
 #define ESR_EC_UNKWN (0x00)
 #define ESR_EC_WFIE (0x01)
+#define ESR_EC_RG_32 (0x03)
+#define ESR_EC_RG_64 (0x04)
 #define ESR_EC_SVC32 (0x11)
 #define ESR_EC_HVC32 (0x12)
 #define ESR_EC_SMC32 (0x13)
