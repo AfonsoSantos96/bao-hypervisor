@@ -21,6 +21,9 @@
 #include <hypercall.h>
 
 #define REG_NUM (sizeof(((struct arch_regs*)NULL)->x)/sizeof((struct arch_regs*)NULL)->x[0])
+#define OP0_MRS_CP15 ((0x3)<<20)
+#define ICC_SGI1R_CASE (0x18)
+#define ICC_SGI1R_ADDR (0x3A3016)
 
 typedef void (*abort_handler_t)(unsigned long, unsigned long, unsigned long);
 
@@ -101,10 +104,22 @@ void hvc_handler(unsigned long iss, unsigned long far, unsigned long il)
     vcpu_writereg(cpu()->vcpu, 0, ret);
 }
 
+static vaddr_t reg_addr_translate (unsigned long iss){
+    switch ((iss & ESR_ISS_SYSREG_ADDR_64)){
+        case ICC_SGI1R_CASE: return (vaddr_t) ICC_SGI1R_ADDR;
+        default: return (vaddr_t) 0xFFFFFFFF;
+    }
+}
+
 void sysreg_handler(unsigned long iss, unsigned long far, unsigned long il)
 {
     unsigned long ec = bit64_extract(sysreg_esr_el2_read(), ESR_EC_OFF, ESR_EC_LEN);
-    vaddr_t reg_addr = iss & ESR_ISS_SYSREG_ADDR;
+    vaddr_t reg_addr = 0;
+    switch (ec){
+        case ESR_EC_RG_64: reg_addr = reg_addr_translate(iss); break;
+        default: reg_addr = (iss & ESR_ISS_SYSREG_ADDR_32) | OP0_MRS_CP15; break;
+    }
+
     emul_handler_t handler = vm_emul_get_reg(cpu()->vcpu->vm, reg_addr);
     if(handler != NULL){
         struct emul_access emul;

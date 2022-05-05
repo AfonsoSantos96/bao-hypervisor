@@ -395,6 +395,8 @@
 #define ESR_ISS_DA_DSFC_PERMIS (0xC)
 
 #define ESR_ISS_SYSREG_ADDR ((0xfff << 10) | (0xf << 1))
+#define ESR_ISS_SYSREG_ADDR_32 (0xFFC1E)
+#define ESR_ISS_SYSREG_ADDR_64 (0xF001E)
 #define ESR_ISS_SYSREG_DIR (0x1)
 #define ESR_ISS_SYSREG_REG_OFF (5)
 #define ESR_ISS_SYSREG_REG_LEN (5)
