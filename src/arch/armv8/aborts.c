@@ -130,7 +130,8 @@ abort_handler_t abort_handlers[64] = {[ESR_EC_DALEL] = aborts_data_lower,
                                       [ESR_EC_SMC32] = smc_handler,
                                       [ESR_EC_SMC64] = smc_handler,
                                       [ESR_EC_SYSRG] = sysreg_handler,
-                                      [ESR_EC_SYSRG] = sysreg_handler,
+                                      [ESR_EC_RG_32] = sysreg_handler,
+                                      [ESR_EC_RG_64] = sysreg_handler,
                                       [ESR_EC_HVC32] = hvc_handler,
                                       [ESR_EC_HVC64] = hvc_handler,};
 
