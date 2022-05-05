@@ -103,6 +103,7 @@ void hvc_handler(unsigned long iss, unsigned long far, unsigned long il)
 
 void sysreg_handler(unsigned long iss, unsigned long far, unsigned long il)
 {
+    unsigned long ec = bit64_extract(sysreg_esr_el2_read(), ESR_EC_OFF, ESR_EC_LEN);
     vaddr_t reg_addr = iss & ESR_ISS_SYSREG_ADDR;
     emul_handler_t handler = vm_emul_get_reg(cpu()->vcpu->vm, reg_addr);
     if(handler != NULL){
@@ -111,7 +112,9 @@ void sysreg_handler(unsigned long iss, unsigned long far, unsigned long il)
         emul.width = 8;
         emul.write = iss & ESR_ISS_SYSREG_DIR ? false : true;
         emul.reg = bit64_extract(iss, ESR_ISS_SYSREG_REG_OFF, ESR_ISS_SYSREG_REG_LEN);
+        emul.reg_high = bit64_extract(iss, ESR_ISS_SYSREG_REG2_OFF, ESR_ISS_SYSREG_REG2_LEN);
         emul.reg_width = 8;
+        emul.multi_reg = (ec == ESR_EC_RG_64)? true : false;
         emul.sign_ext = false;
 
         if (handler(&emul)) {

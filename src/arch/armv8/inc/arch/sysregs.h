@@ -398,6 +398,8 @@
 #define ESR_ISS_SYSREG_DIR (0x1)
 #define ESR_ISS_SYSREG_REG_OFF (5)
 #define ESR_ISS_SYSREG_REG_LEN (5)
+#define ESR_ISS_SYSREG_REG2_OFF (10)
+#define ESR_ISS_SYSREG_REG2_LEN (5)
 
 /* VTTBR_EL2, Virtualization Translation Table Base Register */
 
