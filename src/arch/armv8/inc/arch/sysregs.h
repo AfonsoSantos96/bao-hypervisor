@@ -5,6 +5,7 @@
  *
  * Authors:
  *      Jose Martins <jose.martins@bao-project.org>
+ *      Afonso Santos <afomms@gmail.com>
  *
  * Bao is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License version 2 as published by the Free
@@ -409,6 +410,10 @@
 #define ESR_ISS_SYSREG_REG2_OFF (10)
 #define ESR_ISS_SYSREG_REG2_LEN (5)
 
+#define OP0_MRS_CP15 ((0x3)<<20)
+
+#define UNDEFINED_REG_ADDR (0xFFFFFFFF)
+
 /* VTTBR_EL2, Virtualization Translation Table Base Register */
 
 #define VTTBR_VMID_OFF 48
@@ -443,6 +448,9 @@
 #define ICC_CTLR_EL3        S3_6_C12_C12_4 
 #define ICC_SRE_EL3         S3_6_C12_C12_5
 #define ICC_IGRPEN1_EL3     S3_6_C12_C12_7
+
+#define ICC_SGI1R_CASE (0x18)
+#define ICC_SGI1R_ADDR (0x3A3016)
 
 // #define ICH_AP0R<n>_EL2     S3_4_C12_C8 _0-3
 // #define ICH_AP1R<n>_EL2     S3_4_C12_C9 _0-3

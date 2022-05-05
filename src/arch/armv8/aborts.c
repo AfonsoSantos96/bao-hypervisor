@@ -21,12 +21,7 @@
 #include <emul.h>
 #include <hypercall.h>
 
-#define REG_NUM (sizeof(((struct arch_regs*)NULL)->x)/sizeof((struct arch_regs*)NULL)->x[0])
-#define OP0_MRS_CP15 ((0x3)<<20)
-#define ICC_SGI1R_CASE (0x18)
-#define ICC_SGI1R_ADDR (0x3A3016)
-
-typedef void (*abort_handler_t)(unsigned long, unsigned long, unsigned long);
+typedef void (*abort_handler_t)(unsigned long, unsigned long, unsigned long, unsigned long);
 
 void internal_abort_handler(unsigned long gprs[]) {
 
@@ -40,7 +35,7 @@ void internal_abort_handler(unsigned long gprs[]) {
     ERROR("cpu%d internal hypervisor abort - PANIC\n", cpu()->id);
 }
 
-void aborts_data_lower(unsigned long iss, unsigned long far, unsigned long il)
+void aborts_data_lower(unsigned long iss, unsigned long far, unsigned long il, unsigned long ec)
 {
     if (!(iss & ESR_ISS_DA_ISV_BIT) || (iss & ESR_ISS_DA_FnV_BIT)) {
         ERROR("no information to handle data abort (0x%x)", far);
@@ -83,12 +78,12 @@ void aborts_data_lower(unsigned long iss, unsigned long far, unsigned long il)
 }
 
 __attribute__((weak))
-void smc_handler(unsigned long iss, unsigned long far, unsigned long il)
+void smc_handler(unsigned long iss, unsigned long far, unsigned long il, unsigned long ec)
 {
     WARNING("smc call but there is no handler");
 }
 
-void hvc_handler(unsigned long iss, unsigned long far, unsigned long il)
+void hvc_handler(unsigned long iss, unsigned long far, unsigned long il, unsigned long ec)
 {
     unsigned long hvc_fid = vcpu_readreg(cpu()->vcpu, 0);
     unsigned long x1 = vcpu_readreg(cpu()->vcpu, 1);
@@ -105,21 +100,18 @@ void hvc_handler(unsigned long iss, unsigned long far, unsigned long il)
     vcpu_writereg(cpu()->vcpu, 0, ret);
 }
 
-static vaddr_t reg_addr_translate (unsigned long iss){
-    switch ((iss & ESR_ISS_SYSREG_ADDR_64)){
-        case ICC_SGI1R_CASE: return (vaddr_t) ICC_SGI1R_ADDR;
-        default: return (vaddr_t) 0xFFFFFFFF;
-    }
+static regaddr_t reg_addr_translate (unsigned long iss)
+{
+    iss &= ESR_ISS_SYSREG_ADDR_64;
+    if (iss == ICC_SGI1R_CASE) {return (regaddr_t) ICC_SGI1R_ADDR;}
+        else {return (regaddr_t) UNDEFINED_REG_ADDR;}
 }
 
-void sysreg_handler(unsigned long iss, unsigned long far, unsigned long il)
+void sysreg_handler(unsigned long iss, unsigned long far, unsigned long il, unsigned long ec)
 {
-    unsigned long ec = bit64_extract(sysreg_esr_el2_read(), ESR_EC_OFF, ESR_EC_LEN);
-    vaddr_t reg_addr = 0;
-    switch (ec){
-        case ESR_EC_RG_64: reg_addr = reg_addr_translate(iss); break;
-        default: reg_addr = (iss & ESR_ISS_SYSREG_ADDR_32) | OP0_MRS_CP15; break;
-    }
+    regaddr_t reg_addr = 0;
+    if (ec == ESR_EC_RG_64) reg_addr = reg_addr_translate(iss);
+        else reg_addr = (iss & ESR_ISS_SYSREG_ADDR_32) | OP0_MRS_CP15;
 
     emul_handler_t handler = vm_emul_get_reg(cpu()->vcpu->vm, reg_addr);
     if(handler != NULL){
@@ -169,7 +161,7 @@ void aborts_sync_handler()
 
     abort_handler_t handler = abort_handlers[ec];
     if (handler)
-        handler(iss, ipa_fault_addr, il);
+        handler(iss, ipa_fault_addr, il, ec);
     else
         ERROR("no handler for abort ec = 0x%x", ec);  // unknown guest exception
 }
