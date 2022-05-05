@@ -21,7 +21,7 @@
 #include <emul.h>
 #include <hypercall.h>
 
-typedef void (*abort_handler_t)(unsigned long, unsigned long, unsigned long);
+typedef void (*abort_handler_t)(unsigned long, unsigned long, unsigned long, unsigned long);
 
 void internal_abort_handler(unsigned long gprs[]) {
 
@@ -35,7 +35,7 @@ void internal_abort_handler(unsigned long gprs[]) {
     ERROR("cpu%d internal hypervisor abort - PANIC\n", cpu()->id);
 }
 
-void aborts_data_lower(unsigned long iss, unsigned long far, unsigned long il)
+void aborts_data_lower(unsigned long iss, unsigned long far, unsigned long il, unsigned long ec)
 {
     if (!(iss & ESR_ISS_DA_ISV_BIT) || (iss & ESR_ISS_DA_FnV_BIT)) {
         ERROR("no information to handle data abort (0x%x)", far);
@@ -78,12 +78,12 @@ void aborts_data_lower(unsigned long iss, unsigned long far, unsigned long il)
 }
 
 __attribute__((weak))
-void smc_handler(unsigned long iss, unsigned long far, unsigned long il)
+void smc_handler(unsigned long iss, unsigned long far, unsigned long il, unsigned long ec)
 {
     WARNING("smc call but there is no handler");
 }
 
-void hvc_handler(unsigned long iss, unsigned long far, unsigned long il)
+void hvc_handler(unsigned long iss, unsigned long far, unsigned long il, unsigned long ec)
 {
     unsigned long hvc_fid = vcpu_readreg(cpu()->vcpu, 0);
     unsigned long x1 = vcpu_readreg(cpu()->vcpu, 1);
@@ -100,9 +100,19 @@ void hvc_handler(unsigned long iss, unsigned long far, unsigned long il)
     vcpu_writereg(cpu()->vcpu, 0, ret);
 }
 
-void sysreg_handler(unsigned long iss, unsigned long far, unsigned long il)
+static regaddr_t reg_addr_translate (unsigned long iss)
 {
-    vaddr_t reg_addr = iss & ESR_ISS_SYSREG_ADDR;
+    iss &= ESR_ISS_SYSREG_ADDR_64;
+    if (iss == ICC_SGI1R_CASE) {return (regaddr_t) ICC_SGI1R_ADDR;}
+        else {return (regaddr_t) UNDEFINED_REG_ADDR;}
+}
+
+void sysreg_handler(unsigned long iss, unsigned long far, unsigned long il, unsigned long ec)
+{
+    regaddr_t reg_addr = 0;
+    if (ec == ESR_EC_RG_64) reg_addr = reg_addr_translate(iss);
+        else reg_addr = (iss & ESR_ISS_SYSREG_ADDR_32) | OP0_MRS_CP15;
+
     emul_handler_t handler = vm_emul_get_reg(cpu()->vcpu->vm, reg_addr);
     if(handler != NULL){
         struct emul_access emul;
@@ -110,7 +120,9 @@ void sysreg_handler(unsigned long iss, unsigned long far, unsigned long il)
         emul.width = 8;
         emul.write = iss & ESR_ISS_SYSREG_DIR ? false : true;
         emul.reg = bit64_extract(iss, ESR_ISS_SYSREG_REG_OFF, ESR_ISS_SYSREG_REG_LEN);
+        emul.reg_high = bit64_extract(iss, ESR_ISS_SYSREG_REG2_OFF, ESR_ISS_SYSREG_REG2_LEN);
         emul.reg_width = 8;
+        emul.multi_reg = (ec == ESR_EC_RG_64)? true : false;
         emul.sign_ext = false;
 
         if (handler(&emul)) {
@@ -149,7 +161,7 @@ void aborts_sync_handler()
 
     abort_handler_t handler = abort_handlers[ec];
     if (handler)
-        handler(iss, ipa_fault_addr, il);
+        handler(iss, ipa_fault_addr, il, ec);
     else
         ERROR("no handler for abort ec = 0x%x", ec);  // unknown guest exception
 }
