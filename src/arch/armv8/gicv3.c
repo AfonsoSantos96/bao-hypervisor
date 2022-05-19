@@ -26,8 +26,8 @@
 extern volatile struct gicd_hw gicd;
 volatile struct gicr_hw *gicr;
 
-static spinlock_t gicd_lock;
-static spinlock_t gicr_lock;
+static spinlock_t gicd_lock = SPINLOCK_INITVAL;
+static spinlock_t gicr_lock = SPINLOCK_INITVAL;
 
 size_t NUM_LRS;
 
@@ -219,7 +219,6 @@ void gicr_set_enable(irqid_t int_id, bool en, cpuid_t gicr_id)
 void gicd_set_route(irqid_t int_id, unsigned long route)
 {
     if (gic_is_priv(int_id)) return;
-
     spin_lock(&gicd_lock);
 
     gicd.IROUTER[int_id] = route & GICD_IROUTER_AFF_MSK;
