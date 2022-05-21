@@ -21,6 +21,7 @@
 #define BAO_VM_BASE     (0x00000000) // TBD
 #define BAO_VAS_TOP     (0x00000000) // TBD
 #define PAGE_SIZE       (64)
+#define _MPU            (1)
 
 #ifndef __ASSEMBLER__
 

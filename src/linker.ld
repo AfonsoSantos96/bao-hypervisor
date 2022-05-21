@@ -15,6 +15,7 @@
 
 #include <bao.h>
 #include <plat/platform.h>
+#include <platform_defs.h>
 
 ENTRY(_image_start)
 
@@ -95,13 +96,23 @@ SECTIONS
 	_image_end = ABSOLUTE(.);
 	_dmem_phys_beg = ABSOLUTE(.) + extra_allocated_phys_mem;
 
-	.devices _image_end (NOLOAD) : ALIGN(PAGE_SIZE) {
-		*(.devices)
-	}
-
 	. = ALIGN(PAGE_SIZE);
 	_dmem_beg = ABSOLUTE(.);
 	_cpu_phys_base = ABSOLUTE(.);
+
+	.devices _image_end (NOLOAD) : ALIGN(PAGE_SIZE) {
+		*(.devices)
+	}
+	
+	/*	Global variables with physical address of UART and GIC	*/
+	#ifdef _MPU
+	uart = CONSOLE_BASE;
+	gicd = GICD_BASE;
+	gicc = GICC_BASE;
+	gich = GICH_BASE;
+	gicv = GICV_BASE;
+	gicr = GICR_BASE;
+	#endif
 	
 	/* Global dynamic memory virtual address space here */
 
