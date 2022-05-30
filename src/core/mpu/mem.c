@@ -18,18 +18,31 @@ vaddr_t mem_alloc_vpage(struct addr_space *as, enum AS_SEC section,
     return NULL_VA;
 }
 
-bool mem_map(struct addr_space *as, vaddr_t va, struct ppages *ppages,
-            size_t n, mem_flags_t flags)
-{
-    return false;
-}
-
-vaddr_t mem_alloc_map (struct addr_space* as, enum AS_SEC section, struct ppages *page, 
+vaddr_t mem_alloc_map(struct addr_space* as, enum AS_SEC section, struct ppages *page,
                         vaddr_t at, size_t size, mem_flags_t flags)
 {
-    vaddr_t address = mem_alloc_vpage (as, section, at, size);
-    if (address != at) ERROR("Can't allocate address");
-    mem_map(as, address, page, size, flags);
+    // TODO: Check if page->base, page->size and vaddr_t at are page_size align?
+    // TODO: Change flag to some different from the PTE (or refactor it)
+    vaddr_t address = NULL_VA;
+    if (page == NULL){
+        struct ppages temp_page = mem_ppages_get(at, size);
+        address = mem_map(as, at, &temp_page, size, flags);
+    }
+    else {
+        address = mem_map(as, at, page, size, flags);
+    }
+
+    return address;
+}
+
+vaddr_t mem_alloc_map_dev(struct addr_space* as, enum AS_SEC section,
+                             vaddr_t at, size_t size)
+{
+        /* Change flag to some different from the PTE (or refactor it) */
+    mem_flags_t flags = PTE_HYP_DEV_FLAGS;
+    struct ppages temp_page = mem_ppages_get(at, size);
+    vaddr_t address = mem_map(as, at, &temp_page, size, flags);
+    //vaddr_t address = mem_map_dev(as, at, at, size);
 
     return address;
 }
