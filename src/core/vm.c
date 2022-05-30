@@ -6,6 +6,7 @@
  * Authors:
  *      Jose Martins <jose.martins@bao-project.org>
  *      Sandro Pinto <sandro.pinto@bao-project.org>
+ *      Afonso Santos <afomms@gmail.com>
  *
  * Bao is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License version 2 as published by the Free
@@ -74,8 +75,9 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     /* map original img address */
     size_t n_img = NUM_PAGES(config->image.size);
     struct ppages src_pa_img = mem_ppages_get(config->image.load_addr, n_img);
-    vaddr_t src_va = mem_alloc_vpage(&cpu()->as, SEC_HYP_GLOBAL, NULL_VA, n_img);
-    if (!mem_map(&cpu()->as, src_va, &src_pa_img, n_img, PTE_HYP_FLAGS)) {
+    vaddr_t src_va = mem_alloc_map(&cpu()->as, SEC_HYP_GLOBAL, &src_pa_img,
+                                     NULL_VA, n_img, PTE_HYP_FLAGS);
+    if (src_va == NULL_VA) {
         ERROR("mem_map failed %s", __func__);
     }
 
@@ -83,8 +85,9 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     size_t offset = config->image.base_addr - reg->base;
     size_t dst_phys = reg->phys + offset;
     struct ppages dst_pp = mem_ppages_get(dst_phys, n_img);
-    vaddr_t dst_va = mem_alloc_vpage(&cpu()->as, SEC_HYP_GLOBAL, NULL_VA, n_img);
-    if (!mem_map(&cpu()->as, dst_va, &dst_pp, n_img, PTE_HYP_FLAGS)) {
+    vaddr_t dst_va = mem_alloc_map(&cpu()->as, SEC_HYP_GLOBAL, &dst_pp,
+                                     NULL_VA, n_img, PTE_HYP_FLAGS);
+    if (dst_va == NULL_VA) {
         ERROR("mem_map failed %s", __func__);
     }
 
@@ -96,17 +99,20 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
 void vm_map_mem_region(struct vm* vm, struct vm_mem_region* reg)
 {
     size_t n = NUM_PAGES(reg->size);
-    vaddr_t va = mem_alloc_vpage(&vm->as, SEC_VM_ANY,
-                    (vaddr_t)reg->base, n);
-    if (va != (vaddr_t)reg->base) {
-        ERROR("failed to allocate vm's dev address");
-    }
-
     if (reg->place_phys) {
-        struct ppages pa_reg = mem_ppages_get(reg->phys, n);
-        mem_map(&vm->as, va, &pa_reg, n, PTE_VM_FLAGS);
+        struct ppages pa_reg = mem_ppages_get(reg->phys, n);        
+        vaddr_t va = mem_alloc_map(&vm->as, SEC_VM_ANY, &pa_reg,
+                    (vaddr_t)reg->base, n, PTE_VM_FLAGS);
+        
+        if (va != (vaddr_t)reg->base) {
+            ERROR("failed to allocate vm's dev address");
+        }   
     } else {
-        mem_map(&vm->as, va, NULL, n, PTE_VM_FLAGS);
+        vaddr_t va = mem_alloc_map(&vm->as, SEC_VM_ANY, NULL,
+                    (vaddr_t)reg->base, n, PTE_VM_FLAGS);
+        if (va != (vaddr_t)reg->base) {
+            ERROR("failed to allocate vm's dev address");
+        }
     }
 }
 
@@ -126,11 +132,8 @@ static void vm_map_img_rgn_inplace(struct vm* vm, const struct vm_config* config
 
     /* map img in place */
     struct ppages pa_img = mem_ppages_get(config->image.load_addr, n_img);
-    vaddr_t va = mem_alloc_vpage(&vm->as, SEC_VM_ANY,
-                                    (vaddr_t)reg->base, n_total);
-
-    /* map pages before img */
-    mem_map(&vm->as, va, NULL, n_before, PTE_VM_FLAGS);
+    vaddr_t va = mem_alloc_map(&vm->as, SEC_VM_ANY,
+                                    NULL, (vaddr_t)reg->base, n_total, PTE_VM_FLAGS);
 
     if (all_clrs(vm->as.colors)) {
         /* map img in place */
@@ -212,9 +215,7 @@ static void vm_init_dev(struct vm* vm, const struct vm_config* config)
 
         size_t n = ALIGN(dev->size, PAGE_SIZE) / PAGE_SIZE;
 
-        vaddr_t va = mem_alloc_vpage(&vm->as, SEC_VM_ANY,
-                                        (vaddr_t)dev->va, n);
-        mem_map_dev(&vm->as, va, dev->pa, n);
+        mem_alloc_map_dev(&vm->as, SEC_VM_ANY, (vaddr_t)dev->va, n);
 
         for (size_t j = 0; j < dev->interrupt_num; j++) {
             interrupts_vm_assign(vm, dev->interrupts[j]);
