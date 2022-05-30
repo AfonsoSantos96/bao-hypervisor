@@ -4,12 +4,20 @@
 #include <bao.h>
 
 void mem_prot_init() {
-
+    as_init(&cpu()->as, AS_HYP, 0);
 }
+
 
 size_t mem_cpu_boot_alloc_size() {
     size_t size = ALIGN(sizeof(struct cpu), PAGE_SIZE);
     return size;
+}
+
+void as_init(struct addr_space *as, enum AS_TYPE type, 
+            colormap_t colors)
+{
+    as->type = type;
+    as->colors = 0;
 }
 
 vaddr_t mem_alloc_vpage(struct addr_space *as, enum AS_SEC section,
