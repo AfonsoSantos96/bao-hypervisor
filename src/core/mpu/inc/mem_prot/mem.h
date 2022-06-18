@@ -9,12 +9,23 @@
 #include <bao.h>
 #include <arch/mem.h>
 
+#define HYP_ASID  0
+#define MPU_ABST_ENTRIES  64
+
 enum AS_TYPE { AS_HYP = 0, AS_VM, AS_HYP_CPY };
 
-#define HYP_ASID  0
+struct memory_protection{
+    bool assigned;
+    unsigned long base_addr;
+    unsigned long limit_addr;
+    unsigned long mem_flags;
+};
+
 struct addr_space {
     enum AS_TYPE type;
     colormap_t colors;
+    struct memory_protection mem_prot[MPU_ABST_ENTRIES];
+    struct memory_protection_dscr* mem_prot_desc;
 };
 
 typedef unsigned long long mem_flags_t;
