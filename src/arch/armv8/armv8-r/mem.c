@@ -18,6 +18,15 @@
 #include <cpu.h>
 #include <arch/sysregs.h>
 
+#define PRIO_ORDER          NO_PRIORITY
+#define MP_GRANULARITY      PAGE_SIZE
+
+struct memory_protection_dscr{
+    unsigned long entries;
+    unsigned long granularity;
+    unsigned long priority_order;
+}mp;
+
 void as_arch_init(struct addr_space* as)
 {
 
@@ -27,3 +36,26 @@ bool mem_translate(struct addr_space* as, vaddr_t va, paddr_t* pa)
 {
     return false;
 }
+
+void mem_attributes_init()
+{
+    // TODO: Init mem attributes on HMAIR0 and HMAIR1
+}
+
+static inline void mem_set_memory_struct()
+{
+    mp.granularity = MP_GRANULARITY;
+    mp.priority_order = PRIO_ORDER;
+    mp.entries = (sysreg_hmpuir_read() & HMPUIR_REGIONS);
+}
+
+unsigned long mem_get_granularity()
+{
+    return PAGE_SIZE;
+}
+
+unsigned long mem_get_mp_entries()
+{
+    return 0;
+}
+
