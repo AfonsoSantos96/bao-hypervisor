@@ -109,6 +109,13 @@
 #define TCR_PS_52B (6 << 16)
 #define TCR_TBI (1 << 20)
 
+/* Defining MPU description */
+
+#define HMPUIR_REGIONS      (0xFF)
+#define NO_PRIORITY         (0)
+#define HIGHEST_REGION_NUM  (1)
+#define LOWEST_REGION_NUM   (2)
+
 /**
  * Default hypervisor translation control
  * The PS field must be filled at runtime by first reading parange
