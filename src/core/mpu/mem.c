@@ -26,12 +26,47 @@ void as_init(struct addr_space *as, enum AS_TYPE type,
 {
     as->type = type;
     as->colors = 0;
+    as_arch_init(as);
+    for(size_t i=0; i<MPU_ABST_ENTRIES; i++)
+    {
+        as->mem_prot[i].assigned = false;
+        as->mem_prot[i].base_addr = 0;
+        as->mem_prot[i].limit_addr = 0;
+        as->mem_prot[i].mem_flags = 0;
+    }
+}
+
+mpid_t mem_get_available_region(struct addr_space *as)
+{   
+    for (mpid_t i=0; i<MPU_ABST_ENTRIES; i++)
+        if (!as->mem_prot[i].assigned) return i;
+    
+    return -1;
 }
 
 bool mem_set_region_mpu(vaddr_t va, size_t n, mem_flags_t flags)
 {
     /* Search for a free slot region */
     /* Fill mpu registers */
+    return true;
+}
+
+mpid_t mem_get_address_region(struct addr_space* as, paddr_t addr)
+{
+    for(size_t i=0; i<MPU_ABST_ENTRIES && as->mem_prot[i].assigned; i++)
+        if((addr >= as->mem_prot[i].base_addr) && (
+            addr <= as->mem_prot[i].limit_addr)) return i;
+
+    return -1;
+}
+
+bool mem_free_region_by_address(struct addr_space* as, paddr_t addr)
+{
+    return true;
+}
+
+bool mem_erase_region_by_address(struct addr_space* as, paddr_t addr)
+{
     return true;
 }
 
