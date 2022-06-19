@@ -15,6 +15,12 @@ struct cpu_arch_profile {
     bitmap_t* mem_p;
 };
 
+struct cpuif_memprot {
+    unsigned long base_addr;
+    unsigned long limit_addr;
+    unsigned long mem_flags;
+};
+
 static inline struct cpu* cpu() {
     return (struct cpu*) sysreg_tpidr_el2_read();
 }
