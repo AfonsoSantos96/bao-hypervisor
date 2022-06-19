@@ -9,8 +9,10 @@
 #include <fences.h>
 
 extern bool mem_reserve_ppages(struct ppages *ppages);
-extern bool mem_reserve_ppool_ppages(struct page_pool *pool, struct ppages *ppages);
 extern bool mem_are_ppages_reserved(struct ppages *ppages);
+extern void mem_write_mp(paddr_t pa, size_t n, mem_flags_t flags);
+extern void mem_free_physical_region(size_t num_region);
+extern unsigned long mem_get_granularity();
 
 void mem_prot_init() {
     as_init(&cpu()->as, AS_HYP, 0);
@@ -46,11 +48,16 @@ mpid_t mem_get_available_region(struct addr_space *as)
     return -1;
 }
 
-bool mem_set_region_mpu(vaddr_t va, size_t n, mem_flags_t flags)
+void mem_set_region(struct addr_space *as, vaddr_t va, size_t n, mem_flags_t flags)
 {
-    /* Search for a free slot region */
-    /* Fill mpu registers */
-    return true;
+    if (n < mem_get_granularity())
+            ERROR ("region must be bigger than granularity");
+
+    mpid_t region_num = mem_get_available_region(as);
+    if(region_num>=0) {
+        as->mem_prot[region_num].assigned = true;
+        mem_write_mp(va, n, flags);
+    }
 }
 
 mpid_t mem_get_address_region(struct addr_space* as, paddr_t addr)
@@ -64,6 +71,9 @@ mpid_t mem_get_address_region(struct addr_space* as, paddr_t addr)
 
 bool mem_free_region_by_address(struct addr_space* as, paddr_t addr)
 {
+    mpid_t reg_num = mem_get_address_region(as, addr);
+    if (reg_num >= 0) mem_free_physical_region(addr);
+        else return false;
     return true;
 }
 
@@ -79,14 +89,9 @@ bool mem_map(struct addr_space *as, vaddr_t va, struct ppages *ppages,
         /* TODO: Redefine PTE_HYP_DEV_FLAGS value */
     if ((flags != PTE_HYP_DEV_FLAGS) && !mem_are_ppages_reserved(ppages)){
         mem_reserve_ppages(ppages);
-        if (!mem_set_region_mpu(va, n, flags)){ 
-            ERROR ("Error setting mpu region for %x addr", va);
-        }
-        fence_sync();
+        mem_set_region(as, va, n, flags);
     } else if ((flags == PTE_HYP_DEV_FLAGS)){
-        if (!mem_set_region_mpu(va, n, flags)){
-            ERROR ("Error setting mpu region for device at %x addr", va);
-        }
+        mem_set_region(as, va, n, flags);
     } else {
         ERROR ("Address already allocated!");
     }
