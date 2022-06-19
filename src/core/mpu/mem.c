@@ -14,6 +14,8 @@ extern bool mem_are_ppages_reserved(struct ppages *ppages);
 
 void mem_prot_init() {
     as_init(&cpu()->as, AS_HYP, 0);
+    cpu_sync_barrier(&cpu_glb_sync);    
+    cpu_mem_prot_bitmap_init(&cpu()->arch.profile);
 }
 
 size_t mem_cpu_boot_alloc_size() {
