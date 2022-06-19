@@ -17,7 +17,7 @@
 
 struct cpuif {
     struct list event_list;
-
+    struct cpuif_memprot memprot;
 } __attribute__((aligned(PAGE_SIZE))) ;
 
 struct vcpu;
