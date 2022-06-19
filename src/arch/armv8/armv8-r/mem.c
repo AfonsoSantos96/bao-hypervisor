@@ -61,6 +61,6 @@ unsigned long mem_get_granularity()
 
 unsigned long mem_get_mp_entries()
 {
-    return 0;
+    return cpu()->as.mem_prot_desc->entries;
 }
 
