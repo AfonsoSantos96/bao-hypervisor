@@ -81,6 +81,15 @@ bool mem_free_region_by_address(struct addr_space* as, paddr_t addr)
 
 bool mem_erase_region_by_address(struct addr_space* as, paddr_t addr)
 {
+    mpid_t reg_num = mem_get_address_region(as, addr);
+    if (reg_num >= 0){
+        as->mem_prot[reg_num].assigned = false;
+        as->mem_prot[reg_num].base_addr = 0;
+        as->mem_prot[reg_num].limit_addr = 0;
+        as->mem_prot[reg_num].mem_flags = 0;
+        mem_free_physical_region(addr);
+    } 
+        else return false;
     return true;
 }
 
