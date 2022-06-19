@@ -116,6 +116,15 @@
 #define HIGHEST_REGION_NUM  (1)
 #define LOWEST_REGION_NUM   (2)
 
+/* HPRBAR & HPRLAR register manipulation */
+
+#define ENABLE_MASK         (0x1)
+#define ADDR_OFFSET(ADDR)   (ADDR<<6)
+#define HPRBAR_CONF(FLAGS)  (FLAGS & 0x1F)
+#define HPRLAR_CONF(FLAGS)  ((FLAGS & 0xE0)>>4)
+#define GET_REGION_BASE_ADDRESS(REG)   (REG>>6)
+#define GET_REGION_LIMIT_ADDRESS(REG)  (REG>>6)
+
 /**
  * Default hypervisor translation control
  * The PS field must be filled at runtime by first reading parange
