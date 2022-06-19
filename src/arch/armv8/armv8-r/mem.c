@@ -64,6 +64,13 @@ unsigned long mem_get_mp_entries()
     return cpu()->as.mem_prot_desc->entries;
 }
 
+mpid_t sort_reg_num()
+{
+    unsigned long _temp = 0;
+    asm volatile ("mov %0, r7 \n\r": "=r"(_temp));
+    return (_temp % cpu()->as.mem_prot_desc->entries);
+}
+
 mpid_t get_region_num(paddr_t addr)
 {
     ssize_t reg_num = 0;
@@ -108,6 +115,7 @@ void mem_write_mp(paddr_t pa, size_t n, mem_flags_t flags)
 {
     unsigned long lim = (pa+n);
     mpid_t reg = get_available_physical_region();
+    if (reg == -1) reg = sort_reg_num();
     bitmap_set(cpu()->arch.profile.mem_p, reg);
     sysreg_hprselr_write(reg);
     sysreg_hprbar_write(ADDR_OFFSET(pa) || HPRBAR_CONF(flags));
