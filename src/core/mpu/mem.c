@@ -93,6 +93,31 @@ bool mem_erase_region_by_address(struct addr_space* as, paddr_t addr)
     return true;
 }
 
+void merge_regions(struct addr_space* as, struct memory_protection* dst, 
+                    struct memory_protection* origin)
+{
+    dst->limit_addr = origin->limit_addr;
+    mem_erase_region_by_address(as, origin->base_addr);
+}
+
+void search_regions_to_merge(struct addr_space* as)
+{
+    for(size_t i=0; i<(MPU_ABST_ENTRIES-1) && as->mem_prot[i].assigned; i++)
+    {
+        for (size_t j=(i+1); j<(MPU_ABST_ENTRIES-1) && as->mem_prot[j].assigned; j++)
+            if((as->mem_prot[i].limit_addr) ==
+                as->mem_prot[j].base_addr)
+                {
+                    if(as->mem_prot[i].mem_flags ==
+                        as->mem_prot[j].mem_flags)
+                    {
+                        merge_regions(as, &as->mem_prot[i],
+                                        &as->mem_prot[j]);
+                    }
+                }
+    }
+}
+
 bool mem_map(struct addr_space *as, vaddr_t va, struct ppages *ppages,
             size_t n, mem_flags_t flags)
 {
