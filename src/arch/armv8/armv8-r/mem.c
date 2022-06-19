@@ -64,3 +64,52 @@ unsigned long mem_get_mp_entries()
     return cpu()->as.mem_prot_desc->entries;
 }
 
+mpid_t get_region_num(paddr_t addr)
+{
+    ssize_t reg_num = 0;
+    unsigned long region_base_addr = 0;
+    unsigned long region_limit_addr = 0;
+    while(bitmap_get(cpu()->arch.profile.mem_p, reg_num) ||
+            reg_num<cpu()->as.mem_prot_desc->entries)
+    {
+        sysreg_hprselr_write(reg_num);
+        region_base_addr = GET_REGION_BASE_ADDRESS(sysreg_hprbar_read());
+        region_limit_addr = GET_REGION_LIMIT_ADDRESS(sysreg_hprlar_read());
+        if(addr >= region_base_addr || addr <= region_limit_addr) break;
+        reg_num++;
+    }
+    if (reg_num<cpu()->as.mem_prot_desc->entries) reg_num = -1;
+    return reg_num;
+}
+
+mpid_t get_available_physical_region()
+{
+    mpid_t reg_num = 0;
+    unsigned long status = 0;
+    while(reg_num<cpu()->as.mem_prot_desc->entries || !status)
+    {
+        if (!bitmap_get(cpu()->arch.profile.mem_p, reg_num)) status = 1;
+        reg_num++;
+    }
+    if (!status) reg_num = -1;
+    return (--reg_num);
+}
+
+void mem_free_physical_region(paddr_t addr)
+{
+    mpid_t reg_num = get_region_num(addr);
+    bitmap_clear(cpu()->arch.profile.mem_p, reg_num);
+    sysreg_hprselr_write(reg_num);
+    sysreg_hprbar_write(0);
+    sysreg_hprlar_write(0);
+}
+
+void mem_write_mp(paddr_t pa, size_t n, mem_flags_t flags)
+{
+    unsigned long lim = (pa+n);
+    mpid_t reg = get_available_physical_region();
+    bitmap_set(cpu()->arch.profile.mem_p, reg);
+    sysreg_hprselr_write(reg);
+    sysreg_hprbar_write(ADDR_OFFSET(pa) || HPRBAR_CONF(flags));
+    sysreg_hprlar_write(ADDR_OFFSET(lim) || HPRLAR_CONF(flags) || ENABLE_MASK);
+}
