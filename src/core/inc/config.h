@@ -75,6 +75,8 @@ struct vm_config {
          * separately by a bootloader.
          */
         bool separately_loaded;
+        /* Dont copy the image */
+        bool inplace;
     } image;
 
     /* Entry point address in VM's address space */
