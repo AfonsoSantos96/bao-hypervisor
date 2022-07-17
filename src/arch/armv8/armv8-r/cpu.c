@@ -30,3 +30,12 @@ void cpu_mem_prot_bitmap_init(struct cpu_arch_profile* mp)
 void cpu_arch_profile_idle() {
     asm volatile("wfi");
 }
+
+void cpu_wait_memprot_update(unsigned long cores){
+    
+    while (cpu()->interface->memprot.cpu_region_sync->n < cores)
+    {
+        cpu_msg_handler();
+    }
+
+}
