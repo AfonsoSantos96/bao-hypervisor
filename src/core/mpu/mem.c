@@ -7,6 +7,7 @@
 #include <cpu.h>
 #include <bao.h>
 #include <fences.h>
+#include <platform_defs.h>
 
 extern bool mem_reserve_ppages(struct ppages *ppages);
 extern bool mem_are_ppages_reserved(struct ppages *ppages);
@@ -81,6 +82,29 @@ void mem_msg_handler(uint32_t event, uint64_t data)
         case MP_MSG_REGION:
             mem_write_broadcast_region(data);
         break;
+    }
+}
+
+void mem_region_broadcast(struct addr_space *as, vaddr_t va, size_t n, 
+                            mem_flags_t flags)
+{
+    struct cpu_synctoken region_sync;
+    unsigned long cores = PLAT_CPU_NUM;
+    
+    if ((flags & MEM_PROT_FLAG_SH_MASK)) cpu_sync_init(&region_sync, cores);
+
+    cpu()->interface->memprot.cpu_region_sync = &region_sync;
+    cpu()->interface->memprot.as = as;
+    cpu()->interface->memprot.base_addr = va;
+    cpu()->interface->memprot.size = n;
+    cpu()->interface->memprot.mem_flags = flags;
+
+    struct cpu_msg msg = {MEM_PROT_SYNC, MP_MSG_REGION, cpu()->id};
+    
+    for (size_t i = 0; i < PLAT_CPU_NUM; i++) {
+        if (i != cpu()->id) {
+            cpu_send_msg(i, &msg);
+        }
     }
 }
 

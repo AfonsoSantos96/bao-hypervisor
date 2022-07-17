@@ -127,6 +127,11 @@
 #define GET_REGION_BASE_ADDRESS(REG)   (REG>>6)
 #define GET_REGION_LIMIT_ADDRESS(REG)  (REG>>6)
 
+/* Memory protection flags */
+
+#define MEM_PROT_FLAG_SH_OFFSET  (8)
+#define MEM_PROT_FLAG_SH_MASK    (1 << MEM_PROT_FLAG_SH_OFFSET)
+
 /**
  * Default hypervisor translation control
  * The PS field must be filled at runtime by first reading parange
