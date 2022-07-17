@@ -13,6 +13,7 @@
 #define MPU_ABST_ENTRIES  64
 
 enum AS_TYPE { AS_HYP = 0, AS_VM, AS_HYP_CPY };
+enum {MP_MSG_REGION};
 
 struct memory_protection{
     bool assigned;

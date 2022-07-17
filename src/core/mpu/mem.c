@@ -13,6 +13,7 @@ extern bool mem_are_ppages_reserved(struct ppages *ppages);
 extern void mem_write_mp(paddr_t pa, size_t n, mem_flags_t flags);
 extern void mem_free_physical_region(size_t num_region);
 extern unsigned long mem_get_granularity();
+void mem_msg_handler(uint32_t event, uint64_t data);
 
 void mem_prot_init() {
     as_init(&cpu()->as, AS_HYP, 0);
@@ -60,6 +61,27 @@ void mem_set_shared_region(struct addr_space *as, vaddr_t va, size_t n,
         mem_write_mp(va, n, flags);
     }
 
+}
+
+void mem_write_broadcast_region(uint64_t data)
+{
+    mem_set_shared_region(cpu_interfaces[data].memprot.as,
+                          cpu_interfaces[data].memprot.base_addr,
+                          cpu_interfaces[data].memprot.size,
+                          cpu_interfaces[data].memprot.mem_flags);
+    
+    cpu_interfaces[data].memprot.cpu_region_sync->count++;
+}
+
+CPU_MSG_HANDLER(mem_msg_handler, MEM_PROT_SYNC);
+
+void mem_msg_handler(uint32_t event, uint64_t data)
+{
+    switch(event){
+        case MP_MSG_REGION:
+            mem_write_broadcast_region(data);
+        break;
+    }
 }
 
 void mem_set_region(struct addr_space *as, vaddr_t va, size_t n, mem_flags_t flags)
