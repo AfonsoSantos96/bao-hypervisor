@@ -102,6 +102,8 @@ void cpu_idle_wakeup();
 void cpu_arch_init(cpuid_t cpu_id, paddr_t load_addr);
 void cpu_arch_idle();
 
+void cpu_sync_memprot();
+
 #endif /* __ASSEMBLER__ */
 
 #endif /* __CPU_H__ */
