@@ -22,6 +22,26 @@ bool mem_translate(struct addr_space* as, vaddr_t va, paddr_t* pa)
     return false;
 }
 
+void mem_prot_enable()
+{
+	unsigned long reg;
+	reg = (sysreg_sctlr_el1_read() | SCTLR_M);
+	sysreg_sctlr_el1_write(reg);
+    asm volatile("dsb\n\t");
+    asm volatile("isb\n\t");
+}
+
+void mem_prot_disable()
+{
+	unsigned long reg;
+
+    asm volatile("dmb\n\t");    // Force transfers to complete
+	reg = (sysreg_sctlr_el1_read() & (~SCTLR_M));
+	sysreg_sctlr_el1_write(reg);
+    asm volatile("dsb\n\t");
+    asm volatile("isb\n\t");
+}
+
 void mem_attributes_init()
 {
     // TODO: Init mem attributes on HMAIR0 and HMAIR1
