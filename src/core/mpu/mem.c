@@ -15,6 +15,8 @@ extern void mem_write_mp(paddr_t pa, size_t n, mem_flags_t flags);
 extern void mem_free_physical_region(size_t num_region);
 extern unsigned long mem_get_granularity();
 void mem_msg_handler(uint32_t event, uint64_t data);
+extern void cpu_empty_mailbox();
+extern void cpu_wait_memprot_update(unsigned long cores);
 
 void mem_prot_init() {
     as_init(&cpu()->as, AS_HYP, 0);
@@ -106,6 +108,9 @@ void mem_region_broadcast(struct addr_space *as, vaddr_t va, size_t n,
             cpu_send_msg(i, &msg);
         }
     }
+    
+    cpu_wait_memprot_update(cores);
+    cpu_empty_mailbox();
 }
 
 unsigned long mem_section_shareable(enum AS_SEC section)

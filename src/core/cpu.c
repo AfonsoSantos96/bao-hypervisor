@@ -88,6 +88,15 @@ void cpu_msg_handler()
     }
 }
 
+void cpu_empty_mailbox(){
+    cpu_msg_handler();
+}
+
+void cpu_sync_memprot(){
+    cpu_msg_handler();
+    cpu_sync_barrier(&cpu_glb_sync);
+}
+
 void cpu_idle()
 {
     cpu_arch_idle();
