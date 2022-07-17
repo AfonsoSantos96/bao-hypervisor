@@ -17,8 +17,10 @@ struct cpu_arch_profile {
 
 struct cpuif_memprot {
     unsigned long base_addr;
-    unsigned long limit_addr;
+    unsigned long size;
     unsigned long mem_flags;
+    struct addr_space* as;
+    struct cpu_synctoken* cpu_region_sync;
 };
 
 static inline struct cpu* cpu() {
