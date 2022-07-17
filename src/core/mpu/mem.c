@@ -212,6 +212,9 @@ vaddr_t mem_alloc_map(struct addr_space* as, enum AS_SEC section, struct ppages 
 {
     // TODO: Check if page->base, page->size and vaddr_t at are page_size align?
     vaddr_t address = NULL_VA;
+    unsigned long shareability = mem_section_shareable(section);
+    flags |= (shareability << MEM_PROT_FLAG_SH_OFFSET);
+ 
     if (page == NULL){
         struct ppages temp_page = mem_ppages_get(at, size);
         address = mem_map(as, at, &temp_page, size, flags);
