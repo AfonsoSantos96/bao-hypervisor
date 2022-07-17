@@ -108,6 +108,15 @@ void mem_region_broadcast(struct addr_space *as, vaddr_t va, size_t n,
     }
 }
 
+unsigned long mem_section_shareable(enum AS_SEC section)
+{
+    unsigned long broadcast = 0;
+    
+    if (section == SEC_HYP_GLOBAL || section == SEC_HYP_DEVICE)  broadcast = 1;
+    
+    return broadcast;
+}
+
 void mem_set_region(struct addr_space *as, vaddr_t va, size_t n, mem_flags_t flags)
 {
     if (n < mem_get_granularity())
