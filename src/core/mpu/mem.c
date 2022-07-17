@@ -48,6 +48,20 @@ mpid_t mem_get_available_region(struct addr_space *as)
     return -1;
 }
 
+void mem_set_shared_region(struct addr_space *as, vaddr_t va, size_t n, 
+                            mem_flags_t flags)
+{
+    if (n < mem_get_granularity())
+            ERROR ("region must be bigger than granularity");
+
+    mpid_t region_num = mem_get_available_region(as);
+    if(region_num>=0) {
+        as->mem_prot[region_num].assigned = true;
+        mem_write_mp(va, n, flags);
+    }
+
+}
+
 void mem_set_region(struct addr_space *as, vaddr_t va, size_t n, mem_flags_t flags)
 {
     if (n < mem_get_granularity())
