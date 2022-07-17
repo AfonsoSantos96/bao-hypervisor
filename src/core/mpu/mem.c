@@ -18,6 +18,11 @@ void mem_msg_handler(uint32_t event, uint64_t data);
 extern void cpu_empty_mailbox();
 extern void cpu_wait_memprot_update(unsigned long cores);
 
+static inline mem_flags_t mem_prot_broadcast(mem_flags_t flags)
+{
+    return (flags & MEM_PROT_FLAG_SH_MASK);
+}
+
 void mem_prot_init() {
     as_init(&cpu()->as, AS_HYP, 0);
     cpu_sync_barrier(&cpu_glb_sync);    
@@ -131,6 +136,10 @@ void mem_set_region(struct addr_space *as, vaddr_t va, size_t n, mem_flags_t fla
     if(region_num>=0) {
         as->mem_prot[region_num].assigned = true;
         mem_write_mp(va, n, flags);
+    }
+
+    if(mem_prot_broadcast(flags)){
+        mem_region_broadcast(as, va, n, flags);
     }
 }
 
