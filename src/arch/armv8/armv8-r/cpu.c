@@ -22,9 +22,11 @@ void cpu_arch_profile_init(cpuid_t cpuid, paddr_t load_addr) {
 
 void cpu_mem_prot_bitmap_init(struct cpu_arch_profile* mp)
 {
-    BITMAP_ALLOC(mem_p, mem_get_mp_entries());
-    bitmap_clear_consecutive(mem_p, 0, mem_get_mp_entries());
-    mp->mem_p = mem_p;
+    if (PLAT_MP_ENTRIES > mem_get_mp_entries())
+    {
+        ERROR("Defined more entries on memory protection than available on hardware");
+    }
+    bitmap_clear_consecutive(mp->mem_p, 0, mem_get_mp_entries());
 }
 
 void cpu_arch_profile_idle() {
