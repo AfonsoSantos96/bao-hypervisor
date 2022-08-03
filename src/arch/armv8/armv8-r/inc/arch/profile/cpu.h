@@ -9,10 +9,11 @@
 #include <bao.h>
 #include <arch/sysregs.h>
 #include <bitmap.h>
+#include <platform_defs.h>
 
 struct cpu_arch_profile {
     // TODO: Declare the power-off state struct
-    bitmap_t* mem_p;
+    bitmap_t mem_p[PLAT_MP_ENTRIES];
 };
 
 struct cpuif_memprot {
