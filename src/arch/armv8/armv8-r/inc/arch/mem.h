@@ -9,7 +9,7 @@
 #include <bao.h>
 
 #define PTE_INVALID (0)
-#define PTE_HYP_FLAGS (0)
+#define PTE_HYP_FLAGS (0x100)
 #define PTE_HYP_DEV_FLAGS PTE_HYP_FLAGS
 
 #define PTE_VM_FLAGS (0)
