@@ -9,6 +9,7 @@
 #include <bao.h>
 #include <arch/sysregs.h>
 #include <bitmap.h>
+#include <list.h>
 #include <platform_defs.h>
 
 struct cpu_arch_profile {
@@ -16,12 +17,18 @@ struct cpu_arch_profile {
     bitmap_t mem_p[PLAT_MP_ENTRIES];
 };
 
-struct cpuif_memprot {
+struct shared_region {
+    node_t node;
     unsigned long base_addr;
     unsigned long size;
     unsigned long mem_flags;
-    struct addr_space* as;
-    struct cpu_synctoken* cpu_region_sync;
+    unsigned long as_type;
+    bitmap_t trgt_cpu;
+    spinlock_t trgt_bitmap_lock;
+};
+
+struct cpuif_memprot {
+    struct list shared_mem_prot;
 };
 
 static inline struct cpu* cpu() {
