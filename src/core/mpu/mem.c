@@ -283,9 +283,9 @@ bool mem_map(struct addr_space *as, vaddr_t va, struct ppages *ppages,
         /* TODO: Redefine PTE_HYP_DEV_FLAGS value */
     if ((flags != PTE_HYP_DEV_FLAGS) && !mem_are_ppages_reserved(ppages)){
         mem_reserve_ppages(ppages);
-        mem_set_region(as, va, n, flags);
+        mem_set_region(as, va, (n * PAGE_SIZE), flags);
     } else if ((flags == PTE_HYP_DEV_FLAGS)){
-        mem_set_region(as, va, n, flags);
+        mem_set_region(as, va, (n * PAGE_SIZE), flags);
     } else {
         ERROR ("Address already allocated!");
     }
@@ -298,27 +298,35 @@ vaddr_t mem_alloc_map(struct addr_space* as, enum AS_SEC section, struct ppages 
 {
     // TODO: Check if page->base, page->size and vaddr_t at are page_size align?
     vaddr_t address = NULL_VA;
+    if (at == address) {
+        at = page->base;
+    }
+    else if (at != page->base) {
+        ERROR ("Address must match its page base address");
+    }
+    
     unsigned long shareability = mem_section_shareable(section);
     flags |= (shareability << MEM_PROT_FLAG_SH_OFFSET);
  
     if (page == NULL){
         struct ppages temp_page = mem_ppages_get(at, size);
-        address = mem_map(as, at, &temp_page, size, flags);
+        mem_map(as, at, &temp_page, size, flags);
     }
     else {
-        address = mem_map(as, at, page, size, flags);
+        mem_map(as, at, page, size, flags);
     }
 
-    return address;
+    return at;
 }
 
 vaddr_t mem_alloc_map_dev(struct addr_space* as, enum AS_SEC section,
                              vaddr_t at, paddr_t pa, size_t size)
 {
     mem_flags_t flags = PTE_HYP_DEV_FLAGS;
-    struct ppages temp_page = mem_ppages_get(at, size);
-    vaddr_t address = mem_map(as, at, &temp_page, size, flags);
-    return address;
+    if (section == SEC_HYP_PRIVATE) flags = 0;
+    struct ppages temp_page = mem_ppages_get(pa, size);
+    mem_map(as, pa, &temp_page, size, flags);
+    return pa;
 }
 
 vaddr_t mem_map_cpy(struct addr_space *ass, struct addr_space *asd, vaddr_t vas,
