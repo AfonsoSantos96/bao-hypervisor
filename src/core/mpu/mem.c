@@ -18,6 +18,7 @@ void mem_msg_handler(uint32_t event, uint64_t data);
 extern void cpu_empty_mailbox();
 extern void mem_read_physical_entry(struct memory_protection *mp_entry, 
                                     unsigned long region);
+extern struct shared_region* cpu_msg_get_mem_alloc();
 
 static inline mem_flags_t mem_prot_broadcast(mem_flags_t flags)
 {
@@ -53,6 +54,7 @@ void mem_prot_init() {
     as_init(&cpu()->as, AS_HYP, 0);
     cpu_sync_barrier(&cpu_glb_sync);    
     cpu_mem_prot_bitmap_init(&cpu()->arch.profile);
+    list_init(&cpu()->interface->memprot.shared_mem_prot);
     mem_prot_boot_sync();
 }
 
@@ -84,15 +86,15 @@ mpid_t mem_get_available_region(struct addr_space *as)
     return -1;
 }
 
-void mem_set_shared_region(struct addr_space *as, vaddr_t va, size_t n, 
+void mem_set_shared_region(unsigned long as, vaddr_t va, size_t n, 
                             mem_flags_t flags)
 {
     if (n < mem_get_granularity())
             ERROR ("region must be bigger than granularity");
 
-    mpid_t region_num = mem_get_available_region(as);
+    mpid_t region_num = mem_get_available_region(&cpu()->as);
     if(region_num>=0) {
-        as->mem_prot[region_num].assigned = true;
+        cpu()->as.mem_prot[region_num].assigned = true;
         mem_write_mp(va, n, flags);
     }
 
@@ -100,12 +102,59 @@ void mem_set_shared_region(struct addr_space *as, vaddr_t va, size_t n,
 
 void mem_write_broadcast_region(uint64_t data)
 {
-    mem_set_shared_region(cpu_interfaces[data].memprot.as,
-                          cpu_interfaces[data].memprot.base_addr,
-                          cpu_interfaces[data].memprot.size,
-                          cpu_interfaces[data].memprot.mem_flags);
+    bool erase_message = false;
+    struct list* temp_list = NULL;
+    struct shared_region* region = NULL;
+    unsigned long as_type = 0;
+    unsigned long base_addr = 0;
+    unsigned long size = 0;
+    unsigned long mem_flags = 0;
 
-    cpu_interfaces[data].memprot.cpu_region_sync->count++;
+    *temp_list = cpu_interfaces[data].memprot.shared_mem_prot;
+    region = (struct shared_region*) temp_list->head;
+    
+    size_t unread_message = bitmap_get(&region->trgt_cpu, cpu()->id);
+ 
+        /*  Walk the list till find an unread message */
+    while (temp_list->head != NULL && unread_message == 0){
+        unread_message = bitmap_get(&region->trgt_cpu, cpu()->id);
+        if (unread_message == 0)
+        {
+            temp_list->head = *temp_list->head;
+            region = (struct shared_region*) temp_list->head;
+        }
+    }
+
+    if(unread_message)
+    {
+        as_type = region->as_type;
+        base_addr = region->base_addr;
+        size = region->size;
+        mem_flags = region->mem_flags;
+        /*  Clear itself from the unread message list   */
+        spin_lock(&region->trgt_bitmap_lock);
+    
+        bitmap_clear(&region->trgt_cpu, cpu()->id);
+        /*  Check if the message node needs to be popped */
+        size_t unread = bitmap_count(&region->trgt_cpu, 0, PLAT_CPU_NUM, 1);
+        if (unread == 0)
+        {
+            erase_message = true;
+        }
+
+        spin_unlock(&region->trgt_bitmap_lock);
+    
+        if (erase_message)
+        {
+            if (temp_list->head == temp_list->tail)
+            { 
+                list_pop(&cpu_interfaces[data].memprot.shared_mem_prot);
+            }
+            else list_rm(&cpu_interfaces[data].memprot.shared_mem_prot, temp_list->head);
+        }
+
+        mem_set_shared_region(as_type, base_addr, size, mem_flags);
+    }
 }
 
 CPU_MSG_HANDLER(mem_msg_handler, MEM_PROT_SYNC);
@@ -122,16 +171,20 @@ void mem_msg_handler(uint32_t event, uint64_t data)
 void mem_region_broadcast(struct addr_space *as, vaddr_t va, size_t n, 
                             mem_flags_t flags)
 {
-    struct cpu_synctoken region_sync;
-    unsigned long cores = PLAT_CPU_NUM;
+    struct shared_region *node = cpu_msg_get_mem_alloc();
+    node->base_addr = va;
+    node->size = n;
+    node->mem_flags = flags;
+    node->as_type = 0;                  // CPU - 0      VM - 1
+    node->trgt_bitmap_lock = SPINLOCK_INITVAL;
 
-    if ((flags & MEM_PROT_FLAG_SH_MASK)) cpu_sync_init(&region_sync, cores);
+        /*  Sending to every cpu */
+    bitmap_set_consecutive(&node->trgt_cpu, 0, PLAT_CPU_NUM);
+    unsigned long sender_index = cpu()->id;
+    bitmap_clear(&node->trgt_cpu,sender_index);
 
-    cpu()->interface->memprot.cpu_region_sync = &region_sync;
-    cpu()->interface->memprot.as = as;
-    cpu()->interface->memprot.base_addr = va;
-    cpu()->interface->memprot.size = n;
-    cpu()->interface->memprot.mem_flags = flags;
+
+    list_push(&cpu()->interface->memprot.shared_mem_prot, (node_t*) node);
 
     struct cpu_msg msg = {MEM_PROT_SYNC, MP_MSG_REGION, cpu()->id};
     
@@ -140,9 +193,6 @@ void mem_region_broadcast(struct addr_space *as, vaddr_t va, size_t n,
             cpu_send_msg(i, &msg);
         }
     }
-    
-    cpu_wait_memprot_update(cores);
-    cpu_empty_mailbox();
 }
 
 unsigned long mem_section_shareable(enum AS_SEC section)

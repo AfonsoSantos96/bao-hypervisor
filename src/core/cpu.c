@@ -94,7 +94,6 @@ void cpu_empty_mailbox(){
 
 void cpu_sync_memprot(){
     cpu_msg_handler();
-    cpu_sync_barrier(&cpu_glb_sync);
 }
 
 void cpu_idle()
@@ -121,4 +120,11 @@ void cpu_idle_wakeup()
     } else {
         cpu_idle();
     }
+}
+
+struct shared_region* cpu_msg_get_mem_alloc()
+{
+    struct shared_region *node = objpool_alloc(&msg_pool);
+    if (node == NULL) ERROR("cant allocate msg node");
+    return node;
 }
