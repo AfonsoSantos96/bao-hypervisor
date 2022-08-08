@@ -14,7 +14,7 @@ void vmm_arch_profile_init()
      * initialize the system counter.
      */
     volatile struct generic_timer_cntctrl *timer_ctl =
-    (struct generic_timer_cntctrl* )mem_alloc_map_dev(&cpu()->as, SEC_HYP_DEVICE, 
+    (struct generic_timer_cntctrl* )mem_alloc_map_dev(&cpu()->as, SEC_HYP_PRIVATE,
                       platform.arch.generic_timer.base_addr,
                       platform.arch.generic_timer.base_addr,
                       sizeof(struct generic_timer_cntctrl));

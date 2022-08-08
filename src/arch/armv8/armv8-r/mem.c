@@ -32,7 +32,6 @@ static inline void mem_set_memory_struct()
 void as_arch_init(struct addr_space* as)
 {
     if (cpu()->id == CPU_MASTER){
-        mem_attributes_init();
         mem_set_memory_struct();
     }
     as->mem_prot_desc = &mp;

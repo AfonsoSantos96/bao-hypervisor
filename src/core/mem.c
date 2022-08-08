@@ -197,7 +197,7 @@ bool root_pool_set_up_bitmap(paddr_t load_addr, struct page_pool *root_pool)
     bitmap_t* root_bitmap = (bitmap_t*) 
         mem_alloc_map(&cpu()->as, SEC_HYP_GLOBAL, &bitmap_pp, NULL_VA, bitmap_size, PTE_HYP_FLAGS);
     root_pool->bitmap = root_bitmap;
-    memset((void*)root_pool->bitmap, 0, bitmap_size * PAGE_SIZE);
+    memset((void*)root_pool->bitmap, 0, (bitmap_size * PAGE_SIZE)-1);
 
     return mem_reserve_ppool_ppages(root_pool, &bitmap_pp);
 }
