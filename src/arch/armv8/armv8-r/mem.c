@@ -22,31 +22,6 @@ bool mem_translate(struct addr_space* as, vaddr_t va, paddr_t* pa)
     return false;
 }
 
-void mem_prot_enable()
-{
-	unsigned long reg;
-	reg = (sysreg_sctlr_el1_read() | SCTLR_M);
-	sysreg_sctlr_el1_write(reg);
-    asm volatile("dsb\n\t");
-    asm volatile("isb\n\t");
-}
-
-void mem_prot_disable()
-{
-	unsigned long reg;
-
-    asm volatile("dmb\n\t");    // Force transfers to complete
-	reg = (sysreg_sctlr_el1_read() & (~SCTLR_M));
-	sysreg_sctlr_el1_write(reg);
-    asm volatile("dsb\n\t");
-    asm volatile("isb\n\t");
-}
-
-void mem_attributes_init()
-{
-    // TODO: Init mem attributes on HMAIR0 and HMAIR1
-}
-
 static inline void mem_set_memory_struct()
 {
     mp.granularity = MP_GRANULARITY;
@@ -73,25 +48,28 @@ unsigned long mem_get_mp_entries()
     return cpu()->as.mem_prot_desc->entries;
 }
 
-mpid_t sort_reg_num()
+void mem_read_physical_entry(struct memory_protection *mp_entry, unsigned long region)
 {
-    unsigned long _temp = 0;
-    asm volatile ("mov %0, r7 \n\r": "=r"(_temp));
-    return (_temp % cpu()->as.mem_prot_desc->entries);
+    unsigned long base = 0, lim = 0;
+    sysreg_hprselr_write(region);
+    base = sysreg_hprbar_read();
+    lim = sysreg_hprlar_read();
+    if(lim & 0x1) mp_entry->assigned = true;
+        else mp_entry->assigned = false; 
+    mp_entry->mem_flags = (HPRBAR_CONF(base) | (HPRLAR_CONF(lim)<<4));
+    mp_entry->base_addr = (base & PRBAR_BASE_MSK);
+    mp_entry->limit_addr = (lim |(0x3F));
 }
 
-mpid_t get_region_num(paddr_t addr)
+static inline mpid_t get_region_num(paddr_t addr)
 {
     ssize_t reg_num = 0;
-    unsigned long region_base_addr = 0;
-    unsigned long region_limit_addr = 0;
+    struct memory_protection region;
     while(bitmap_get(cpu()->arch.profile.mem_p, reg_num) ||
             reg_num<cpu()->as.mem_prot_desc->entries)
     {
-        sysreg_hprselr_write(reg_num);
-        region_base_addr = GET_REGION_BASE_ADDRESS(sysreg_hprbar_read());
-        region_limit_addr = GET_REGION_LIMIT_ADDRESS(sysreg_hprlar_read());
-        if(addr >= region_base_addr || addr <= region_limit_addr) break;
+        mem_read_physical_entry(&region, reg_num);
+        if(addr >= region.base_addr || addr <= region.limit_addr) break;
         reg_num++;
     }
     if (reg_num<cpu()->as.mem_prot_desc->entries) reg_num = -1;
@@ -104,7 +82,7 @@ mpid_t get_available_physical_region()
     unsigned long status = 0;
     while(reg_num<cpu()->as.mem_prot_desc->entries && !status)
     {
-        if (!bitmap_get(cpu()->arch.profile.mem_p, reg_num)) status = 1;
+        if (bitmap_get(cpu()->arch.profile.mem_p, reg_num) == 0) status = 1;
         reg_num++;
     }
     if (!status) reg_num = -1;
@@ -123,10 +101,11 @@ void mem_free_physical_region(paddr_t addr)
 void mem_write_mp(paddr_t pa, size_t n, mem_flags_t flags)
 {
     unsigned long lim = (pa+n);
+    lim = (lim - 1) & PRLAR_LIMIT_MSK;
     mpid_t reg = get_available_physical_region();
-    if (reg == -1) reg = sort_reg_num();
+    if (reg == -1) ERROR("No available MPU regions!");
     bitmap_set(cpu()->arch.profile.mem_p, reg);
     sysreg_hprselr_write(reg);
-    sysreg_hprbar_write(ADDR_OFFSET(pa) || HPRBAR_CONF(flags));
-    sysreg_hprlar_write(ADDR_OFFSET(lim) || HPRLAR_CONF(flags) || ENABLE_MASK);
+    sysreg_hprbar_write(PRBAR_BASE(pa) | HPRBAR_CONF(flags));
+    sysreg_hprlar_write(PRLAR_LIMIT(lim) | HPRLAR_CONF(flags) | ENABLE_MASK);
 }
