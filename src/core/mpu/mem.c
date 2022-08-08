@@ -16,17 +16,44 @@ extern void mem_free_physical_region(size_t num_region);
 extern unsigned long mem_get_granularity();
 void mem_msg_handler(uint32_t event, uint64_t data);
 extern void cpu_empty_mailbox();
-extern void cpu_wait_memprot_update(unsigned long cores);
+extern void mem_read_physical_entry(struct memory_protection *mp_entry, 
+                                    unsigned long region);
 
 static inline mem_flags_t mem_prot_broadcast(mem_flags_t flags)
 {
     return (flags & MEM_PROT_FLAG_SH_MASK);
 }
 
+void update_virtual_memprot(struct addr_space *as, vaddr_t va, size_t n, 
+                            mem_flags_t flags, unsigned long reg)
+{
+    cpu()->as.mem_prot[reg].base_addr = va;
+    cpu()->as.mem_prot[reg].limit_addr = n;
+    cpu()->as.mem_prot[reg].mem_flags = flags;
+    cpu()->as.mem_prot[reg].assigned = true;
+    bitmap_set(cpu()->arch.profile.mem_p, reg);
+}
+
+void mem_prot_boot_sync()
+{
+    struct memory_protection mp_entry;
+    unsigned long region_num = 0;
+    mem_read_physical_entry(&mp_entry, region_num);
+    while(mp_entry.assigned)
+    {
+        update_virtual_memprot(&cpu()->as, mp_entry.base_addr, 
+                              (mp_entry.limit_addr - mp_entry.base_addr), 
+                              mp_entry.mem_flags, region_num);
+        region_num++;
+        mem_read_physical_entry(&mp_entry, region_num);
+    }
+}
+
 void mem_prot_init() {
     as_init(&cpu()->as, AS_HYP, 0);
     cpu_sync_barrier(&cpu_glb_sync);    
     cpu_mem_prot_bitmap_init(&cpu()->arch.profile);
+    mem_prot_boot_sync();
 }
 
 size_t mem_cpu_boot_alloc_size() {
@@ -77,7 +104,7 @@ void mem_write_broadcast_region(uint64_t data)
                           cpu_interfaces[data].memprot.base_addr,
                           cpu_interfaces[data].memprot.size,
                           cpu_interfaces[data].memprot.mem_flags);
-    
+
     cpu_interfaces[data].memprot.cpu_region_sync->count++;
 }
 
@@ -97,7 +124,7 @@ void mem_region_broadcast(struct addr_space *as, vaddr_t va, size_t n,
 {
     struct cpu_synctoken region_sync;
     unsigned long cores = PLAT_CPU_NUM;
-    
+
     if ((flags & MEM_PROT_FLAG_SH_MASK)) cpu_sync_init(&region_sync, cores);
 
     cpu()->interface->memprot.cpu_region_sync = &region_sync;
