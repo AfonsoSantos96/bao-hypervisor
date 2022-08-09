@@ -7,9 +7,15 @@
 #include <platform.h>
 #include <arch/gic.h>
 
+extern struct cpu_synctoken cpu_mem_sync;
+
 void cpu_arch_profile_init(cpuid_t cpuid, paddr_t load_addr) {
     /*  Enable Interrupt Controller to send ipi during memory initialization */
     sysreg_icc_sre_el2_write(ICC_SRE_SRE_BIT | ICC_SRE_ENB_BIT);
+    
+    if (cpuid == CPU_MASTER){
+        cpu_sync_init(&cpu_mem_sync, (platform.cpu_num-1));
+    }
 }
 
 void cpu_mem_prot_bitmap_init(struct cpu_arch_profile* mp)
@@ -23,4 +29,13 @@ void cpu_mem_prot_bitmap_init(struct cpu_arch_profile* mp)
 
 void cpu_arch_profile_idle() {
     asm volatile("wfi");
+}
+
+void cpu_sync_memprot()
+{
+    cpu_sync_barrier(&cpu_glb_sync);
+    if (cpu()->id != CPU_MASTER) {
+        cpu_msg_handler();
+        cpu_sync_barrier(&cpu_mem_sync);
+    }
 }

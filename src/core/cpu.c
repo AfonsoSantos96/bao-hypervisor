@@ -23,6 +23,7 @@ struct cpu_msg_node {
 OBJPOOL_ALLOC(msg_pool, struct cpu_msg_node, CPU_MSG_POOL_SIZE);
 
 struct cpu_synctoken cpu_glb_sync = {.ready = false};
+struct cpu_synctoken cpu_mem_sync = {.ready = false};
 
 extern uint8_t _ipi_cpumsg_handlers_start;
 extern uint8_t _ipi_cpumsg_handlers_size;
@@ -89,10 +90,6 @@ void cpu_msg_handler()
 }
 
 void cpu_empty_mailbox(){
-    cpu_msg_handler();
-}
-
-void cpu_sync_memprot(){
     cpu_msg_handler();
 }
 
