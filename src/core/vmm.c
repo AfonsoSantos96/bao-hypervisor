@@ -48,7 +48,7 @@ static bool vmm_assign_vcpu(bool *master, vmid_t *vm_id) {
     }
 
     cpu_sync_barrier(&cpu_glb_sync);
-    cpu_sync_memprot();
+    //cpu_sync_memprot();
 
     /* Assign remaining cpus not assigned by affinity. */
     if (assigned == false) {
@@ -102,7 +102,7 @@ void vmm_init()
     ipc_init();
 
     cpu_sync_barrier(&cpu_glb_sync);
-    cpu_sync_memprot();
+    //cpu_sync_memprot();
 
     bool master = false;
     vmid_t vm_id = -1;
