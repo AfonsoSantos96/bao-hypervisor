@@ -258,7 +258,7 @@ void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t 
     vm_cpu_init(vm);
 
     cpu_sync_barrier(&vm->sync);
-    cpu_sync_memprot();
+    //cpu_sync_memprot();
 
     /*
      *  Initialize each virtual core.
@@ -266,7 +266,7 @@ void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t 
     vm_vcpu_init(vm, config);
 
     cpu_sync_barrier(&vm->sync);
-    cpu_sync_memprot();
+    //cpu_sync_memprot();
 
     /**
      * Perform architecture dependent initializations. This includes,
@@ -286,7 +286,7 @@ void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t 
     }
 
     cpu_sync_barrier(&vm->sync);
-    cpu_sync_memprot();
+    //cpu_sync_memprot();
 }
 
 struct vcpu* vm_get_vcpu(struct vm* vm, vcpuid_t vcpuid)
