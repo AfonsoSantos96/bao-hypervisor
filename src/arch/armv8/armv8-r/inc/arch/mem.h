@@ -12,7 +12,7 @@
 #define PTE_HYP_FLAGS (0x100)
 #define PTE_HYP_DEV_FLAGS PTE_HYP_FLAGS
 
-#define PTE_VM_FLAGS (0)
+#define PTE_VM_FLAGS (0x100)
 #define PTE_VM_DEV_FLAGS PTE_VM_FLAGS
 
 #endif /* __ARCH_MEM_H__ */
