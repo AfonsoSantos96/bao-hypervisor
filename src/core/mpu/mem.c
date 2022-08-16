@@ -89,12 +89,18 @@ mpid_t mem_get_available_region(struct addr_space *as)
 void mem_set_shared_region(unsigned long as, vaddr_t va, size_t n, 
                             mem_flags_t flags)
 {
+    struct addr_space* addr_sp;
+    if (as == 0) addr_sp = &cpu()->as;
+//        else addr_sp = &vm->as;
     if (n < mem_get_granularity())
             ERROR ("region must be bigger than granularity");
 
-    mpid_t region_num = mem_get_available_region(&cpu()->as);
+    mpid_t region_num = mem_get_available_region(addr_sp);
     if(region_num>=0) {
-        cpu()->as.mem_prot[region_num].assigned = true;
+        addr_sp->mem_prot[region_num].assigned = true;
+        addr_sp->mem_prot[region_num].base_addr = va;
+        addr_sp->mem_prot[region_num].limit_addr = (va+n);
+        addr_sp->mem_prot[region_num].mem_flags = flags;
         mem_write_mp(va, n, flags);
     }
 
