@@ -78,10 +78,14 @@ static bool vmm_assign_vcpu(bool *master, vmid_t *vm_id) {
 }
 
 static struct vm* vmm_alloc_vm(vmid_t vm_id, bool master) {
+    unsigned long vm_block_size = 0;
+    vm_assign[vm_id].vm = NULL;
     if (master) {
+        vm_block_size = (sizeof(struct vm) +
+                         vm_assign[vm_id].ncpus * sizeof(struct vcpu));
         vm_assign[vm_id].vm = (struct vm*)
-            mem_alloc_page(NUM_PAGES(sizeof(struct vm)), SEC_HYP_VM, false);
-        memset(vm_assign[vm_id].vm, 0, sizeof(struct vm));
+            mem_alloc_page(NUM_PAGES(vm_block_size), SEC_HYP_VM, false);
+        memset(vm_assign[vm_id].vm, 0, vm_block_size);
         vm_assign[vm_id].vm_install_info = 
             vmm_get_vm_install_info(vm_assign[vm_id].vm);
         fence_ord_write();
