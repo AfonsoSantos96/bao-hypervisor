@@ -31,8 +31,18 @@ void vm_cpu_init(struct vm* vm)
 void vm_vcpu_init(struct vm* vm, const struct vm_config* config)
 {
     size_t n = NUM_PAGES(sizeof(struct vcpu));
-    struct vcpu* vcpu = (struct vcpu*)mem_alloc_page(n, SEC_HYP_VM, false);
-    if(vcpu == NULL){ ERROR("failed to allocate vcpu"); }
+    size_t cpu_map_pos = cpu()->id;
+    size_t cpu_mem_pos = 0;
+    size_t vcpu_pos = 0;
+    /*    Calculate vcpu offset from VM struct    */
+    while (cpu_mem_pos < cpu_map_pos)
+    {
+        if((vm->cpus >> cpu_mem_pos) & 0x1) vcpu_pos++;
+        cpu_mem_pos++;
+    }
+
+    struct vcpu* vcpu = 
+        (struct vcpu*) (vm + sizeof(struct vm) + vcpu_pos*sizeof(struct vcpu));
     memset(vcpu, 0, n * PAGE_SIZE);
 
     cpu()->vcpu = vcpu;
