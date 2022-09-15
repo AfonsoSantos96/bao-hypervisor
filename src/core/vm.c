@@ -6,6 +6,7 @@
 #include <vm.h>
 #include <string.h>
 #include <mem.h>
+#include <mem_prot/mem.h>
 #include <cache.h>
 #include <config.h>
 
@@ -98,7 +99,7 @@ void vm_map_mem_region(struct vm* vm, struct vm_mem_region* reg)
 {
     size_t n = NUM_PAGES(reg->size);
 
-    if (reg->place_phys) {
+    if (vm_mem_region_is_phys(reg->place_phys)) {
         struct ppages pa_reg = mem_ppages_get(reg->phys, n);        
         vaddr_t va = mem_alloc_map(&vm->as, SEC_VM_ANY, &pa_reg,
                     (vaddr_t)reg->base, n, PTE_VM_FLAGS);

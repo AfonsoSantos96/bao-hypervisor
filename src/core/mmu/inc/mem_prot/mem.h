@@ -25,6 +25,12 @@ enum AS_SEC;
 
 typedef pte_t mem_flags_t;
 
+static inline bool vm_mem_region_is_phys(bool reg) {return reg;}
+static inline paddr_t vm_mem_region_get_phys(paddr_t phys, paddr_t base) 
+{
+    return phys;
+}
+
 void as_init(struct addr_space* as, enum AS_TYPE type, asid_t id, 
             pte_t* root_pt, colormap_t colors);
 vaddr_t mem_alloc_vpage(struct addr_space* as, enum AS_SEC section,

@@ -31,6 +31,12 @@ struct addr_space {
 
 typedef unsigned long long mem_flags_t;
 
+static inline bool vm_mem_region_is_phys(bool reg) {return true;}
+static inline paddr_t vm_mem_region_get_phys(paddr_t phys, paddr_t base) 
+{
+    return base;
+}
+
 void as_init(struct addr_space* as, enum AS_TYPE type,
             colormap_t colors);
 unsigned long mem_get_mp_entries();
