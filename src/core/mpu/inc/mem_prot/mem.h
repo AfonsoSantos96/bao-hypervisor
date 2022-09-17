@@ -7,6 +7,7 @@
 #define __MEM_PROT_H__
 
 #include <bao.h>
+#include <bitmap.h>
 #include <arch/mem.h>
 
 #define HYP_ASID  0
@@ -25,6 +26,7 @@ struct memory_protection{
 struct addr_space {
     enum AS_TYPE type;
     colormap_t colors;
+    bitmap_t cpus;
     struct memory_protection mem_prot[MPU_ABST_ENTRIES];
     struct memory_protection_dscr* mem_prot_desc;
 };

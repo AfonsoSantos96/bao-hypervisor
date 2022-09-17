@@ -52,6 +52,7 @@ void mem_prot_boot_sync()
 
 void mem_prot_init() {
     as_init(&cpu()->as, AS_HYP, 0);
+    cpu_broadcast_init(&cpu()->as);
     cpu_sync_barrier(&cpu_glb_sync);    
     cpu_mem_prot_bitmap_init(&cpu()->arch.profile);
     list_init(&cpu()->interface->memprot.shared_mem_prot);
@@ -68,6 +69,7 @@ void as_init(struct addr_space *as, enum AS_TYPE type,
 {
     as->type = type;
     as->colors = 0;
+    as->cpus = 0;
     as_arch_init(as);
     for(size_t i=0; i<MPU_ABST_ENTRIES; i++)
     {

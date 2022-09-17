@@ -898,10 +898,14 @@ void mem_color_hypervisor(const paddr_t load_addr, struct mem_region *root_regio
 void as_init(struct addr_space *as, enum AS_TYPE type, asid_t id, 
             pte_t *root_pt, colormap_t colors)
 {
+    bitmap_t cpus_bm;
+    bitmap_clear_consecutive(&cpus_bm, 0, PLAT_CPU_NUM);
+    bitmap_set(&cpus_bm, cpu()->id);
     as->type = type;
     as->pt.dscr =
         type == AS_HYP || type == AS_HYP_CPY ? hyp_pt_dscr : vm_pt_dscr;
     as->colors = colors;
+    as->cpus = cpus_bm;
     as->lock = SPINLOCK_INITVAL;
     as->id = id;
 

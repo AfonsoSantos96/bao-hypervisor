@@ -39,3 +39,11 @@ void cpu_sync_memprot()
         cpu_sync_barrier(&cpu_mem_sync);
     }
 }
+
+void cpu_broadcast_init(struct addr_space *as)
+{
+    /* When a CPU broadcast a region it is for all other CPUs*/
+    bitmap_t cpus_bm;
+    bitmap_set_consecutive(&cpus_bm, 0, PLAT_CPU_NUM);
+    as->cpus = cpus_bm;
+}

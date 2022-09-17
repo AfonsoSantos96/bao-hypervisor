@@ -68,6 +68,11 @@ void vm_vcpu_init(struct vm* vm, const struct vm_config* config)
     list_push(&vm->vcpu_list, &vcpu->node);
 }
 
+static void vm_update_as(struct vm* vm)
+{
+    vm->as.cpus = vm->cpus;
+}
+
 static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
                                struct vm_mem_region* reg)
 {
@@ -273,6 +278,13 @@ void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t 
 
     cpu_sync_barrier(&vm->sync);
     //cpu_sync_memprot();
+
+    /*
+     *  Update VM AS cpu bitmap with VM cpu affinity.
+     */
+    if (master) {
+        vm_update_as(vm);
+    }
 
     /*
      *  Initialize each virtual core.
