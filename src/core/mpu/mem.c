@@ -205,7 +205,7 @@ unsigned long mem_section_shareable(enum AS_SEC section)
 {
     unsigned long broadcast = 0;
     
-    if (section == SEC_HYP_GLOBAL || section == SEC_HYP_DEVICE)  broadcast = 1;
+    if (section == SEC_HYP_GLOBAL || section == SEC_VM_ANY)  broadcast = 1;
     
     return broadcast;
 }
@@ -286,15 +286,16 @@ bool mem_map(struct addr_space *as, vaddr_t va, struct ppages *ppages,
             size_t n, mem_flags_t flags)
 {
         /* Address does not belong to a device/shared memory region */
-        /* TODO: Redefine PTE_HYP_DEV_FLAGS value */
-    if ((flags != PTE_HYP_DEV_FLAGS) && !mem_are_ppages_reserved(ppages)){
-        mem_reserve_ppages(ppages);
-        mem_set_region(as, va, (n * PAGE_SIZE), flags);
-    } else if ((flags == PTE_HYP_DEV_FLAGS)){
-        mem_set_region(as, va, (n * PAGE_SIZE), flags);
-    } else {
-        ERROR ("Address already allocated!");
+        /* TODO: Redefine PTE_HYP_DEV_FLAGS value */ 
+    if (va != ppages->base) {
+        ERROR ("Trying to map non identity");
     }
+
+    if (ppages == NULL && !mem_are_ppages_reserved(ppages)){
+        ERROR ("Error mapping memory! Memory was not allocated");
+    }
+
+    mem_set_region(as, va, (n * PAGE_SIZE), flags);
 
     return true;
 }
@@ -307,6 +308,7 @@ vaddr_t mem_alloc_map(struct addr_space* as, enum AS_SEC section, struct ppages 
     if (at == address) {
         at = page->base;
     }
+    else if (page == NULL) {page->base = at;}
     else if (at != page->base) {
         ERROR ("Address must match its page base address");
     }
@@ -328,20 +330,19 @@ vaddr_t mem_alloc_map(struct addr_space* as, enum AS_SEC section, struct ppages 
 vaddr_t mem_alloc_map_dev(struct addr_space* as, enum AS_SEC section,
                              vaddr_t at, paddr_t pa, size_t size)
 {
-    mem_flags_t flags = PTE_HYP_DEV_FLAGS;
-    if (section == SEC_HYP_PRIVATE) flags = 0;
     struct ppages temp_page = mem_ppages_get(pa, size);
-    mem_map(as, pa, &temp_page, size, flags);
-    return pa;
+    return mem_alloc_map(as, section, &temp_page, at, size,
+                   as->type == AS_HYP ? PTE_HYP_DEV_FLAGS : PTE_VM_DEV_FLAGS);
 }
 
 vaddr_t mem_map_cpy(struct addr_space *ass, struct addr_space *asd, vaddr_t vas,
                 vaddr_t vad, size_t n) {
+
     return vas;
 }
 
 void mem_unmap(struct addr_space *as, vaddr_t at, size_t n,
                     bool free_ppages)
 {
-
+    mem_erase_region_by_address(as, at);
 }
