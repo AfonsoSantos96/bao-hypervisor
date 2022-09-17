@@ -165,6 +165,7 @@ bool mem_reserve_ppages(struct ppages *ppages)
 bool mem_map_dev(struct addr_space *as, vaddr_t va, paddr_t base,
                 size_t n)
 {
+    if(va == NULL_VA) va = base;
     struct ppages pages = mem_ppages_get(base, n);
     return mem_map(as, va, &pages, n,
                    as->type == AS_HYP ? PTE_HYP_DEV_FLAGS : PTE_VM_DEV_FLAGS);
