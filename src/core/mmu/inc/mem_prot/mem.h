@@ -10,6 +10,7 @@
 #include <arch/mem.h>
 #include <page_table.h>
 #include <spinlock.h>
+#include <bitmap.h>
 
 enum AS_TYPE { AS_HYP = 0, AS_VM, AS_HYP_CPY };
 
@@ -17,6 +18,7 @@ enum AS_TYPE { AS_HYP = 0, AS_VM, AS_HYP_CPY };
 struct addr_space {
     struct page_table pt;
     enum AS_TYPE type;
+    bitmap_t cpus;
     colormap_t colors;
     asid_t id;
     spinlock_t lock;
