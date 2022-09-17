@@ -93,8 +93,8 @@ void mem_free_physical_region(paddr_t addr)
     mpid_t reg_num = get_region_num(addr);
     bitmap_clear(cpu()->arch.profile.mem_p, reg_num);
     sysreg_hprselr_write(reg_num);
-    sysreg_hprbar_write(0);
     sysreg_hprlar_write(0);
+    sysreg_hprbar_write(0);
 }
 
 void mem_write_mp(paddr_t pa, size_t n, mem_flags_t flags)
