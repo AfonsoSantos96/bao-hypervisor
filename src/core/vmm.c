@@ -87,7 +87,7 @@ static struct vm* vmm_alloc_vm(vmid_t vm_id, bool master) {
             mem_alloc_page(NUM_PAGES(vm_block_size), SEC_HYP_VM, false);
         memset(vm_assign[vm_id].vm, 0, vm_block_size);
         vm_assign[vm_id].vm_install_info = 
-            vmm_get_vm_install_info(vm_assign[vm_id].vm);
+            vmm_get_vm_install_info(vm_assign[vm_id].vm, vm_assign[vm_id].ncpus);
         fence_ord_write();
         vm_assign[vm_id].install_info_ready = true;
     } else {
