@@ -43,5 +43,6 @@ void as_init(struct addr_space* as, enum AS_TYPE type,
             colormap_t colors);
 unsigned long mem_get_mp_entries();
 void mem_attributes_init();
+void mem_set_shared_region(vaddr_t va, size_t n, mem_flags_t flags);
 
 #endif /* __MEM_PROT_H__ */

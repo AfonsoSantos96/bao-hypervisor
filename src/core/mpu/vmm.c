@@ -6,9 +6,6 @@
 #include <vmm.h>
 #include <io.h>
 
-extern void mem_set_shared_region(unsigned long as, vaddr_t va, size_t n, 
-                            mem_flags_t flags);
-
 void vmm_io_init() {
 
 }
@@ -20,8 +17,6 @@ struct vm_install_info vmm_get_vm_install_info(struct vm* vm, size_t ncpus) {
 }
 
 void vmm_vm_install(struct vm* vm, struct vm_install_info *install_info) {
-    /*  Define "0" */
-    mem_set_shared_region(0, install_info->base_addr, install_info->size, 
+    mem_set_shared_region(install_info->base_addr, install_info->size,
                             PTE_VM_FLAGS);
-
 }
