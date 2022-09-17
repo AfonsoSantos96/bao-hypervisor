@@ -74,8 +74,11 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     /* map original img address */
     size_t n_img = NUM_PAGES(config->image.size);
     struct ppages src_pa_img = mem_ppages_get(config->image.load_addr, n_img);
-    vaddr_t src_va = mem_alloc_map(&cpu()->as, SEC_HYP_GLOBAL, &src_pa_img,
+    vaddr_t src_va = src_pa_img.base;
+    if(!vm_mem_region_is_phys(reg->place_phys)){
+        src_va = mem_alloc_map(&cpu()->as, SEC_HYP_GLOBAL, &src_pa_img,
                                      NULL_VA, n_img, PTE_HYP_FLAGS);
+    }
     if (src_va == NULL_VA) {
         ERROR("mem_alloc_map failed %s", __func__);
     }
