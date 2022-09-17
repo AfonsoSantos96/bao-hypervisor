@@ -88,21 +88,17 @@ mpid_t mem_get_available_region(struct addr_space *as)
     return -1;
 }
 
-void mem_set_shared_region(unsigned long as, vaddr_t va, size_t n, 
-                            mem_flags_t flags)
+void mem_set_shared_region(vaddr_t va, size_t n, mem_flags_t flags)
 {
-    struct addr_space* addr_sp;
-    if (as == 0) addr_sp = &cpu()->as;
-//        else addr_sp = &vm->as;
     if (n < mem_get_granularity())
             ERROR ("region must be bigger than granularity");
 
-    mpid_t region_num = mem_get_available_region(addr_sp);
+    mpid_t region_num = mem_get_available_region(&cpu()->as);
     if(region_num>=0) {
-        addr_sp->mem_prot[region_num].assigned = true;
-        addr_sp->mem_prot[region_num].base_addr = va;
-        addr_sp->mem_prot[region_num].limit_addr = (va+n);
-        addr_sp->mem_prot[region_num].mem_flags = flags;
+        cpu()->as.mem_prot[region_num].assigned = true;
+        cpu()->as.mem_prot[region_num].base_addr = va;
+        cpu()->as.mem_prot[region_num].limit_addr = (va+n);
+        cpu()->as.mem_prot[region_num].mem_flags = flags;
         mem_write_mp(va, n, flags);
     }
 
@@ -113,7 +109,6 @@ void mem_write_broadcast_region(uint64_t data)
     bool erase_message = false;
     struct list* temp_list = NULL;
     struct shared_region* region = NULL;
-    unsigned long as_type = 0;
     unsigned long base_addr = 0;
     unsigned long size = 0;
     unsigned long mem_flags = 0;
@@ -135,7 +130,6 @@ void mem_write_broadcast_region(uint64_t data)
 
     if(unread_message)
     {
-        as_type = region->as_type;
         base_addr = region->base_addr;
         size = region->size;
         mem_flags = region->mem_flags;
@@ -161,7 +155,7 @@ void mem_write_broadcast_region(uint64_t data)
             else list_rm(&cpu_interfaces[data].memprot.shared_mem_prot, temp_list->head);
         }
 
-        mem_set_shared_region(as_type, base_addr, size, mem_flags);
+        mem_set_shared_region(base_addr, size, mem_flags);
     }
 }
 
@@ -183,11 +177,10 @@ void mem_region_broadcast(struct addr_space *as, vaddr_t va, size_t n,
     node->base_addr = va;
     node->size = n;
     node->mem_flags = flags;
-    node->as_type = 0;                  // CPU - 0      VM - 1
     node->trgt_bitmap_lock = SPINLOCK_INITVAL;
+    node->trgt_cpu = as->cpus;
 
-        /*  Sending to every cpu */
-    bitmap_set_consecutive(&node->trgt_cpu, 0, PLAT_CPU_NUM);
+        /* Cleaning itself from the unread list */
     unsigned long sender_index = cpu()->id;
     bitmap_clear(&node->trgt_cpu,sender_index);
 
@@ -197,7 +190,7 @@ void mem_region_broadcast(struct addr_space *as, vaddr_t va, size_t n,
     struct cpu_msg msg = {MEM_PROT_SYNC, MP_MSG_REGION, cpu()->id};
     
     for (size_t i = 0; i < PLAT_CPU_NUM; i++) {
-        if (i != cpu()->id) {
+        if (bitmap_get(&node->trgt_cpu, i)) {
             cpu_send_msg(i, &msg);
         }
     }

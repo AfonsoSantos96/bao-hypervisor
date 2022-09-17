@@ -22,7 +22,6 @@ struct shared_region {
     unsigned long base_addr;
     unsigned long size;
     unsigned long mem_flags;
-    unsigned long as_type;
     bitmap_t trgt_cpu;
     spinlock_t trgt_bitmap_lock;
 };
