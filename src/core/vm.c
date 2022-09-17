@@ -167,7 +167,7 @@ static void vm_install_image(struct vm* vm) {
 static void vm_map_img_rgn(struct vm* vm, const struct vm_config* config,
                            struct vm_mem_region* reg)
 {
-    if (reg->place_phys) {
+    if (vm_mem_region_is_phys(reg->place_phys)) {
         vm_copy_img_to_rgn(vm, config, reg);
         vm_map_mem_region(vm, reg);
     } else if(config->image.inplace) {
