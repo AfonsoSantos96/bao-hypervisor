@@ -43,20 +43,21 @@ boot_arch_profile_init:
     mcr p15, 4, r4, c1, c1, 2 // HCPTR
 
     ldr r4, =MAIR_EL2_DFLT
-    mcr p15, 4, r4, c10, c2, 0
+    mcr p15, 4, r4, c10, c2, 0 // HMAIR
 
     /* Region 0 - Image */
     mov r4, #0
     mcr p15, 4, r4, c6, c2, 1   // HPRSELR
     ldr r3, =_image_start
     and r3, r3, #PRBAR_BASE_MSK
-    orr r3, r3, #PRBAR_SH_NS
+    orr r3, r3, #PRBAR_SH_IS
     orr r3, r3, #PRBAR_AP_RW_EL2
     mcr p15, 4, r3, c6, c3, 0   // HPRBAR
 
     ldr r3, =_image_end
+    sub r3, r3, #1
     and r3, r3, #PRLAR_LIMIT_MSK
-    orr r3, r3, #(PRLAR_ATTR(2) | PRLAR_EN)
+    orr r3, r3, #(PRLAR_ATTR(1) | PRLAR_EN)
     mcr p15, 4, r3, c6, c3, 1   // HPRLAR
 
     /* Region 1 - CPU */
