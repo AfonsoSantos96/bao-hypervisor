@@ -213,6 +213,9 @@ void mem_set_region(struct addr_space *as, vaddr_t va, size_t n, mem_flags_t fla
     mpid_t region_num = mem_get_available_region(as);
     if(region_num>=0) {
         as->mem_prot[region_num].assigned = true;
+        as->mem_prot[region_num].base_addr = va;
+        as->mem_prot[region_num].limit_addr = (va+n);
+        as->mem_prot[region_num].mem_flags = flags;
         mem_write_mp(va, n, flags);
     }
 
