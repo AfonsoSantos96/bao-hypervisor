@@ -113,6 +113,7 @@ void vmm_init()
     if (vmm_assign_vcpu(&master, &vm_id)) {
         struct vm* vm = vmm_alloc_vm(vm_id, master);
         vm_init(vm, &config.vmlist[vm_id], master, vm_id);
+        cpu_sync_memprot();
         vcpu_run(cpu()->vcpu);
     } else {
         cpu_idle();
