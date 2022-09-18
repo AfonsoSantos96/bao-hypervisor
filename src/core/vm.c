@@ -31,7 +31,6 @@ void vm_cpu_init(struct vm* vm)
 
 void vm_vcpu_init(struct vm* vm, const struct vm_config* config)
 {
-    size_t n = NUM_PAGES(sizeof(struct vcpu));
     size_t cpu_map_pos = cpu()->id;
     size_t cpu_mem_pos = 0;
     size_t vcpu_pos = 0;
@@ -43,8 +42,8 @@ void vm_vcpu_init(struct vm* vm, const struct vm_config* config)
     }
 
     struct vcpu* vcpu = 
-        (struct vcpu*) (vm + sizeof(struct vm) + vcpu_pos*sizeof(struct vcpu));
-    memset(vcpu, 0, n * PAGE_SIZE);
+        (struct vcpu*) ((vaddr_t)vm + sizeof(struct vm) + vcpu_pos*sizeof(struct vcpu));
+    memset(vcpu, 0, sizeof(struct vcpu));
 
     cpu()->vcpu = vcpu;
     vcpu->phys_id = cpu()->id;
@@ -101,6 +100,7 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     memcpy((void*)dst_va, (void*)src_va, n_img * PAGE_SIZE);
     cache_flush_range((vaddr_t)dst_va, n_img * PAGE_SIZE);
     /*TODO: unmap */
+    mem_unmap(&cpu()->as, dst_va, dst_pp.size, 1);
 }
 
 void vm_map_mem_region(struct vm* vm, struct vm_mem_region* reg)
