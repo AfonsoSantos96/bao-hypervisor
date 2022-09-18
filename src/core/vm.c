@@ -81,7 +81,7 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     struct ppages src_pa_img = mem_ppages_get(config->image.load_addr, n_img);
     vaddr_t src_va = src_pa_img.base;
     if(!vm_mem_region_is_phys(reg->place_phys)){
-        src_va = mem_alloc_map(&cpu()->as, SEC_HYP_GLOBAL, &src_pa_img,
+        src_va = mem_alloc_map(&cpu()->as, SEC_HYP_PRIVATE, &src_pa_img,
                                      NULL_VA, n_img, PTE_HYP_FLAGS);
     }
     if (src_va == NULL_VA) {
@@ -92,7 +92,7 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     size_t offset = config->image.base_addr - reg->base;
     size_t dst_phys = reg->phys + offset;
     struct ppages dst_pp = mem_ppages_get(dst_phys, n_img);
-    vaddr_t dst_va = mem_alloc_map(&cpu()->as, SEC_HYP_GLOBAL, &dst_pp,
+    vaddr_t dst_va = mem_alloc_map(&cpu()->as, SEC_HYP_PRIVATE, &dst_pp,
                                      NULL_VA, n_img, PTE_HYP_FLAGS);
     if (dst_va == NULL_VA) {
         ERROR("mem_alloc_map failed %s", __func__);
@@ -110,7 +110,7 @@ void vm_map_mem_region(struct vm* vm, struct vm_mem_region* reg)
     if (vm_mem_region_is_phys(reg->place_phys)) {
         struct ppages pa_reg = mem_ppages_get(reg->phys, n);        
         vaddr_t va = mem_alloc_map(&vm->as, SEC_VM_ANY, &pa_reg,
-                    (vaddr_t)reg->base, n, PTE_VM_FLAGS);
+                    (vaddr_t)reg->base, n, PTE_VM_IMG_FLAGS);
         
         if (va != (vaddr_t)reg->base) {
             ERROR("failed to allocate vm's dev address");
