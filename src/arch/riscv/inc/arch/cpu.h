@@ -15,6 +15,10 @@ struct cpu_arch {
     unsigned plic_cntxt;
 };
 
+struct cpuif_memprot {
+
+};
+
 static inline struct cpu* cpu() {
     return (struct cpu*)BAO_CPU_BASE;
 }

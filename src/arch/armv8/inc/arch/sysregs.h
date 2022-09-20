@@ -111,27 +111,6 @@
 #define TCR_PS_52B (6 << 16)
 #define TCR_TBI (1 << 20)
 
-/* Defining MPU description */
-
-#define HMPUIR_REGIONS      (0xFF)
-#define NO_PRIORITY         (0)
-#define HIGHEST_REGION_NUM  (1)
-#define LOWEST_REGION_NUM   (2)
-
-/* HPRBAR & HPRLAR register manipulation */
-
-#define ENABLE_MASK         (0x1)
-#define ADDR_OFFSET(ADDR)   (ADDR<<6)
-#define HPRBAR_CONF(FLAGS)  (FLAGS & 0x1F)
-#define HPRLAR_CONF(FLAGS)  ((FLAGS & 0xE0)>>4)
-#define GET_REGION_BASE_ADDRESS(REG)   (REG>>6)
-#define GET_REGION_LIMIT_ADDRESS(REG)  (REG>>6)
-
-/* Memory protection flags */
-
-#define MEM_PROT_FLAG_SH_OFFSET  (8)
-#define MEM_PROT_FLAG_SH_MASK    (1 << MEM_PROT_FLAG_SH_OFFSET)
-
 /**
  * Default hypervisor translation control
  * The PS field must be filled at runtime by first reading parange
@@ -496,23 +475,27 @@
 #define MPUIR_REGION_MSK    (0xFFUL)
 #define MPUIR_REGION(MPUIR) ((MPUIR) & MPUIR_REGION_MSK)
 
-#define PRBAR_XN            (1UL << 0)
-#define PRBAR_AP_RW_EL2     (0 << 1)
-#define PRBAR_AP_RW_ALL     (1UL << 1)
-#define PRBAR_AP_RO_EL2     (2UL << 1)
-#define PRBAR_AP_RO_ALL     (3UL << 1)
-#define PRBAR_SH_NS         (0 << 3)
-#define PRBAR_SH_OS         (2UL << 3)
-#define PRBAR_SH_IS         (3UL << 3)
-#define PRBAR_BASE_MSK      (~0x3FUL)
-#define PRBAR_BASE(BASE)    ((BASE) & PRBAR_BASE_MSK)
+#define PRBAR_XN                (1UL << 0)
+#define PRBAR_AP_RW_EL2         (0 << 1)
+#define PRBAR_AP_RW_EL1_EL2     (1UL << 1)
+#define PRBAR_AP_RO_EL2         (2UL << 1)
+#define PRBAR_AP_RO_EL1_EL2     (3UL << 1)
+#define PRBAR_SH_NS             (0 << 3)
+#define PRBAR_SH_OS             (2UL << 3)
+#define PRBAR_SH_IS             (3UL << 3)
+#define PRBAR_FLAGS_MSK         (0x3FUL)
+#define PRBAR_FLAGS(PRBAR)      ((PRBAR) & PRBAR_FLAGS_MSK)
+#define PRBAR_BASE_MSK          (~PRBAR_FLAGS_MSK)
+#define PRBAR_BASE(BASE)        ((BASE) & PRBAR_BASE_MSK)
 
 #define PRLAR_EN            (0x1UL)
 #define PRLAR_ATTR_OFF      (1)
 #define PRLAR_ATTR_MSK      (0x3UL << PRLAR_ATTR_OFF)
 #define PRLAR_ATTR(N)       (((N) << PRLAR_ATTR_OFF) & PRLAR_ATTR_MSK)
-#define PRLAR_LIMIT_MSK     (~0x3FUL)
-#define PRLAR_LIMIT(BASE)   ((BASE) & PRLAR_LIMIT_MSK)
+#define PRLAR_FLAGS_MSK     (0x3FUL)
+#define PRLAR_FLAGS(PRLAR)  ((PRLAR) & PRLAR_FLAGS_MSK)
+#define PRLAR_LIMIT_MSK     (~PRBAR_FLAGS_MSK)
+#define PRLAR_LIMIT(LIMIT)  (((LIMIT) & PRLAR_LIMIT_MSK) | 0x3FUL)
 
 #ifndef __ASSEMBLER__
 

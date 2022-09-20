@@ -17,6 +17,7 @@
 #include <bitmap.h>
 #include <io.h>
 #include <ipc.h>
+#include <platform_defs.h>
 
 struct vm_mem_region {
     paddr_t base;
@@ -59,7 +60,7 @@ struct vm {
     struct cpu_synctoken sync;
     cpuid_t master;
 
-    struct list vcpu_list;  // Erase after removing all of its uses
+    struct vcpu *vcpus;
     size_t vcpu_array[PLAT_CPU_NUM];
     size_t cpu_num;
     cpumap_t cpus;
@@ -92,11 +93,18 @@ struct vcpu {
     struct vm* vm;
 };
 
+struct vm_allocation {
+    vaddr_t base;
+    size_t size;
+    struct vm *vm;
+    struct vcpu *vcpus;
+};
+
 extern struct vm vm;
 
-void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t vm_id);
+struct vm* vm_init(struct vm_allocation* vm_alloc, const struct vm_config* config,
+    bool master, vmid_t vm_id);
 void vm_start(struct vm* vm, vaddr_t entry);
-struct vcpu* vm_get_vcpu(struct vm* vm, vcpuid_t vcpuid);
 void vm_emul_add_mem(struct vm* vm, struct emul_mem* emu);
 void vm_emul_add_reg(struct vm* vm, struct emul_reg* emu);
 emul_handler_t vm_emul_get_mem(struct vm* vm, vaddr_t addr);
@@ -105,6 +113,13 @@ void vcpu_init(struct vcpu* vcpu, struct vm* vm, vaddr_t entry);
 void vm_msg_broadcast(struct vm* vm, struct cpu_msg* msg);
 cpumap_t vm_translate_to_pcpu_mask(struct vm* vm, cpumap_t mask, size_t len);
 cpumap_t vm_translate_to_vcpu_mask(struct vm* vm, cpumap_t mask, size_t len);
+
+static inline struct vcpu* vm_get_vcpu(struct vm* vm, vcpuid_t vcpuid) {
+    if (vcpuid < vm->cpu_num) {
+        return &vm->vcpus[vcpuid];
+    }
+    return NULL;
+}
 
 static inline cpuid_t vm_translate_to_pcpuid(struct vm* vm, vcpuid_t vcpuid)
 {
@@ -144,6 +159,8 @@ static inline void vcpu_inject_irq(struct vcpu *vcpu, irqid_t id)
 /* ------------------------------------------------------------*/
 
 void vm_mem_prot_init(struct vm* vm, const struct vm_config* config);
+bool vm_mem_region_is_phys(struct vm_mem_region *region);
+paddr_t vm_mem_region_get_phys(struct vm_mem_region *region);
 
 /* ------------------------------------------------------------*/
 

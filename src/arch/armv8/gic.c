@@ -87,7 +87,7 @@ void gic_init()
         NUM_LRS = gich_num_lrs();
     }
 
-    cpu_sync_memprot();
+    cpu_sync_mem_barrier(&cpu_glb_sync);
 
     gic_cpu_init();
 }

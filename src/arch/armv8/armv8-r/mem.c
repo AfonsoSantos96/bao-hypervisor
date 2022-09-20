@@ -8,25 +8,25 @@
 #include <arch/sysregs.h>
 #include <mem_prot/mem.h>
 
-#define PRIO_ORDER          NO_PRIORITY
-#define MP_GRANULARITY      PAGE_SIZE
-
-struct memory_protection_dscr{
-    unsigned long entries;
-    unsigned long granularity;
-    unsigned long priority_order;
-}mp;
+// josecm : this has to be arch indenepdent?
+struct memory_protection_dscr {
+    size_t entries;
+    size_t granularity;
+} mp;
 
 bool mem_translate(struct addr_space* as, vaddr_t va, paddr_t* pa)
 {
+    // josecm: TODO
+    // if va exists in the as:
+    //      *pa = va;
+    //      return true
     return false;
 }
 
 static inline void mem_set_memory_struct()
 {
-    mp.granularity = MP_GRANULARITY;
-    mp.priority_order = PRIO_ORDER;
-    mp.entries = (sysreg_hmpuir_read() & HMPUIR_REGIONS);
+    mp.granularity = PAGE_SIZE;
+    mp.entries = MPUIR_REGION(sysreg_mpuir_el2_read());
 }
 
 void as_arch_init(struct addr_space* as)
@@ -34,77 +34,94 @@ void as_arch_init(struct addr_space* as)
     if (cpu()->id == CPU_MASTER){
         mem_set_memory_struct();
     }
+
+    // josecm: missing cpu_sync?
+
     as->mem_prot_desc = &mp;
 }
 
-unsigned long mem_get_granularity()
+// josecm: shoulndt this both be architecture agnostic?
+size_t mem_get_granularity()
 {
-    return PAGE_SIZE;
+    return mp.granularity; 
 }
 
-unsigned long mem_get_mp_entries()
+size_t mem_get_mp_entries()
 {
     return cpu()->as.mem_prot_desc->entries;
 }
 
 void mem_read_physical_entry(struct memory_protection *mp_entry, unsigned long region)
 {
-    unsigned long base = 0, lim = 0;
-    sysreg_hprselr_write(region);
-    base = sysreg_hprbar_read();
-    lim = sysreg_hprlar_read();
-    if(lim & 0x1) mp_entry->assigned = true;
-        else mp_entry->assigned = false; 
-    mp_entry->mem_flags = (HPRBAR_CONF(base) | (HPRLAR_CONF(lim)<<4));
-    mp_entry->base_addr = (base & PRBAR_BASE_MSK);
-    mp_entry->limit_addr = (lim |(0x3F));
+    sysreg_prselr_el2_write(region);
+    unsigned long prbar = sysreg_prbar_el2_read();
+    unsigned long prlar = sysreg_prlar_el2_read();
+    mp_entry->assigned = !!(prlar & PRLAR_EN);
+    mp_entry->mem_flags.prbar = PRBAR_FLAGS(prbar);
+    mp_entry->mem_flags.prlar = PRLAR_FLAGS(prlar);
+    mp_entry->base_addr = PRBAR_BASE(prbar);
+    mp_entry->size = (PRLAR_LIMIT(prlar) + 1) - mp_entry->base_addr;
 }
 
-static inline mpid_t get_region_num(paddr_t addr)
+static inline mpid_t get_region_by_addr(paddr_t addr)
 {
-    ssize_t reg_num = 0;
+    ssize_t reg_num;
     struct memory_protection region;
-    while(bitmap_get(cpu()->arch.profile.mem_p, reg_num) ||
-            reg_num<cpu()->as.mem_prot_desc->entries)
-    {
-        mem_read_physical_entry(&region, reg_num);
-        if(addr >= region.base_addr || addr <= region.limit_addr) break;
-        reg_num++;
+
+    for(reg_num = 0; reg_num < mem_get_mp_entries(); reg_num++) {
+        if (bitmap_get(cpu()->arch.profile.mem_p, reg_num)) {
+            mem_read_physical_entry(&region, reg_num);
+            vaddr_t limit_addr = region.base_addr + region.size - 1;
+            if(addr >= region.base_addr && addr <= limit_addr) {
+                break;
+            }
+        }
     }
-    if (reg_num<cpu()->as.mem_prot_desc->entries) reg_num = -1;
+    
+    if (reg_num >= mem_get_mp_entries()) {
+        reg_num = INVALID_MPID;
+    }
+
     return reg_num;
 }
 
 mpid_t get_available_physical_region()
 {
-    mpid_t reg_num = 0;
-    unsigned long status = 0;
-    while(reg_num<cpu()->as.mem_prot_desc->entries && !status)
-    {
-        if (bitmap_get(cpu()->arch.profile.mem_p, reg_num) == 0) status = 1;
-        reg_num++;
+    mpid_t reg_num = INVALID_MPID;
+    for (mpid_t i = 0; i < mem_get_mp_entries(); i++) {
+        if (bitmap_get(cpu()->arch.profile.mem_p, i) == 0) {
+            reg_num = i;
+            break;
+        }
     }
-    if (!status) reg_num = -1;
-    return (--reg_num);
+    return reg_num;
 }
 
-void mem_free_physical_region(paddr_t addr)
+// josecm: should be refactored in two functios
+//     - get region id from addr
+//     - free region by id
+bool mem_free_physical_region(paddr_t addr)
 {
-    mpid_t reg_num = get_region_num(addr);
-    bitmap_clear(cpu()->arch.profile.mem_p, reg_num);
-    sysreg_hprselr_write(reg_num);
-    sysreg_hprlar_write(0);
-    sysreg_hprbar_write(0);
+    mpid_t reg_num = get_region_by_addr(addr);
+    if(reg_num != INVALID_MPID) {
+        bitmap_clear(cpu()->arch.profile.mem_p, reg_num);
+        sysreg_prselr_el2_write(reg_num);
+        sysreg_prlar_el2_write(0);
+        sysreg_prbar_el2_write(0);
+        return true;
+    }
+
+    return false;
 }
 
+// josecm: should receive a struct mpu_blabla
 void mem_write_mp(paddr_t pa, size_t n, mem_flags_t flags)
 {
-    unsigned long lim = (pa+n);
-    lim = (lim - 1) & PRLAR_LIMIT_MSK;
+    unsigned long lim = (pa + n - 1);
     mpid_t reg = get_available_physical_region();
-    if (reg == -1) ERROR("No available MPU regions!");
+    if (reg == INVALID_MPID) ERROR("No more available MPU regions.");
     bitmap_set(cpu()->arch.profile.mem_p, reg);
-    sysreg_hprselr_write(reg);
-    sysreg_hprbar_write(PRBAR_BASE(pa) | HPRBAR_CONF(flags));
-    sysreg_hprlar_write(PRLAR_LIMIT(lim) | HPRLAR_CONF(flags) | ENABLE_MASK);
+    sysreg_prselr_el2_write(reg);
+    sysreg_prbar_el2_write((pa & PRBAR_BASE_MSK) | flags.prbar);
+    sysreg_prlar_el2_write((lim & PRLAR_LIMIT_MSK) | flags.prlar);
 }

@@ -24,6 +24,7 @@ typedef uintptr_t vaddr_t;
 #define MAX_VA  ((vaddr_t)-1)
 
 typedef ssize_t mpid_t;
+#define INVALID_MPID    ((mpid_t)-1)
 
 typedef unsigned long colormap_t;
 

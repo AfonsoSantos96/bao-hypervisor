@@ -27,6 +27,9 @@
             ;                                                       \
     }
 
+#define MMU 1
+#define MPU 2
+
 #endif /* __ASSEMBLER__ */
 
 #endif /* __BAO_H__ */

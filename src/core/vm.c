@@ -29,47 +29,26 @@ void vm_cpu_init(struct vm* vm)
     spin_unlock(&vm->lock);
 }
 
+static vcpuid_t vm_calc_vcpu_id(struct vm* vm) {
+    vcpuid_t vcpu_id = 0;
+    for(size_t i = 0; i < cpu()->id; i++) {
+        if (!!bit_get(vm->cpus, i)) vcpu_id++;
+    }
+    return vcpu_id;
+}
+
 void vm_vcpu_init(struct vm* vm, const struct vm_config* config)
 {
-    size_t cpu_map_pos = cpu()->id;
-    size_t cpu_mem_pos = 0;
-    size_t vcpu_pos = 0;
-    /*    Calculate vcpu offset from VM struct    */
-    while (cpu_mem_pos < cpu_map_pos)
-    {
-        if((vm->cpus >> cpu_mem_pos) & 0x1) vcpu_pos++;
-        cpu_mem_pos++;
-    }
+    vcpuid_t vcpu_id = vm_calc_vcpu_id(vm);
+    struct vcpu* vcpu = vm_get_vcpu(vm, vcpu_id);
 
-    struct vcpu* vcpu = 
-        (struct vcpu*) ((vaddr_t)vm + sizeof(struct vm) + vcpu_pos*sizeof(struct vcpu));
-    memset(vcpu, 0, sizeof(struct vcpu));
-
-    cpu()->vcpu = vcpu;
+    vcpu->id = vcpu_id;
     vcpu->phys_id = cpu()->id;
     vcpu->vm = vm;
-
-    size_t count = 0, offset = 0;
-    while (count < vm->cpu_num) {
-        if (offset == cpu()->id) {
-            vcpu->id = count;
-            break;
-        }
-        if ((1UL << offset) & vm->cpus) {
-            count++;
-        }
-        offset++;
-    }
+    cpu()->vcpu = vcpu;
 
     vcpu_arch_init(vcpu, vm);
     vcpu_arch_reset(vcpu, config->entry);
-
-    list_push(&vm->vcpu_list, &vcpu->node);
-}
-
-static void vm_update_as(struct vm* vm)
-{
-    vm->as.cpus = vm->cpus;
 }
 
 static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
@@ -78,11 +57,8 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
     /* map original img address */
     size_t n_img = NUM_PAGES(config->image.size);
     struct ppages src_pa_img = mem_ppages_get(config->image.load_addr, n_img);
-    vaddr_t src_va = src_pa_img.base;
-    if(!vm_mem_region_is_phys(reg->place_phys)){
-        src_va = mem_alloc_map(&cpu()->as, SEC_HYP_PRIVATE, &src_pa_img,
-                                     NULL_VA, n_img, PTE_HYP_FLAGS);
-    }
+    vaddr_t src_va = mem_alloc_map(&cpu()->as, SEC_HYP_PRIVATE, &src_pa_img,
+                                    NULL_VA, n_img, PTE_HYP_FLAGS);
     if (src_va == NULL_VA) {
         ERROR("mem_alloc_map failed %s", __func__);
     }
@@ -99,18 +75,18 @@ static void vm_copy_img_to_rgn(struct vm* vm, const struct vm_config* config,
 
     memcpy((void*)dst_va, (void*)src_va, n_img * PAGE_SIZE);
     cache_flush_range((vaddr_t)dst_va, n_img * PAGE_SIZE);
-    /*TODO: unmap */
-    mem_unmap(&cpu()->as, dst_va, dst_pp.size, 1);
+    mem_unmap(&cpu()->as, src_va, n_img, false);
+    mem_unmap(&cpu()->as, dst_va, n_img, false);
 }
 
 void vm_map_mem_region(struct vm* vm, struct vm_mem_region* reg)
 {
     size_t n = NUM_PAGES(reg->size);
 
-    if (vm_mem_region_is_phys(reg->place_phys)) {
+    if (vm_mem_region_is_phys(reg)) {
         struct ppages pa_reg = mem_ppages_get(reg->phys, n);        
         vaddr_t va = mem_alloc_map(&vm->as, SEC_VM_ANY, &pa_reg,
-                    (vaddr_t)reg->base, n, PTE_VM_IMG_FLAGS);
+                    (vaddr_t)reg->base, n, PTE_VM_FLAGS);
         
         if (va != (vaddr_t)reg->base) {
             ERROR("failed to allocate vm's dev address");
@@ -175,7 +151,7 @@ static void vm_install_image(struct vm* vm) {
 static void vm_map_img_rgn(struct vm* vm, const struct vm_config* config,
                            struct vm_mem_region* reg)
 {
-    if (vm_mem_region_is_phys(reg->place_phys)) {
+    if (vm_mem_region_is_phys(reg)) {
         vm_copy_img_to_rgn(vm, config, reg);
         vm_map_mem_region(vm, reg);
     } else if(config->image.inplace) {
@@ -262,8 +238,18 @@ static void vm_init_dev(struct vm* vm, const struct vm_config* config)
       
 }
 
-void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t vm_id)
+static struct vm* vm_allocation_init(struct vm_allocation* vm_alloc) {
+    struct vm *vm = vm_alloc->vm;
+    vm->vcpus = vm_alloc->vcpus;
+    return vm;
+}
+
+struct vm* vm_init(struct vm_allocation* vm_alloc, const struct vm_config* config,
+    bool master, vmid_t vm_id)
 {
+
+    struct vm *vm = vm_allocation_init(vm_alloc);
+
     /**
      * Before anything else, initialize vm structure.
      */
@@ -277,14 +263,6 @@ void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t 
     vm_cpu_init(vm);
 
     cpu_sync_barrier(&vm->sync);
-    //cpu_sync_memprot();
-
-    /*
-     *  Update VM AS cpu bitmap with VM cpu affinity.
-     */
-    if (master) {
-        vm_update_as(vm);
-    }
 
     /*
      *  Initialize each virtual core.
@@ -292,7 +270,6 @@ void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t 
     vm_vcpu_init(vm, config);
 
     cpu_sync_barrier(&vm->sync);
-    //cpu_sync_memprot();
 
     /**
      * Perform architecture dependent initializations. This includes,
@@ -311,18 +288,9 @@ void vm_init(struct vm* vm, const struct vm_config* config, bool master, vmid_t 
         vm_init_ipc(vm, config);
     }
 
-    cpu_sync_barrier(&vm->sync);
-    //cpu_sync_memprot();
-}
+    cpu_sync_mem_barrier(&vm->sync);
 
-struct vcpu* vm_get_vcpu(struct vm* vm, vcpuid_t vcpuid)
-{
-    list_foreach(vm->vcpu_list, struct vcpu, vcpu)
-    {
-        if (vcpu->id == vcpuid) return vcpu;
-    }
-
-    return NULL;
+    return vm;
 }
 
 void vm_emul_add_mem(struct vm* vm, struct emul_mem* emu)

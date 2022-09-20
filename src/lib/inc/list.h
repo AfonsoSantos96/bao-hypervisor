@@ -83,6 +83,7 @@ static inline bool list_empty(struct list* list)
     return (list->head == NULL);
 }
 
+// josecm: possible bug when removing head
 static inline bool list_rm(struct list* list, node_t* node)
 {
     if (list != NULL && node != NULL) {

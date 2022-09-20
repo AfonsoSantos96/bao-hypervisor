@@ -14,16 +14,7 @@
 
 struct cpu_arch_profile {
     // TODO: Declare the power-off state struct
-    bitmap_t mem_p[PLAT_MP_ENTRIES];
-};
-
-struct shared_region {
-    node_t node;
-    unsigned long base_addr;
-    unsigned long size;
-    unsigned long mem_flags;
-    bitmap_t trgt_cpu;
-    spinlock_t trgt_bitmap_lock;
+    BITMAP_ALLOC(mem_p, PLAT_MP_ENTRIES);
 };
 
 struct cpuif_memprot {

@@ -495,10 +495,12 @@ bool mem_map(struct addr_space *as, vaddr_t va, struct ppages *ppages,
      * goes wrong.
      */
 
+    // josecm: this should be fixed in different commit
+    struct ppages temp_ppages;
     if (ppages == NULL && !all_clrs(as->colors)) {
-        struct ppages temp = mem_alloc_ppages(as->colors, n, false);
-        if (temp.size < n) ERROR("failed to alloc colored physical pages");
-        ppages = &temp;
+        temp_ppages = mem_alloc_ppages(as->colors, n, false);
+        if (temp_ppages.size < n) ERROR("failed to alloc colored physical pages");
+        ppages = &temp_ppages;
     }
 
     if (ppages && !all_clrs(ppages->colors)) {
@@ -931,11 +933,22 @@ void mem_prot_init() {
 vaddr_t mem_alloc_map(struct addr_space* as, enum AS_SEC section, struct ppages *page, 
                         vaddr_t at, size_t size, mem_flags_t flags)
 {
-    vaddr_t address = mem_alloc_vpage (as, section, at, size);
-    // if (address != at) ERROR("Can't allocate address");
+    vaddr_t address = mem_alloc_vpage(as, section, at, size);
+    if (((at != NULL_VA) && (at != address)) || (address == NULL_VA)) {
+        ERROR("Can't allocate address");
+    }
     mem_map(as, address, page, size, flags);
 
     return address;
+}
+
+bool mem_map_dev(struct addr_space *as, vaddr_t va, paddr_t base,
+                size_t n)
+{
+    if(va == NULL_VA) va = base;
+    struct ppages pages = mem_ppages_get(base, n);
+    return mem_map(as, va, &pages, n,
+                   as->type == AS_HYP ? PTE_HYP_DEV_FLAGS : PTE_VM_DEV_FLAGS);
 }
 
 vaddr_t mem_alloc_map_dev(struct addr_space* as, enum AS_SEC section, 

@@ -162,15 +162,6 @@ bool mem_reserve_ppages(struct ppages *ppages)
     return mem_reserve_ppages_in_pool_list(&page_pool_list, ppages);
 }
 
-bool mem_map_dev(struct addr_space *as, vaddr_t va, paddr_t base,
-                size_t n)
-{
-    if(va == NULL_VA) va = base;
-    struct ppages pages = mem_ppages_get(base, n);
-    return mem_map(as, va, &pages, n,
-                   as->type == AS_HYP ? PTE_HYP_DEV_FLAGS : PTE_VM_DEV_FLAGS);
-}
-
 void *mem_alloc_page(size_t n, enum AS_SEC sec, bool phys_aligned)
 {
     vaddr_t vpage = NULL_VA;
@@ -293,9 +284,9 @@ bool mem_reserve_physical_memory(struct page_pool *pool)
         /* for every mem region */
         for (size_t j = 0; j < vm_cfg->platform.region_num; j++) {
             struct vm_mem_region *reg = &vm_cfg->platform.regions[j];
-            if (vm_mem_region_is_phys(reg->place_phys)) {
+            if (vm_mem_region_is_phys(reg)) {
                 size_t n_pg = NUM_PAGES(reg->size);
-                reg->phys = vm_mem_region_get_phys(reg->phys, reg->base);
+                reg->phys = vm_mem_region_get_phys(reg);
                 struct ppages ppages = mem_ppages_get(reg->phys, n_pg);
                 if (!mem_reserve_ppool_ppages(pool, &ppages)) {
                     return false;
@@ -426,7 +417,7 @@ void mem_init(paddr_t load_addr)
         }
     }
 
-    cpu_sync_barrier(&cpu_glb_sync);
+    cpu_sync_mem_barrier(&cpu_glb_sync);
 
     if (!all_clrs(config.hyp.colors)) {
         mem_color_hypervisor(load_addr, root_mem_region);
@@ -439,5 +430,5 @@ void mem_init(paddr_t load_addr)
     }
 
     /* Wait for master core to initialize memory management */
-    cpu_sync_barrier(&cpu_glb_sync);
+    cpu_sync_mem_barrier(&cpu_glb_sync);
 }

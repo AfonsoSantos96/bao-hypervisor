@@ -22,6 +22,13 @@ boot_arch_profile_init:
     mov r7, #CPU_SIZE
     mla r3, r0, r7, r3
 
+    /* Clear the CPU struct */
+    mov r11, r3
+    add r12, r3, r7
+    mov r10, lr
+    bl boot_clear
+    mov lr, r10
+
     /* Save CPU_X phys base address on Hyp Soft Thread ID */
     mcr p15, 4, r3, c13, c0, 2 // write HTPIDR
 
@@ -40,7 +47,7 @@ boot_arch_profile_init:
     ldr r4, =MAIR_EL2_DFLT
     mcr p15, 4, r4, c10, c2, 0 // HMAIR
 
-    /* Region 0 - Image */
+    /* Region 0 - Image loadable */
     mov r4, #0
     mcr p15, 4, r4, c6, c2, 1   // HPRSELR
     ldr r3, =_image_start
@@ -48,14 +55,13 @@ boot_arch_profile_init:
     orr r3, r3, #PRBAR_SH_IS
     orr r3, r3, #PRBAR_AP_RW_EL2
     mcr p15, 4, r3, c6, c3, 0   // HPRBAR
-
-    ldr r3, =_image_end
+    ldr r3, =_image_load_end
     sub r3, r3, #1
     and r3, r3, #PRLAR_LIMIT_MSK
     orr r3, r3, #(PRLAR_ATTR(1) | PRLAR_EN)
     mcr p15, 4, r3, c6, c3, 1   // HPRLAR
 
-    /* Region 1 - CPU */
+    /* Region 2 - CPU */
     mov r4, #1
     mcr p15, 4, r4, c6, c2, 1   // HPRSELR
     mrc p15, 4, r3, c13, c0, 2  // HTPIDR (read CPU base addr)
@@ -63,13 +69,30 @@ boot_arch_profile_init:
     orr r3, r3, #PRBAR_SH_IS
     orr r3, r3, #PRBAR_AP_RW_EL2
     mcr p15, 4, r3, c6, c3, 0   // HPRBAR
-
     mrc p15, 4, r3, c13, c0, 2  // HTPIDR (read CPU base addr)
     add r3, r3, #CPU_SIZE
     sub r3, r3, #1
     and r3, r3, #PRLAR_LIMIT_MSK
     orr r3, #(PRLAR_ATTR(1) | PRLAR_EN)
     mcr p15, 4, r3, c6, c3, 1   // HPRLAR
+
+
+    /* Region 1 - Image Non-loadable */
+    // josecm: this section might not exists
+    // first check is _image_load_end != _image_noload_start
+    mov r4, #2
+    mcr p15, 4, r4, c6, c2, 1   // HPRSELR
+    ldr r3, =_image_noload_start
+    and r3, r3, #PRBAR_BASE_MSK
+    orr r3, r3, #PRBAR_SH_IS
+    orr r3, r3, #PRBAR_AP_RW_EL2
+    mcr p15, 4, r3, c6, c3, 0   // HPRBAR
+    ldr r3, =_image_end
+    sub r3, r3, #1
+    and r3, r3, #PRLAR_LIMIT_MSK
+    orr r3, r3, #(PRLAR_ATTR(1) | PRLAR_EN)
+    mcr p15, 4, r3, c6, c3, 1   // HPRLAR
+
     
     dsb
     isb

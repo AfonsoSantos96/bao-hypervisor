@@ -23,7 +23,6 @@ struct cpu_msg_node {
 OBJPOOL_ALLOC(msg_pool, struct cpu_msg_node, CPU_MSG_POOL_SIZE);
 
 struct cpu_synctoken cpu_glb_sync = {.ready = false};
-struct cpu_synctoken cpu_mem_sync = {.ready = false};
 
 extern uint8_t _ipi_cpumsg_handlers_start;
 extern uint8_t _ipi_cpumsg_handlers_size;
@@ -36,6 +35,7 @@ struct cpuif cpu_interfaces[PLAT_CPU_NUM];
 void cpu_init(cpuid_t cpu_id, paddr_t load_addr)
 {
     cpu()->id = cpu_id;
+    cpu()->handling_msgs = false;
     cpu()->interface = cpu_if(cpu()->id);
 
     cpu_arch_init(cpu_id, load_addr);
@@ -80,6 +80,7 @@ bool cpu_get_msg(struct cpu_msg *msg)
 
 void cpu_msg_handler()
 {
+    cpu()->handling_msgs = true;
     struct cpu_msg msg;
     while (cpu_get_msg(&msg)) {
         if (msg.handler < ipi_cpumsg_handler_num &&
@@ -87,10 +88,7 @@ void cpu_msg_handler()
             ipi_cpumsg_handlers[msg.handler](msg.event, msg.data);
         }
     }
-}
-
-void cpu_empty_mailbox(){
-    cpu_msg_handler();
+    cpu()->handling_msgs = false;
 }
 
 void cpu_idle()
@@ -119,9 +117,12 @@ void cpu_idle_wakeup()
     }
 }
 
-struct shared_region* cpu_msg_get_mem_alloc()
+// josecm: change name to be more generic
+void cpu_sync_mem_barrier(struct cpu_synctoken* token)
 {
-    struct shared_region *node = objpool_alloc(&msg_pool);
-    if (node == NULL) ERROR("cant allocate msg node");
-    return node;
+    cpu_sync_barrier(token);
+    if (!cpu()->handling_msgs) {
+        cpu_msg_handler();
+    }
+    cpu_sync_barrier(token);
 }

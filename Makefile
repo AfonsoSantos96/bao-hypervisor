@@ -151,10 +151,10 @@ objs-y+=$(config_obj)
 
 build_macros:=
 ifeq ($(arch_mem_prot),mmu)
-build_macros+=-DMEM_PROT_MMU
+build_macros+=-DMEM_PROT=MMU -DMEM_PROT_MMU
 endif
 ifeq ($(arch_mem_prot),mpu)
-build_macros+=-DMEM_PROT_MPU
+build_macros+=-DMEM_PROT=MPU -DMEM_PROT_MPU
 endif
 
 override CPPFLAGS+=$(addprefix -I, $(inc_dirs)) $(arch-cppflags) \
@@ -238,7 +238,8 @@ $(config_dep): $(config_src)
 
 $(config_def_generator): $(config_def_generator_src) $(config_src)
 	@echo "Compiling generator	$(patsubst $(cur_dir)/%, %, $@)"
-	@$(HOST_CC) $^ -DGENERATING_DEFS $(addprefix -I, $(inc_dirs)) -o $@
+	@$(HOST_CC) $^ $(build_macros) -DGENERATING_DEFS \
+		$(addprefix -I, $(inc_dirs)) -o $@
 
 $(config_defs): $(config_def_generator)
 	@echo "Generating header	$(patsubst $(cur_dir)/%, %, $@)"
@@ -246,7 +247,7 @@ $(config_defs): $(config_def_generator)
 
 $(platform_def_generator): $(platform_def_generator_src) $(platform_description)
 	@echo "Compiling generator	$(patsubst $(cur_dir)/%, %, $@)"
-	@$(HOST_CC) $^ -DGENERATING_DEFS -D$(ARCH) \
+	@$(HOST_CC) $^ $(build_macros) -DGENERATING_DEFS -D$(ARCH) \
 		$(addprefix -I, $(inc_dirs)) -o $@
 
 $(platform_defs): $(platform_def_generator)

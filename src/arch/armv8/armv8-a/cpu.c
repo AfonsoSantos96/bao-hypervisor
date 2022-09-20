@@ -46,7 +46,3 @@ void cpu_arch_profile_idle() {
      * point. Just return to the architectural
      */
 }
-
-void cpu_sync_memprot(){
-    cpu_sync_barrier(&cpu_glb_sync);
-}
