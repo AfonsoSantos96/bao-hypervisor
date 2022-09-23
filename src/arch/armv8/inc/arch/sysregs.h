@@ -415,6 +415,14 @@
 
 #define CPUACTLR_EL1 S3_1_C15_C2_0
 
+/* VSCTLR, Virtualization System Control Register */
+
+#define REG_LENGTH (sizeof(long)*8)
+#define VSCTLR_EL2_VMID_LEN (REG_LENGTH/4)
+#define VSCTLR_EL2_VMID_OFF_ADJUST (16)
+#define VSCTLR_EL2_VMID_OFF (REG_LENGTH - VSCTLR_EL2_VMID_OFF_ADJUST)
+#define VSCTLR_EL2_VMID_MSK BIT_MASK (VSCTLR_EL2_VMID_OFF, VSCTLR_EL2_VMID_LEN)
+
 /* GICC System Register Interface Definitions */
 
 #define ICC_PMR_EL1         S3_0_C4_C6_0           
