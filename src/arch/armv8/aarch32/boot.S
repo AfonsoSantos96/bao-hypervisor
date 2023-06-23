@@ -52,11 +52,32 @@ _reset_handler:
     and r0, r0, r1
 
     /**
-     * TODO: Linearize cpu id according to the number of clusters and
-     * processors per cluster.
+     * Linearize cpu id according to the number of clusters and processors
+     * per cluster.
      */
 
     adr r1, _el2_entry
+    mov r3, r0, lsr #8 
+	and r3, r3, #0xff
+    ldr r4, =platform
+    mov r5, #(PLAT_ARCH_OFF+PLAT_ARCH_CLUSTERS_OFF+PLAT_CLUSTERS_CORES_NUM_OFF)
+	ldr r4, [r4, r5]
+	ldr r5, =BAO_VAS_BASE
+	sub r4, r4, r5
+	add r4, r4, r1
+	mov r5, #0
+	mov r7, #0
+1:
+	cmp r5, r3
+	bge	2f
+	ldrb r6, [r4]
+	add r4, r4, #1
+	add r5, r5, #1
+	add r7, r7, r6
+	b 	1b
+2:
+	and r0, r0, #0xff
+	add r0, r0, r7
 
     /*
      * Install vector table physical address early, in case exception occurs
