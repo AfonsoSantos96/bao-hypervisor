@@ -37,7 +37,8 @@
 #define SYSREG_GEN_ACCESSORS_64(reg, op1, crm)                                                \
     static inline unsigned long long sysreg_##reg##_read()                                    \
     {                                                                                         \
-        unsigned long long _temp, _tempH;                                                     \
+        unsigned long _temp;                                                                  \
+        unsigned long long _tempH;                                                            \
         asm volatile("mrrc p15, " #op1 ", %0, %1, " #crm "\n\r" : "=r"(_temp), "=r"(_tempH)); \
         return ((_tempH << 32) | _temp);                                                      \
     }                                                                                         \
@@ -90,13 +91,21 @@ SYSREG_GEN_ACCESSORS_MERGE(mair_el2, hmair0, hmair1);
 SYSREG_GEN_ACCESSORS(hcr, 4, c1, c1, 0);
 SYSREG_GEN_ACCESSORS(hcr2, 4, c6, c0, 0);
 SYSREG_GEN_ACCESSORS_MERGE(hcr_el2, hcr, hcr2);
-SYSREG_GEN_ACCESSORS(cntfrq_el0, 0, c14, c0, 0);
 
 SYSREG_GEN_ACCESSORS(mpuir_el2, 4, c0, c0, 4);
 SYSREG_GEN_ACCESSORS(prselr_el2, 4, c6, c2, 1);
 SYSREG_GEN_ACCESSORS(prbar_el2, 4, c6, c3, 0);
 SYSREG_GEN_ACCESSORS(prlar_el2, 4, c6, c3, 1);
 SYSREG_GEN_ACCESSORS(prenr_el2, 4, c6, c1, 1);
+
+/*  Timer  */
+SYSREG_GEN_ACCESSORS(cntfrq_el0, 0, c14, c0, 0);
+SYSREG_GEN_ACCESSORS(cnthp_ctl_el2, 4, c14, c2, 1);
+SYSREG_GEN_ACCESSORS(cntv_ctl_el0, 0, c14, c3, 1);
+SYSREG_GEN_ACCESSORS_64(cnthp_cval_el2, 6, c14);
+SYSREG_GEN_ACCESSORS_64(cntpct_el0, 0, c14);
+SYSREG_GEN_ACCESSORS_64(cntv_cval_el0, 3, c14);
+
 
 SYSREG_GEN_ACCESSORS(ich_misr_el2, 4, c12, c11, 2);
 SYSREG_GEN_ACCESSORS(ich_eisr_el2, 4, c12, c11, 3);
