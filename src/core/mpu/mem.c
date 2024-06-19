@@ -17,10 +17,11 @@ struct shared_region {
     asid_t asid;
     struct mp_region region;
     cpumap_t sharing_cpus;
+    bool lock;
 };
 
 void mem_handle_broadcast_region(uint32_t event, uint64_t data);
-bool mem_map(struct addr_space* as, struct mp_region* mpr, bool broadcast);
+bool mem_map(struct addr_space* as, struct mp_region* mpr, bool broadcast, bool lock);
 bool mem_unmap_range(struct addr_space* as, vaddr_t vaddr, size_t size, bool broadcast);
 
 enum { MEM_INSERT_REGION, MEM_REMOVE_REGION };
@@ -39,7 +40,7 @@ static inline struct mpe* mem_vmpu_get_entry(struct addr_space* as, mpid_t mpid)
     return NULL;
 }
 
-void mem_vmpu_set_entry(struct addr_space* as, mpid_t mpid, struct mp_region* mpr)
+void mem_vmpu_set_entry(struct addr_space* as, mpid_t mpid, struct mp_region* mpr, bool lock)
 {
     struct mpe* mpe = mem_vmpu_get_entry(as, mpid);
 
@@ -151,7 +152,7 @@ static void as_init_boot_regions()
         .mem_flags = PTE_HYP_FLAGS,
         .as_sec = SEC_HYP_IMAGE,
     };
-    mem_vmpu_set_entry(&cpu()->as, mpid, &mpr);
+    mem_vmpu_set_entry(&cpu()->as, mpid, &mpr, true);
     mpid++;
 
     if (separate_noload_region) {
@@ -161,7 +162,7 @@ static void as_init_boot_regions()
             .mem_flags = PTE_HYP_FLAGS,
             .as_sec = SEC_HYP_IMAGE,
         };
-        mem_vmpu_set_entry(&cpu()->as, mpid, &mpr);
+        mem_vmpu_set_entry(&cpu()->as, mpid, &mpr, true);
         mpid++;
     }
 
@@ -171,7 +172,7 @@ static void as_init_boot_regions()
         .mem_flags = PTE_HYP_FLAGS,
         .as_sec = SEC_HYP_PRIVATE,
     };
-    mem_vmpu_set_entry(&cpu()->as, mpid, &mpr);
+    mem_vmpu_set_entry(&cpu()->as, mpid, &mpr, true);
     mpid++;
 }
 
@@ -198,6 +199,8 @@ void as_init(struct addr_space* as, enum AS_TYPE type, asid_t id, cpumap_t cpus,
     for (size_t i = 0; i < VMPU_NUM_ENTRIES; i++) {
         mem_vmpu_free_entry(as, i);
     }
+
+    as_arch_init(as);
 }
 
 static void mem_free_ppages(struct ppages* ppages)
@@ -218,7 +221,7 @@ void mem_msg_handler(uint32_t event, uint64_t data)
 }
 CPU_MSG_HANDLER(mem_msg_handler, MEM_PROT_SYNC);
 
-void mem_region_broadcast(struct addr_space* as, struct mp_region* mpr, uint32_t op)
+void mem_region_broadcast(struct addr_space* as, struct mp_region* mpr, uint32_t op, bool lock)
 {
     cpumap_t shared_cpus = as->cpus;
 
@@ -230,6 +233,7 @@ void mem_region_broadcast(struct addr_space* as, struct mp_region* mpr, uint32_t
         .as_type = as->type,
         .asid = as->id,
         .region = *mpr,
+        .lock = lock,
     };
 
     for (cpuid_t cpuid = 0; cpuid < PLAT_CPU_NUM; cpuid++) {
@@ -246,17 +250,18 @@ void mem_region_broadcast(struct addr_space* as, struct mp_region* mpr, uint32_t
 }
 
 bool mem_vmpu_insert_region(struct addr_space* as, mpid_t mpid, struct mp_region* mpr,
-    bool broadcast)
+    bool broadcast, bool lock)
 {
     if (mpid == INVALID_MPID) {
         return false;
     }
 
-    if (mpu_map(as_priv(as), mpr)) {
-        mem_vmpu_set_entry(as, mpid, mpr);
+    if (mpu_map(as, mpr, lock)) {
+        mem_vmpu_set_entry(as, mpid, mpr, lock);
         if (broadcast) {
-            mem_region_broadcast(as, mpr, MEM_INSERT_REGION);
+            mem_region_broadcast(as, mpr, MEM_INSERT_REGION, lock);
         }
+        as->arch.mpu.prenr |= 1 << mpid;
         return true;
     }
 
@@ -271,22 +276,23 @@ bool mem_vmpu_remove_region(struct addr_space* as, mpid_t mpid, bool broadcast)
 
     if ((mpe != NULL) && (mpe->state == MPE_S_VALID)) {
         if (broadcast) {
-            mem_region_broadcast(as, &mpe->region, MEM_REMOVE_REGION);
+            mem_region_broadcast(as, &mpe->region, MEM_REMOVE_REGION, mpe->locked);
         }
-        mpu_unmap(as_priv(as), &mpe->region);
+        mpu_unmap(as, &mpe->region);
         mem_vmpu_free_entry(as, mpid);
+        as->arch.mpu.prenr &= ~(1 << mpid);
         removed = true;
     }
 
     return removed;
 }
 
-void mem_handle_broadcast_insert(struct addr_space* as, struct mp_region* mpr)
+void mem_handle_broadcast_insert(struct addr_space* as, struct mp_region* mpr, bool lock)
 {
     if (as->type == AS_HYP) {
-        mem_map(&cpu()->as, mpr, false);
+        mem_map(&cpu()->as, mpr, false, lock);
     } else {
-        mpu_map(as_priv(as), mpr);
+        mpu_map(as, mpr, lock);
     }
 }
 
@@ -295,7 +301,7 @@ void mem_handle_broadcast_remove(struct addr_space* as, struct mp_region* mpr)
     if (as->type == AS_HYP) {
         mem_unmap_range(&cpu()->as, mpr->base, mpr->size, false);
     } else {
-        mpu_unmap(as_priv(as), mpr);
+        mpu_unmap(as, mpr);
     }
 }
 
@@ -317,7 +323,7 @@ void mem_handle_broadcast_region(uint32_t event, uint64_t data)
 
         switch (event) {
             case MEM_INSERT_REGION:
-                mem_handle_broadcast_insert(as, &sh_reg->region);
+                mem_handle_broadcast_insert(as, &sh_reg->region, sh_reg->lock);
                 break;
             case MEM_REMOVE_REGION:
                 mem_handle_broadcast_remove(as, &sh_reg->region);
@@ -350,7 +356,7 @@ mpid_t mem_vmpu_find_overlapping_region(struct addr_space* as, struct mp_region*
     return mpid;
 }
 
-bool mem_map(struct addr_space* as, struct mp_region* mpr, bool broadcast)
+bool mem_map(struct addr_space* as, struct mp_region* mpr, bool broadcast, bool lock)
 {
     bool mapped = false;
 
@@ -369,7 +375,7 @@ bool mem_map(struct addr_space* as, struct mp_region* mpr, bool broadcast)
         // TODO: check if it possible to merge with another region
         mpid_t mpid = mem_vmpu_allocate_entry(as);
         if (mpid != INVALID_MPID) {
-            mapped = mem_vmpu_insert_region(as, mpid, mpr, broadcast);
+            mapped = mem_vmpu_insert_region(as, mpid, mpr, broadcast, lock);
         }
     }
 
@@ -401,6 +407,8 @@ bool mem_unmap_range(struct addr_space* as, vaddr_t vaddr, size_t size, bool bro
         struct mpe* mpe = mem_vmpu_get_entry(as, mpid);
         reg = mpe->region;
 
+        bool locked = mpe->locked;
+
         vaddr_t limit = vaddr + size;
         vaddr_t r_limit = reg.base + reg.size;
         vaddr_t r_base = reg.base;
@@ -415,14 +423,14 @@ bool mem_unmap_range(struct addr_space* as, vaddr_t vaddr, size_t size, bool bro
             top.base = limit;
             top.size = top_size;
             mpid_t top_mpid = mem_vmpu_allocate_entry(as);
-            mem_vmpu_insert_region(as, top_mpid, &top, true);
+            mem_vmpu_insert_region(as, top_mpid, &top, true, locked);
         }
 
         if (bottom_size > 0) {
             struct mp_region bottom = reg;
             bottom.size = bottom_size;
             mpid_t bottom_mpid = mem_vmpu_allocate_entry(as);
-            mem_vmpu_insert_region(as, bottom_mpid, &bottom, true);
+            mem_vmpu_insert_region(as, bottom_mpid, &bottom, true, locked);
         }
 
         size_t overlap_size = reg.size - top_size - bottom_size;
@@ -448,6 +456,7 @@ vaddr_t mem_map_cpy(struct addr_space* ass, struct addr_space* asd, vaddr_t vas,
     struct mpe* mpe;
     struct mp_region mpr;
     vaddr_t va_res = INVALID_VA;
+    size_t size = num_pages*PAGE_SIZE;
 
     if ((ass != asd) && (vad == INVALID_VA || vad == vas)) {
         // In mpu-based systems, we can only copy mappings between address spaces, as copying a
@@ -457,14 +466,25 @@ vaddr_t mem_map_cpy(struct addr_space* ass, struct addr_space* asd, vaddr_t vas,
 
         spin_lock(&ass->lock);
         mpid_t reg_num_src = mem_vmpu_get_entry_by_addr(ass, vas);
-        mpe = mem_vmpu_get_entry(ass, reg_num_src);
-        mpr = mpe->region;
+        if (reg_num_src != INVALID_MPID) {
+            mpe = mem_vmpu_get_entry(ass, reg_num_src);
+            mpr = mpe->region;
+        }
         spin_unlock(&ass->lock);
 
-        if (mem_map(asd, &mpr, true)) {
-            va_res = vas;
-        } else {
-            INFO("failed mem map on mem map cpy");
+        // We can only copy the mapping if the full requested region is mapped in the source
+        // address space
+        if ((reg_num_src != INVALID_MPID) && (mpr.size >= size)) {
+            mpr.base = vas;
+            mpr.size = size;
+            mpr.active = 1;
+            // TODO: we should also adapt the permissions no? If we are copying this to the
+            // hypervisor we will most likely want RW, while the guest has RWX.
+            if (mem_map(asd, &mpr, true, false)) {
+                va_res = vas;
+            } else {
+                INFO("failed mem map on mem map cpy");
+            }
         }
     } else {
         INFO("failed mem map cpy");
@@ -511,9 +531,10 @@ vaddr_t mem_alloc_map(struct addr_space* as, as_sec_t section, struct ppages* pp
         .size = (num_pages * PAGE_SIZE),
         .as_sec = section,
         .mem_flags = flags,
+        .active = as->arch.mpu.active
     };
 
-    mem_map(as, &mpr, true);
+    mem_map(as, &mpr, true, false);
 
     return at;
 }

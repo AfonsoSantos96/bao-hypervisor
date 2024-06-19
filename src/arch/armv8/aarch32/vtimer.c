@@ -29,4 +29,8 @@ void vtimer_restore_state(struct vcpu* vcpu)
     sysreg_cntv_cval_el0_write(vcpu->arch.vtimer.cntv_cval_el0);
     sysreg_cntvoff_el2_write(vcpu->arch.vtimer.cntvoff_el2);
     vgic_hw_commit(vcpu, VTIMER_IRQ_ID);
+    if((vcpu->arch.vtimer.cntv_ctl_el0 & 0x1) == 1)
+    {
+        gic_set_enable(VTIMER_IRQ_ID, true);
+    }
 }

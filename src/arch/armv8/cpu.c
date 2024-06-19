@@ -43,7 +43,14 @@ void cpu_arch_park() {
     asm volatile("mov sp, %0\n\r" ::"r"(&cpu()->stack[STACK_SIZE]));
 
     // enable interrupts
+#ifndef MEM_PROT_MPU
     asm volatile("msr   daifclr, 0x3");
+#else
+    unsigned long spsr_reg = 0;
+    asm volatile("mrs  %r0, SPSR_hyp\n\t":"=&r"(spsr_reg));
+    spsr_reg &= ~(0x1C0); 
+    asm volatile("msr SPSR_hyp, %r0\n\t"::"r"(spsr_reg));
+#endif
 
     while (true) {
         asm volatile("wfi");

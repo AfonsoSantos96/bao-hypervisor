@@ -36,6 +36,15 @@ typedef union {
     };
 } mem_flags_t;
 
+struct addr_space_arch {
+    struct {
+        unsigned long prenr;
+        unsigned long locked;
+        priv_t priv;
+        bool active;
+    } mpu;
+};
+
 #define PTE_FLAGS(_prbar, _prlar) \
     ((mem_flags_t){               \
         .prbar = (_prbar),        \
@@ -51,6 +60,7 @@ typedef union {
     PTE_FLAGS(PRBAR_XN | PRBAR_AP_RW_EL1_EL2 | PRBAR_SH_IS, PRLAR_ATTR(2) | PRLAR_EN)
 
 #define MPU_ARCH_MAX_NUM_ENTRIES (64)
+#define MPU_EL1_ARCH_MAX_NUM_ENTRIES (24)
 
 static inline const size_t mpu_granularity()
 {

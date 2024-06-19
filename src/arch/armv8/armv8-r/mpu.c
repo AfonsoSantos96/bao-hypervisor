@@ -8,6 +8,7 @@
 #include <arch/sysregs.h>
 #include <arch/fences.h>
 #include <list.h>
+#include <config_defs.h>
 
 static inline const size_t mpu_num_entries()
 {
@@ -49,37 +50,37 @@ static const struct node_cmp mpu_list_node_cmp = { .cmp = mpu_node_cmp };
 static void mpu_entry_set(mpid_t mpid, struct mp_region* mpr)
 {
     unsigned long lim = mpr->base + mpr->size - 1;
-
     sysreg_prselr_el2_write(mpid);
     ISB();
     sysreg_prbar_el2_write((mpr->base & PRBAR_BASE_MSK) | mpr->mem_flags.prbar);
     sysreg_prlar_el2_write((lim & PRLAR_LIMIT_MSK) | mpr->mem_flags.prlar);
-
     list_insert_ordered(&cpu()->arch.profile.mpu.order.list,
-        (node_t*)&cpu()->arch.profile.mpu.order.node[mpid], &mpu_list_node_cmp);
+            (node_t*)&cpu()->arch.profile.mpu.order.node[mpid], &mpu_list_node_cmp);
 }
 
 static void mpu_entry_modify(mpid_t mpid, struct mp_region* mpr)
 {
-    list_rm(&cpu()->arch.profile.mpu.order.list, (node_t*)&cpu()->arch.profile.mpu.order.node[mpid]);
+    list_rm(&cpu()->arch.profile.mpu.order.list, (
+                node_t*)&cpu()->arch.profile.mpu.order.node[mpid]);
 
     mpu_entry_set(mpid, mpr);
 }
 
-static bool mpu_entry_clear(mpid_t mpid)
+static bool mpu_entry_clear(mpid_t mpid, bool active)
 {
-    list_rm(&cpu()->arch.profile.mpu.order.list, (node_t*)&cpu()->arch.profile.mpu.order.node[mpid]);
-
+    list_rm(&cpu()->arch.profile.mpu.order.list, 
+                (node_t*)&cpu()->arch.profile.mpu.order.node[mpid]);
     sysreg_prselr_el2_write(mpid);
     ISB();
     sysreg_prlar_el2_write(0);
     sysreg_prbar_el2_write(0);
+
     return true;
 }
 
-static inline void mpu_entry_free(mpid_t mpid)
+static inline void mpu_entry_free(mpid_t mpid, bool active)
 {
-    mpu_entry_clear(mpid);
+    mpu_entry_clear(mpid, active);
     bitmap_clear(cpu()->arch.profile.mpu.bitmap, mpid);
 }
 
@@ -188,7 +189,20 @@ bool mem_region_get_overlap(struct mp_region* reg1, struct mp_region* reg2,
     return regions_overlap;
 }
 
-bool mpu_map(priv_t priv, struct mp_region* mpr)
+static priv_t mpu_as_priv(struct addr_space *as)
+{
+    priv_t priv;
+
+    if (as->type == AS_VM) {
+        priv = PRIV_VM;
+    } else {
+        priv = PRIV_HYP;
+    }
+
+    return priv;
+}
+
+bool mpu_map(struct addr_space* as, struct mp_region* mpr, bool lock)
 {
     size_t size_left = mpr->size;
     bool failed = false;
@@ -200,6 +214,7 @@ bool mpu_map(priv_t priv, struct mp_region* mpr)
     mpid_t next = INVALID_MPID;
     mpid_t bottom_mpid = INVALID_MPID;
     mpid_t top_mpid = INVALID_MPID;
+    priv_t priv = mpu_as_priv(as);
 
     while (size_left > 0 && !failed) {
         /**
@@ -430,7 +445,7 @@ bool mpu_map(priv_t priv, struct mp_region* mpr)
                     if (merge_mpid == INVALID_MPID) {
                         merge_mpid = next;
                     } else {
-                        mpu_entry_free(next);
+                        mpu_entry_free(next, as->arch.mpu.active);
                     }
                     new_reg->size += r.size;
                 }
@@ -443,12 +458,14 @@ bool mpu_map(priv_t priv, struct mp_region* mpr)
                 mpu_entry_update_priv_perms(priv, merge_mpid, new_perms);
                 mpu_entry_modify(merge_mpid, new_reg);
             } else {
-                mpid_t mpid = mpu_entry_allocate();
-                if (mpid == INVALID_MPID) {
-                    ERROR("failed to allocate mpu entry");
+                if(mpr->active){
+                    mpid_t mpid = mpu_entry_allocate();
+                    if (mpid == INVALID_MPID) {
+                        ERROR("failed to allocate mpu entry");
+                    }
+                    mpu_entry_update_priv_perms(priv, mpid, new_perms);
+                    mpu_entry_set(mpid, new_reg);
                 }
-                mpu_entry_update_priv_perms(priv, mpid, new_perms);
-                mpu_entry_set(mpid, new_reg);
             }
             size_left -= mem_size;
         }
@@ -456,20 +473,21 @@ bool mpu_map(priv_t priv, struct mp_region* mpr)
 
     if (failed) {
         if (bottom_mpid != INVALID_MPID) {
-            mpu_entry_free(bottom_mpid);
+            mpu_entry_free(bottom_mpid, as->arch.mpu.active);
         }
 
         if (top_mpid != INVALID_MPID) {
-            mpu_entry_free(top_mpid);
+            mpu_entry_free(top_mpid, as->arch.mpu.active);
         }
     }
 
     return !failed;
 }
 
-bool mpu_unmap(priv_t priv, struct mp_region* mpr)
+bool mpu_unmap(struct addr_space *as, struct mp_region* mpr)
 {
     size_t size_left = mpr->size;
+    priv_t priv = mpu_as_priv(as);
 
     while (size_left > 0) {
         mpid_t mpid = INVALID_MPID;
@@ -514,7 +532,7 @@ bool mpu_unmap(priv_t priv, struct mp_region* mpr)
             mpu_entry_set_perms(&update_reg, cpu()->arch.profile.mpu.perms[mpid]);
             mpu_entry_modify(mpid, &update_reg);
         } else {
-            mpu_entry_free(mpid);
+            mpu_entry_free(mpid, as->arch.mpu.active);
         }
 
         if (top_size > 0) {

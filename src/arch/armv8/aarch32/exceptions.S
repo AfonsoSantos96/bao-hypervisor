@@ -51,6 +51,15 @@
     SAVE_SP
     push {r0-r12}
     SAVE_ELR_SPSR
+    /* update prenr_el2 to enable all hypervisor regions  */
+    mrc p15, 4, r0, c13, c0, 2  // Read HTPIDR (CPU base address)
+    mov r1, #CPU_AS_ARCH_MPU_HPRENR_OFF
+    add r0, r0, r1
+    ldr r0, [r0]
+    mov r5, r0
+    mrc p15, 4, r1, c6, c1, 1
+    orr r0, r0, r1              // switch on all hypervisor regions
+    mcr p15, 4, r0, c6, c1, 1
 
 .endm
 
@@ -150,6 +159,36 @@
 
 .endm
 
+.macro ENTRY
+    mrc p15, 4, r0, c13, c0, 2  // Read HTPIDR (CPU base address)
+    ldr r5, [r0, #CPU_NEXT_VCPU_OFF]
+    cmp r5, #0
+    beq 11f
+    ldr r6, [r0, #CPU_VCPU_OFF]
+    cmp r5, r6
+    beq 1f
+    bl  vcpu_context_switch
+1:
+    ldr r0, [r5, #VCPU_BLOCKED_COUNT]
+    cmp r0, #0
+    beq 2f
+11:
+    bl cpu_arch_park
+    b  .
+2:
+    add r0, r5, #VCPU_REGS_OFF
+    mov sp, r0
+
+    LOAD_ELR_SPSR
+    pop {r0-r12}
+    LOAD_SP
+    pop {r14}
+
+    eret
+    b   .
+
+.endm
+
 
 .balign 0x20
 .global _hyp_vector_table
@@ -195,7 +234,7 @@ hyp_trap_handler:
     VM_EXIT
     SET_SP
     bl	aborts_sync_handler
-    VM_ENTRY
+    ENTRY
 
 
 .global hyp_irq_handler
@@ -203,7 +242,7 @@ hyp_irq_handler:
     VM_EXIT
     SET_SP
     bl  gic_handle
-    VM_ENTRY
+    ENTRY
 
 
 .global hyp_fiq_handler
@@ -213,4 +252,4 @@ hyp_fiq_handler:
 
 .global vcpu_arch_entry
 vcpu_arch_entry:
-    VM_ENTRY
+    ENTRY

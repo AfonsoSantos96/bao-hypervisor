@@ -1,3 +1,7 @@
+/**
+ * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) Bao Project and Contributors. All rights reserved.
+ */
 
 #include <sched.h>
 #include <list.h>
@@ -6,6 +10,7 @@
 #include <config.h>
 #include <vm.h>
 #include <cpu.h>
+#include <hypercall.h>
 
 void sched_init()
 {
@@ -53,4 +58,23 @@ void sched_start() {
     if (list_size(&cpu()->vcpu_list) > 1) {
         sched_set_next_timer_event();
     }
+}
+
+long sched_hypercall(void)
+{
+    long res = HC_E_SUCCESS;
+
+    sched_set_next_timer_event();
+    sched_next();
+
+    /**
+     * If there is a new vcpu we need to check if its PSCI state is on. If not,
+     * let's enter idle and wait for someaone to wake us up.
+     * TODO: rewrite this check with an arch agnostic api
+     */
+    if (cpu()->vcpu->arch.psci_ctx.state == OFF) {
+        cpu_idle();
+    }
+
+    return res;
 }
