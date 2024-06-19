@@ -18,6 +18,10 @@ void cpu_defines()
 
     DEFINE_OFFSET(CPU_VCPU_OFF, struct cpu, vcpu);
     DEFINE_OFFSET(CPU_NEXT_VCPU_OFF, struct cpu, next_vcpu);
+
+#ifdef MEM_PROT_MPU
+    DEFINE_OFFSET(CPU_AS_ARCH_MPU_HPRENR_OFF, struct cpu, as.arch.mpu.prenr);
+#endif
 }
 
 void vcpu_defines() __attribute__((used));

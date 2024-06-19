@@ -191,6 +191,7 @@ bool mem_vmpu_insert_region(struct addr_space* as, mpid_t mpid, struct mp_region
         if (broadcast) {
             mem_region_broadcast(as, mpr, MEM_INSERT_REGION, lock);
         }
+        as->arch.mpu.prenr |= 1 << mpid;
         return true;
     }
 
@@ -209,6 +210,7 @@ bool mem_vmpu_remove_region(struct addr_space* as, mpid_t mpid, bool broadcast)
         }
         mpu_unmap(as, &mpe->region);
         mem_vmpu_free_entry(as, mpid);
+        as->arch.mpu.prenr &= ~(1 << mpid);
         removed = true;
     }
 
@@ -471,6 +473,7 @@ vaddr_t mem_alloc_map(struct addr_space* as, as_sec_t section, struct ppages* pp
         .size = (num_pages * PAGE_SIZE),
         .as_sec = section,
         .mem_flags = flags,
+        .active = as->arch.mpu.active
     };
 
     mem_map(as, &mpr, true, false);

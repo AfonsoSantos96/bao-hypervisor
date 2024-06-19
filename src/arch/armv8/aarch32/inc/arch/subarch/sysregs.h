@@ -66,6 +66,10 @@ SYSREG_GEN_ACCESSORS(esr_el2, 4, c5, c2, 0); // hsr
 SYSREG_GEN_ACCESSORS_BANKED(elr_el2, elr_hyp);
 SYSREG_GEN_ACCESSORS(far_el2, 4, c6, c0, 0); // hdfar
 SYSREG_GEN_ACCESSORS(hpfar_el2, 4, c6, c0, 4);
+SYSREG_GEN_ACCESSORS(dfar_el1, 0, c6, c0, 0);
+SYSREG_GEN_ACCESSORS(ifar_el1, 0, c6, c0, 2);
+SYSREG_GEN_ACCESSORS_MERGE(far_el1, ifar_el1, dfar_el1);
+SYSREG_GEN_ACCESSORS(esr_el1, 0, c5, c0, 0); // dfsr_el1
 SYSREG_GEN_ACCESSORS(clidr_el1, 1, c0, c0, 1);
 SYSREG_GEN_ACCESSORS(csselr_el1, 2, c0, c0, 0);
 SYSREG_GEN_ACCESSORS(ctr_el0, 0, c0, c0, 1);
@@ -87,15 +91,63 @@ SYSREG_GEN_ACCESSORS(ccsidr2, 1, c0, c0, 2);
 SYSREG_GEN_ACCESSORS(hmair0, 4, c10, c2, 0);
 SYSREG_GEN_ACCESSORS(hmair1, 4, c10, c2, 1);
 SYSREG_GEN_ACCESSORS_MERGE(mair_el2, hmair0, hmair1);
+SYSREG_GEN_ACCESSORS(mair0, 0, c10, c2, 0);
+SYSREG_GEN_ACCESSORS(mair1, 0, c10, c2, 1);
+SYSREG_GEN_ACCESSORS_MERGE(mair_el1, mair0, mair1);
 SYSREG_GEN_ACCESSORS(hcr, 4, c1, c1, 0);
 SYSREG_GEN_ACCESSORS(hcr2, 4, c6, c0, 0);
 SYSREG_GEN_ACCESSORS_MERGE(hcr_el2, hcr, hcr2);
+SYSREG_GEN_ACCESSORS(vbar_el1, 0, c12, c0, 0);
+SYSREG_GEN_ACCESSORS(cpacr_el1, 0, c1, c0, 2);
+SYSREG_GEN_ACCESSORS(contextidr_el1, 0, c13, c0, 1);
+SYSREG_GEN_ACCESSORS(tpidr_el0, 0, c13, c0, 2);
+SYSREG_GEN_ACCESSORS(tpidr_el1, 0, c13, c0, 4);
+SYSREG_GEN_ACCESSORS(tpidrro_el0, 0, c13, c0, 3);
+
+/* Context switch core registers */
+// usr
+SYSREG_GEN_ACCESSORS_BANKED(x8_usr, r8_usr);
+SYSREG_GEN_ACCESSORS_BANKED(x9_usr, r9_usr);
+SYSREG_GEN_ACCESSORS_BANKED(x10_usr, r10_usr);
+SYSREG_GEN_ACCESSORS_BANKED(x11_usr, r11_usr);
+SYSREG_GEN_ACCESSORS_BANKED(x12_usr, r12_usr);
+SYSREG_GEN_ACCESSORS_BANKED(sp_el0, sp_usr);
+
+// svc
+SYSREG_GEN_ACCESSORS_BANKED(sp_el1, sp_svc);
+SYSREG_GEN_ACCESSORS_BANKED(lr_el1, lr_svc);
+SYSREG_GEN_ACCESSORS_BANKED(spsr_el1, spsr_svc);
+// abt
+SYSREG_GEN_ACCESSORS_BANKED(sp_abt, sp_abt);
+SYSREG_GEN_ACCESSORS_BANKED(lr_abt, lr_abt);
+SYSREG_GEN_ACCESSORS_BANKED(spsr_abt, spsr_abt);
+// und
+SYSREG_GEN_ACCESSORS_BANKED(sp_und, sp_und);
+SYSREG_GEN_ACCESSORS_BANKED(lr_und, lr_und);
+SYSREG_GEN_ACCESSORS_BANKED(spsr_und, spsr_und);
+// irq
+SYSREG_GEN_ACCESSORS_BANKED(sp_irq, sp_irq);
+SYSREG_GEN_ACCESSORS_BANKED(lr_irq, lr_irq);
+SYSREG_GEN_ACCESSORS_BANKED(spsr_irq, spsr_irq);
+// fiq
+SYSREG_GEN_ACCESSORS_BANKED(x8_fiq, r8_fiq)
+SYSREG_GEN_ACCESSORS_BANKED(x9_fiq, r9_fiq);
+SYSREG_GEN_ACCESSORS_BANKED(x10_fiq, r10_fiq);
+SYSREG_GEN_ACCESSORS_BANKED(x11_fiq, r11_fiq);
+SYSREG_GEN_ACCESSORS_BANKED(x12_fiq, r12_fiq);
+SYSREG_GEN_ACCESSORS_BANKED(sp_fiq, sp_fiq);
+SYSREG_GEN_ACCESSORS_BANKED(lr_fiq, lr_fiq);
+SYSREG_GEN_ACCESSORS_BANKED(spsr_fiq, spsr_fiq);
 
 SYSREG_GEN_ACCESSORS(mpuir_el2, 4, c0, c0, 4);
 SYSREG_GEN_ACCESSORS(prselr_el2, 4, c6, c2, 1);
 SYSREG_GEN_ACCESSORS(prbar_el2, 4, c6, c3, 0);
 SYSREG_GEN_ACCESSORS(prlar_el2, 4, c6, c3, 1);
 SYSREG_GEN_ACCESSORS(prenr_el2, 4, c6, c1, 1);
+SYSREG_GEN_ACCESSORS(mpuir_el1, 0, c0, c0, 4);
+SYSREG_GEN_ACCESSORS(prselr_el1, 0, c6, c2, 1);
+SYSREG_GEN_ACCESSORS(prbar_el1, 0, c6, c3, 0);
+SYSREG_GEN_ACCESSORS(prlar_el1, 0, c6, c3, 1);
 
 /*  Timer  */
 SYSREG_GEN_ACCESSORS(cntfrq_el0, 0, c14, c0, 0);
@@ -119,6 +171,11 @@ SYSREG_GEN_ACCESSORS(icc_bpr1_el1, 0, c12, c12, 3);
 SYSREG_GEN_ACCESSORS(icc_ctlr_el1, 0, c12, c12, 4);
 SYSREG_GEN_ACCESSORS(icc_igrpen1_el1, 0, c12, c12, 7);
 SYSREG_GEN_ACCESSORS(ich_hcr_el2, 4, c12, c11, 0);
+SYSREG_GEN_ACCESSORS(ich_ap1r0_el2, 4, c12, c9, 0);
+SYSREG_GEN_ACCESSORS(ich_ap1r1_el2, 4, c12, c9, 0); // gicv3 on Cortex-R52 only supports ich_ap1r0
+SYSREG_GEN_ACCESSORS(ich_ap1r2_el2, 4, c12, c9, 0); // ich_ap1r1/2/3 declarations are redirected
+SYSREG_GEN_ACCESSORS(ich_ap1r3_el2, 4, c12, c9, 0); // to the ich_ap1r0
+SYSREG_GEN_ACCESSORS(ich_vmcr_el2, 4, c12, c11, 7);
 SYSREG_GEN_ACCESSORS_64(icc_sgi1r_el1, 0, c12);
 
 SYSREG_GEN_ACCESSORS(vsctlr_el2, 4, c2, c0, 0);

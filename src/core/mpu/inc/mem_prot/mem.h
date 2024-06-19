@@ -19,6 +19,7 @@ struct mp_region {
     size_t size;
     mem_flags_t mem_flags;
     as_sec_t as_sec;
+    bool active;
 };
 
 struct addr_space {
@@ -60,5 +61,9 @@ void mpu_init();
 bool mpu_map(struct addr_space* as, struct mp_region* mem, bool lock);
 bool mpu_unmap(struct addr_space* as, struct mp_region* mem);
 void mem_vmpu_set_entry(struct addr_space* as, mpid_t mpid, struct mp_region* mpr, bool lock);
+static inline void mpu_set_active(struct addr_space* as, bool active)
+{
+    as->arch.mpu.active = active;
+}
 
 #endif /* __MEM_PROT_H__ */

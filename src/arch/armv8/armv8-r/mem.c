@@ -9,7 +9,12 @@
 void as_arch_init(struct addr_space* as)
 {
     if (as->type != AS_HYP) {
+        as->arch.mpu.priv = PRIV_VM;
         return;
+    }
+    else {
+        as->arch.mpu.priv = PRIV_HYP;
+        mpu_set_active(as, true);
     }
 
     /**
@@ -35,8 +40,11 @@ void as_arch_init(struct addr_space* as)
         .size = (size_t)(first_region_end - image_start),
         .mem_flags = PTE_HYP_FLAGS,
         .as_sec = SEC_HYP_IMAGE,
+        .active = true
     };
     mem_vmpu_set_entry(&cpu()->as, mpid, &mpr, true);
+    as->arch.mpu.prenr |= 1 << mpid;
+    as->arch.mpu.locked |= 1 << mpid;
     mpid++;
 
     if (separate_noload_region) {
@@ -45,8 +53,11 @@ void as_arch_init(struct addr_space* as)
             .size = (size_t)image_end - image_noload_start,
             .mem_flags = PTE_HYP_FLAGS,
             .as_sec = SEC_HYP_IMAGE,
+            .active = true
         };
         mem_vmpu_set_entry(&cpu()->as, mpid, &mpr, true);
+        as->arch.mpu.prenr |= 1 << mpid;
+        as->arch.mpu.locked |= 1 << mpid;
         mpid++;
     }
 
@@ -55,6 +66,9 @@ void as_arch_init(struct addr_space* as)
         .size = ALIGN(sizeof(struct cpu), PAGE_SIZE),
         .mem_flags = PTE_HYP_FLAGS,
         .as_sec = SEC_HYP_PRIVATE,
+        .active = true
     };
     mem_vmpu_set_entry(&cpu()->as, mpid, &mpr, true);
+    as->arch.mpu.prenr |= 1 << mpid;
+    as->arch.mpu.locked |= 1 << mpid;
 }
