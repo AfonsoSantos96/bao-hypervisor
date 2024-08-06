@@ -30,6 +30,7 @@ struct cpu {
 
     struct vcpu* vcpu; // current vcpu
     struct vcpu* next_vcpu; // next scheduled vcpu
+    struct vcpu* monitor_vcpu; // monitor vcpu (used for redundancy)
     struct list vcpu_list;
 
     struct list timer_event_list;

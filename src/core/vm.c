@@ -8,6 +8,7 @@
 #include <mem.h>
 #include <cache.h>
 #include <config.h>
+#include <redundancy.h>
 
 static void vm_master_init(struct vm* vm, const struct vm_config* config, vmid_t vm_id)
 {
@@ -51,7 +52,13 @@ void vm_vcpu_init(struct vm* vm, const struct vm_config* config)
     vcpu_arch_init(vcpu, vm);
     vcpu_arch_reset(vcpu, config->entry);
 
-    cpu_add_vcpu(vcpu);
+    if(!config->monitor) {
+        cpu_add_vcpu(vcpu);
+        redundancy_checkpoint(vcpu);
+    }
+    else {
+        cpu()->monitor_vcpu = vcpu;
+    }
 }
 
 void vm_map_mem_region(struct vm* vm, struct vm_mem_region* reg)

@@ -15,3 +15,4 @@ core-objs-y+=objpool.o
 core-objs-y+=hypercall.o
 core-objs-y+=timer.o
 core-objs-y+=sched.o
+core-objs-y+=redundancy.o

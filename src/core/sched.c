@@ -11,6 +11,7 @@
 #include <vm.h>
 #include <cpu.h>
 #include <hypercall.h>
+#include <redundancy.h>
 
 void sched_init()
 {
@@ -40,12 +41,38 @@ static void sched_next(void) {
     cpu()->next_vcpu = vcpu;
 }
 
+void sched_monitor_next(void) {
+    struct vcpu* aux;
+    aux = cpu()->vcpu;
+    cpu()->next_vcpu = cpu()->monitor_vcpu;
+    cpu()->monitor_vcpu = aux;
+    sched_set_next_timer_event();       // Timeout to vote
+}
 
 static void sched_timer_event_handler(struct timer_event *timer_event)
 {
     (void)timer_event;
-    sched_next();
-    sched_set_next_timer_event();
+
+    if(cpu()->monitor_vcpu == NULL){
+        sched_next();
+        sched_set_next_timer_event();    // timeout for voting
+        return;
+    }
+
+    unsigned long vcpu_hash = 0;
+    
+    data_hashing(cpu()->vcpu, sizeof(cpu()->vcpu->regs.x)/sizeof(long), &vcpu_hash);
+
+    sched_monitor_next();
+
+       /* Send number of voters on R9 */
+    cpu()->vcpu->regs.x[9] = PLAT_CPU_NUM;
+
+       /* Send vcpu hash result on R10 */
+    cpu()->vcpu->regs.x[10] = vcpu_hash;
+
+    sched_set_next_timer_event();    // Timeout to vote
+
 }
 
 void sched_yield()
@@ -58,6 +85,11 @@ void sched_start() {
     if (list_size(&cpu()->vcpu_list) > 1) {
         sched_set_next_timer_event();
     }
+}
+
+void sched_child(){
+    sched_set_next_timer_event();
+    sched_next();
 }
 
 long sched_hypercall(void)

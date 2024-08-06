@@ -8,6 +8,8 @@
 #include <vm.h>
 #include <ipc.h>
 #include <sched.h>
+#include <redundancy.h>
+#include <config.h>
 
 long int hypercall(unsigned long id)
 {
@@ -22,7 +24,15 @@ long int hypercall(unsigned long id)
             ret = ipc_hypercall(ipc_id, arg1, arg2);
             break;
         case HC_VMSTACK:
-            ret = sched_hypercall();
+            if(!config.redundancy){
+                ret = sched_hypercall();
+                break;
+            }
+        case HC_REDUNDANCY:
+            ret = redundancy_hypercall();
+            break;
+        case HC_MONITOR:
+            ret = monitor_hypercall(arg1);
             break;
         default:
             WARNING("Unknown hypercall id %d", id);

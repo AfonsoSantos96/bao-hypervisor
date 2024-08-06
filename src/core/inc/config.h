@@ -95,6 +95,11 @@ struct vm_config {
     colormap_t colors;
 
     /**
+     * Flag indicating the VM is the monitor (Used to the redundancy mechanism)
+     */
+    bool monitor;
+
+    /**
      * A description of the virtual platform available to the guest, i.e., the virtual machine
      * itself.
      */
@@ -124,6 +129,8 @@ extern struct config {
     /* The number of VMs specified by this configuration */
     size_t vmlist_size;
 
+    bool redundancy;
+    
     /* Array list with VM configuration */
     struct vm_config vmlist[];
 

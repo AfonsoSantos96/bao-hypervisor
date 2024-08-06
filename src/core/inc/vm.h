@@ -18,6 +18,12 @@
 #include <io.h>
 #include <ipc.h>
 
+struct checkpoint {
+    struct arch_regs regs;
+    struct vcpu_arch arch;
+    bool rollback;
+};
+
 struct vm_mem_region {
     paddr_t base;
     size_t size;
@@ -82,6 +88,10 @@ struct vm {
 
     BITMAP_ALLOC(interrupt_bitmap, MAX_INTERRUPTS);
 
+#ifdef REDUNDANCY
+    bool monitor;
+#endif
+
     size_t ipc_num;
     struct ipc* ipcs;
 };
@@ -91,6 +101,8 @@ struct vcpu {
 
     struct arch_regs regs;
     struct vcpu_arch arch;
+
+    struct checkpoint check;
 
     vcpuid_t id;
     cpuid_t phys_id;

@@ -10,5 +10,7 @@
 
 void sched_start(void);
 long sched_hypercall(void);
+void sched_child();
+void sched_monitor_next(void);
 
 #endif /* SCHED_H */

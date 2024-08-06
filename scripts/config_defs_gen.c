@@ -15,6 +15,10 @@ int main() {
     printf("#define CONFIG_VM_NUM %ld\n", config.vmlist_size);
     printf("#define CONFIG_VCPU_NUM %ld\n", vcpu_num);
 
+    if (config.redundancy){
+        printf("#define REDUNDANCY 1\n");
+    }
+
     if(config.hyp.relocate) {
         printf("#define CONFIG_HYP_BASE_ADDR (0x%lx)\n", config.hyp.base_addr);
     } else {
