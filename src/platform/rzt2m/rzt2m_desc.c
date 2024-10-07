@@ -13,11 +13,11 @@ struct platform platform = {
         {
             // DRAM, 0GB-2GB
             .base = 0x10000000,
-            .size = 0x300000//0x100000
+            .size = 0x00180000
         }
     },
 
-    .console = {            // Baudrate 19200
+    .console = {      // Baudrate 19200
         .base = 0x80001000, // Uart0 (USB connection: CN16 - USB_ser)
         // .base = 0x80001C00, // Uart3 (J25/PMOD2: w/FTDI -> Tx - pin2 and Rx -> pin3)
     },

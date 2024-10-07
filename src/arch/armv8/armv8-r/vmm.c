@@ -26,7 +26,9 @@ void vmm_arch_profile_init()
 
         timer_ctl->CNTCR |= GENERIC_TIMER_CNTCTL_CNTCR_EN;
         fence_ord_write();
-
+        #ifdef CNTDIF_VALUE
+        timer_ctl->CNTDIF0 = CNTDIF_VALUE;
+        #endif
         timer_freq = timer_ctl->CNTDIF0;
 
         mem_unmap(&cpu()->as, (vaddr_t)timer_ctl, sizeof(struct generic_timer_cntctrl), false);
